@@ -138,7 +138,7 @@ All tasks follow a strict lifecycle:
 
 Before marking any task complete, verify:
 
-- [ ] All tests pass
+- [ ] All tests pass (including Docker integration tests for new tools)
 - [ ] Code coverage meets requirements (>80%)
 - [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
 - [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
@@ -182,6 +182,8 @@ Before marking any task complete, verify:
 - Test both success and failure cases.
 
 ### Integration Testing
+- **Docker Integration Tests**: Every new MCP tool MUST have a corresponding integration test in `tests/docker_integration_test.rs` using `testcontainers-rs`.
+- **Execution**: Run with `RUN_DOCKER_TESTS=true cargo test --test docker_integration_test`.
 - Test complete user flows
 - Verify database transactions
 - Test authentication and authorization
@@ -266,13 +268,14 @@ A task is complete when:
 
 1. All code implemented to specification
 2. Unit tests written and passing
-3. Code coverage meets project requirements
-4. Documentation complete (if applicable)
-5. Code passes all configured linting and static analysis checks
-6. Works beautifully on mobile (if applicable)
-7. Implementation notes added to `plan.md`
-8. Changes committed with proper message
-9. Git note with task summary attached to the commit
+3. **Docker integration tests written and passing (for new MCP tools)**
+4. Code coverage meets project requirements
+5. Documentation complete (if applicable)
+6. Code passes all configured linting and static analysis checks
+7. Works beautifully on mobile (if applicable)
+8. Implementation notes added to `plan.md`
+9. Changes committed with proper message
+10. Git note with task summary attached to the commit
 
 ## Emergency Procedures
 
