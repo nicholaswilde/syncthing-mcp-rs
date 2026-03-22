@@ -1,8 +1,8 @@
 # Implementation Plan: Maintenance Operations (maintain_system_20260321)
 
 ## Phase 1: API Client Implementation
-- [ ] Task: Add rescan, restart, and clear errors endpoints to `api/client.rs`.
-- [ ] Task: Unit tests for maintenance methods.
+- [x] Task: Add rescan, restart, and clear errors endpoints to `api/client.rs`. (503947b)
+- [x] Task: Unit tests for maintenance methods. (503947b)
 
 ## Phase 2: MCP Tool Implementation
 - [ ] Task: Implement `maintain_system` tool in `src/tools/system.rs`.
