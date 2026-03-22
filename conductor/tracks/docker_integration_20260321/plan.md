@@ -17,8 +17,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Core Integration Tests' (Protocol in workflow.md) (904ebeb)
 
 ## Phase 3: Error Handling & Cleanup
-- [ ] Task: Test authentication failure.
-    - [ ] Write a test case using an invalid API key against the running container.
+- [x] Task: Test authentication failure. (c565812)
+    - [x] Write a test case using an invalid API key against the running container.
 - [ ] Task: Ensure proper cleanup.
     - [ ] Verify that containers are stopped even if tests fail (using `testcontainers` RAII).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Error Handling & Cleanup' (Protocol in workflow.md)
