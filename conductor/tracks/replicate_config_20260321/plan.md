@@ -5,9 +5,9 @@
 - [x] Task: Unit tests for configuration replication methods. (aaa806a)
 
 ## Phase 2: MCP Tool Implementation
-- [ ] Task: Implement `replicate_config` tool in `src/tools/config.rs`.
-- [ ] Task: Register tool in `src/mcp/server.rs`.
-- [ ] Task: Implement summarized configuration difference reports.
+- [x] Task: Implement `replicate_config` tool in `src/tools/config.rs`. (c7e1590)
+- [x] Task: Register tool in `src/mcp/server.rs`. (c7e1590)
+- [x] Task: Implement summarized configuration difference reports. (c7e1590)
 
 ## Phase 3: Docker Integration Tests
 - [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
