@@ -23,7 +23,7 @@
 
 ## Testing & Quality Assurance
 - **Code Coverage**: `cargo-llvm-cov` for detailed analysis.
-- **Integration Testing**: Docker-based integration tests using `compose.yaml`.
+- **Integration Testing**: Automated end-to-end testing using `testcontainers-rs` and real SyncThing Docker instances.
 - **CI/CD**: Integration with GitHub Actions and Coveralls.io.
 
 ## Containerization
@@ -42,5 +42,7 @@
 - **config**: Hierarchical configuration management.
 - **dashmap**: Concurrent associative array.
 - **futures**: Utilities for asynchronous programming.
+- **testcontainers**: Programmatic Docker lifecycle management for tests.
+- **testcontainers-modules**: Ready-to-use Docker images for testcontainers.
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.

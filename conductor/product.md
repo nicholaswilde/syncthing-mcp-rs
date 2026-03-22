@@ -12,7 +12,8 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 2. **Context-Efficient Tools**: Provide high-level, functional tools (e.g., `manage_folders`, `manage_devices`) rather than exposing raw, granular API endpoints, optimizing for LLM token usage.
 3. **Protocol Versatility**: Support both `stdio` transport for local integration (e.g., Claude Desktop) and `HTTP/SSE` for remote management.
 4. **Reliability & Performance**: Leverage Rust's safety and performance to ensure stable, low-latency interactions with the SyncThing API.
-5. **Security First**: Implement secure credential handling (supporting API Keys) and optional secret encryption (via SOPS).
+5. **End-to-End Verification**: Utilize automated integration tests with real SyncThing Docker instances to guarantee tool correctness and API compatibility.
+6. **Security First**: Implement secure credential handling (supporting API Keys) and optional secret encryption (via SOPS).
 
 ## Target Users
 - **Developers & Power Users**: Who want to automate their file synchronization workflows using LLMs.
