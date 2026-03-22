@@ -11,4 +11,4 @@
 
 ## Phase 3: Validation
 - [x] Add unit tests for retry logic (using `wiremock` to simulate failures). `069f887`
-- [ ] Verify error responses via MCP Inspector.
+- [x] Verify error responses via MCP Inspector. `697ce86`
