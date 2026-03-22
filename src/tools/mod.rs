@@ -157,6 +157,34 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "manage_ignores",
+        "Manage SyncThing ignore patterns (.stignore).",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": ["get", "set", "append"],
+                    "description": "The action to perform."
+                },
+                "folder_id": {
+                    "type": "string",
+                    "description": "The Folder ID."
+                },
+                "patterns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The ignore patterns (required for 'set' and 'append')."
+                }
+            },
+            "required": ["folder_id"]
+        }),
+        folders::manage_ignores,
+    );
+
+    registry.register(
         "manage_devices",
         "Manage SyncThing devices.",
         serde_json::json!({

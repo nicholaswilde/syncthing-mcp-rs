@@ -73,3 +73,70 @@ pub async fn configure_sharing(
         _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
     }
 }
+
+pub async fn manage_ignores(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let action = args["action"].as_str().unwrap_or("get");
+    let folder_id = args["folder_id"].as_str().ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
+
+    match action {
+        "get" => {
+            let ignores = client.get_ignores(folder_id).await?;
+            let mut text = format!("Ignore patterns for folder {}:\n", folder_id);
+            let ignore_list = ignores.ignore.unwrap_or_default();
+            if ignore_list.is_empty() {
+                text.push_str("(No ignore patterns set)");
+            } else {
+                for pattern in &ignore_list {
+                    text.push_str(&format!("- {}\n", pattern));
+                }
+            }
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": text
+                }]
+            }))
+        }
+        "set" => {
+            let patterns = args["patterns"].as_array().ok_or_else(|| crate::error::Error::Internal("patterns array is required for 'set'".to_string()))?;
+            let patterns: Vec<String> = patterns.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            client.set_ignores(folder_id, patterns.clone()).await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Successfully set {} ignore patterns for folder {}", patterns.len(), folder_id)
+                }]
+            }))
+        }
+        "append" => {
+            let new_patterns = args["patterns"].as_array().ok_or_else(|| crate::error::Error::Internal("patterns array is required for 'append'".to_string()))?;
+            let new_patterns: Vec<String> = new_patterns.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            
+            let current_ignores = client.get_ignores(folder_id).await?;
+            let mut ignore_list = current_ignores.ignore.unwrap_or_default();
+            let mut added_count = 0;
+            for pattern in new_patterns {
+                if !ignore_list.contains(&pattern) {
+                    ignore_list.push(pattern);
+                    added_count += 1;
+                }
+            }
+            
+            if added_count > 0 {
+                client.set_ignores(folder_id, ignore_list.clone()).await?;
+            }
+            
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Successfully appended {} new ignore patterns to folder {} (Total: {})", added_count, folder_id, ignore_list.len())
+                }]
+            }))
+        }
+        _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
+    }
+}

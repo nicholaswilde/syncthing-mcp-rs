@@ -154,3 +154,59 @@ async fn test_configure_sharing_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_manage_ignores_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let container = SyncThingContainer::new().await?;
+    let client = container.client();
+    
+    let folder_id = "test-ignores-folder";
+
+    // 1. Create a folder
+    client.add_folder(folder_id, "Test Ignores Folder", "/tmp/test-ignores").await?;
+
+    let ctx = TestContext::from_container(container);
+
+    // 2. Get ignores (should be empty)
+    let result = ctx.call_tool("manage_ignores", json!({
+        "action": "get",
+        "folder_id": folder_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("(No ignore patterns set)"));
+
+    // 3. Set ignores
+    let result = ctx.call_tool("manage_ignores", json!({
+        "action": "set",
+        "folder_id": folder_id,
+        "patterns": ["node_modules", "*.tmp"]
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully set 2 ignore patterns"));
+
+    // 4. Append ignores
+    let result = ctx.call_tool("manage_ignores", json!({
+        "action": "append",
+        "folder_id": folder_id,
+        "patterns": ["target", "*.tmp"] // *.tmp is duplicate, target is new
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully appended 1 new ignore patterns"));
+    assert!(text.contains("Total: 3"));
+
+    // 5. Verify final list
+    let result = ctx.call_tool("manage_ignores", json!({
+        "action": "get",
+        "folder_id": folder_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("- node_modules"));
+    assert!(text.contains("- *.tmp"));
+    assert!(text.contains("- target"));
+
+    Ok(())
+}

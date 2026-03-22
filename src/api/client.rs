@@ -77,6 +77,27 @@ impl SyncThingClient {
         Ok(())
     }
 
+    pub async fn get_ignores(&self, folder_id: &str) -> Result<IgnoreConfig> {
+        tracing::debug!("Fetching SyncThing ignore patterns for folder: {}", folder_id);
+        let url = format!("{}/rest/db/ignores", self.config.url);
+        let request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<IgnoreConfig>().await?)
+    }
+
+    pub async fn set_ignores(&self, folder_id: &str, ignores: Vec<String>) -> Result<()> {
+        tracing::debug!("Setting SyncThing ignore patterns for folder: {}", folder_id);
+        let url = format!("{}/rest/db/ignores", self.config.url);
+        let body = serde_json::json!({
+            "ignore": ignores,
+        });
+        let request = self.add_auth(self.client.post(&url))
+            .query(&[("folder", folder_id)])
+            .json(&body);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn list_devices(&self) -> Result<Vec<DeviceConfig>> {
         tracing::debug!("Listing SyncThing devices");
         let url = format!("{}/rest/config/devices", self.config.url);

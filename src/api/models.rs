@@ -63,3 +63,9 @@ pub struct DeviceConfig {
     #[serde(default)]
     pub untrusted: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct IgnoreConfig {
+    pub ignore: Option<Vec<String>>,
+    pub expanded: Option<Vec<String>>,
+}
