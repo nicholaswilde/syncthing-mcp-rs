@@ -10,6 +10,6 @@
 - [x] Task: Register tool in `src/mcp/server.rs`. (4eb6957)
 - [x] Task: Implement summarized output for device listing. (4eb6957)
 
-## Phase 3: Docker Integration Tests
-- [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
-- [ ] Task: Verify add/remove/pause/resume cycle against a real instance.
+## Phase 3: Docker Integration Tests [checkpoint: 712b9d8]
+- [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (712b9d8)
+- [x] Task: Verify add/remove/pause/resume cycle against a real instance. (712b9d8)
