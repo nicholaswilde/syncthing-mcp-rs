@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Implement Device Management tool (`manage_devices`)**
-  *Link: [./tracks/manage_devices_20260321/](./tracks/manage_devices_20260321/)*
-
----
-
 - [ ] **Track: Implement Sharing Orchestration tool (`configure_sharing`)**
   *Link: [./tracks/configure_sharing_20260321/](./tracks/configure_sharing_20260321/)*
 
