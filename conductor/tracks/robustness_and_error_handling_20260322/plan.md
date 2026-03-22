@@ -5,7 +5,7 @@
 - [x] Update `src/error.rs` with more granular error variants. `ad2d0b1`
 - [x] Implement a helper to map `SyncThingError` to MCP `ResponseError`. `5b45c5f`
 
-## Phase 2: Retry Logic
+## Phase 2: Retry Logic [checkpoint: f7d6076]
 - [x] Wrap `SyncThingClient` methods with a retry wrapper. `1abd821`
 - [x] Configure retry policies (max attempts, backoff strategy). `ec72037`
 
