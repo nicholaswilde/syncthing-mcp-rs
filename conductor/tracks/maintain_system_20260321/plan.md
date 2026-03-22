@@ -4,7 +4,7 @@
 - [x] Task: Add rescan, restart, and clear errors endpoints to `api/client.rs`. (503947b)
 - [x] Task: Unit tests for maintenance methods. (503947b)
 
-## Phase 2: MCP Tool Implementation
+## Phase 2: MCP Tool Implementation [checkpoint: 479cc71]
 - [x] Task: Implement `maintain_system` tool in `src/tools/system.rs`. (bfe0ca2)
 - [x] Task: Register tool in `src/mcp/server.rs`. (bfe0ca2)
 - [x] Task: Implement summarized status reporting for maintenance actions. (bfe0ca2)
