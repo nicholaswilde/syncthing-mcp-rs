@@ -36,3 +36,11 @@
 - **serde**, **serde_json**, **toml**, **serde_yaml**: For multi-format configuration parsing.
 - **clap**: For robust CLI argument parsing.
 - **tracing** / **log**: For configurable logging levels.
+- **anyhow**: Flexible error handling.
+- **thiserror**: Custom error types with derive macros.
+- **axum**: Web framework for HTTP/SSE transport (if implemented).
+- **config**: Hierarchical configuration management.
+- **dashmap**: Concurrent associative array.
+- **futures**: Utilities for asynchronous programming.
+- **uuid**: Unique identifier generation.
+- **url**: URL parsing and manipulation.
