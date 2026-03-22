@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Implement Instance-to-Instance Configuration Sync (`replicate_config`)**
+- [x] **Track: Implement Instance-to-Instance Configuration Sync (`replicate_config`)**
   *Link: [./tracks/replicate_config_20260321/](./tracks/replicate_config_20260321/)*
