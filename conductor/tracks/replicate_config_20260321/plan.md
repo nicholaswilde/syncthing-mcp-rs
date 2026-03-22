@@ -9,6 +9,6 @@
 - [x] Task: Register tool in `src/mcp/server.rs`. (c7e1590)
 - [x] Task: Implement summarized configuration difference reports. (c7e1590)
 
-## Phase 3: Docker Integration Tests
+## Phase 3: Docker Integration Tests [checkpoint: afa76e7]
 - [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (7703fb3)
 - [x] Task: Verify configuration replication between two real Syncthing instances using Docker. (7703fb3)
