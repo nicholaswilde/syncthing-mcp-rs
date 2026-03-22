@@ -16,7 +16,7 @@
     - [x] Implement `get_system_info` and `list_folders` API calls.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Configuration & API Client' (Protocol in workflow.md) (af31f2b)
 
-## Phase 3: Core MCP Implementation
+## Phase 3: Core MCP Implementation [checkpoint: cb787d8]
 - [x] Task: Implement core MCP server logic. (6105550)
     - [x] Create `src/mcp/server.rs` with `stdio` transport.
     - [x] Register `get_system_stats` tool in the MCP server.
@@ -24,7 +24,7 @@
 - [x] Task: Add basic logging and error handling. (ab360f1)
     - [x] Integrate `tracing` and `tracing-subscriber`.
     - [x] Implement custom error types and `From` conversions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Core MCP Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Core MCP Implementation' (Protocol in workflow.md) (cb787d8)
 
 ## Phase 4: Quality & Validation
 - [ ] Task: Implement comprehensive unit tests.
