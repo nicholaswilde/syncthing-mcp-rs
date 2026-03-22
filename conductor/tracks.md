@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Implement Ignore Pattern Management tool (`manage_ignores`)**
-  *Link: [./tracks/manage_ignores_20260321/](./tracks/manage_ignores_20260321/)*
-
----
-
 - [ ] **Track: Implement Detailed Sync Status tool (`get_sync_status`)**
   *Link: [./tracks/get_sync_status_20260321/](./tracks/get_sync_status_20260321/)*
 
