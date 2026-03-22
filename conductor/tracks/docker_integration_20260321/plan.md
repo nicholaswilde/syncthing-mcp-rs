@@ -9,9 +9,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Test Environment Setup' (Protocol in workflow.md) (5e9b167)
 
 ## Phase 2: Core Integration Tests
-- [ ] Task: Implement `get_system_stats` integration test.
-    - [ ] Write failing test in `tests/docker_integration_test.rs` that calls `get_system_stats` against the container.
-    - [ ] Implement enough of the test to verify connectivity and basic parsing.
+- [x] Task: Implement `get_system_stats` integration test. (6501f93)
+    - [x] Write failing test in `tests/docker_integration_test.rs` that calls `get_system_stats` against the container.
+    - [x] Implement enough of the test to verify connectivity and basic parsing.
 - [ ] Task: Implement `manage_folders` integration test.
     - [ ] Write failing test that verifies folder listing from the real SyncThing instance.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Core Integration Tests' (Protocol in workflow.md)
