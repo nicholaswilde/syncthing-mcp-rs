@@ -5,9 +5,9 @@
 - [x] Identify and potentially replace overweight crates. [32ef410]
 - [x] Refine compiler optimization flags. [32ef410]
 
-## Phase 2: Credential Security
-- [ ] Implement support for external credential providers.
-- [ ] Add encryption for sensitive configuration fields.
+## Phase 2: Credential Security [checkpoint: ce7b2b9]
+- [x] Implement support for external credential providers. [e9bdb39]
+- [x] Add encryption for sensitive configuration fields. [6474f1d]
 
 ## Phase 3: Validation
 - [ ] Benchmark binary size across all targets.
