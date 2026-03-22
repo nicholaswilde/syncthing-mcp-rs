@@ -40,6 +40,22 @@ impl SyncThingClient {
         Ok(response.json::<SystemVersion>().await?)
     }
 
+    pub async fn get_config(&self) -> Result<serde_json::Value> {
+        tracing::debug!("Fetching full SyncThing configuration");
+        let url = format!("{}/rest/config", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<serde_json::Value>().await?)
+    }
+
+    pub async fn set_config(&self, config: serde_json::Value) -> Result<()> {
+        tracing::debug!("Setting full SyncThing configuration");
+        let url = format!("{}/rest/config", self.config.url);
+        let request = self.add_auth(self.client.put(&url)).json(&config);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn list_folders(&self) -> Result<Vec<FolderConfig>> {
         tracing::debug!("Listing SyncThing folders");
         let url = format!("{}/rest/config/folders", self.config.url);

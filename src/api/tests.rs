@@ -71,6 +71,63 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_config() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "version": 37,
+                "folders": [],
+                "devices": []
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let config_data = client.get_config().await.unwrap();
+
+        assert_eq!(config_data["version"], 37);
+    }
+
+    #[tokio::test]
+    async fn test_set_config() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let new_config = serde_json::json!({
+            "version": 37,
+            "folders": [],
+            "devices": []
+        });
+
+        let result = client.set_config(new_config).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
     async fn test_list_folders() {
         let mock_server = MockServer::start().await;
         let api_key = "test-api-key";
