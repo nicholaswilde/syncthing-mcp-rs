@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Implement events/notifications, file browsing, and device discovery.
+## [x] Track: Implement events/notifications, file browsing, and device discovery.
 *Link: [./tracks/feature_gaps_20260322/](./tracks/feature_gaps_20260322/)*
 
 ---
