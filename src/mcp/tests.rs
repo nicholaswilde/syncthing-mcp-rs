@@ -159,6 +159,60 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_tool_call_manage_devices() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config/devices"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+                {
+                    "deviceID": "test-device-id",
+                    "name": "Test Device",
+                    "addresses": ["dynamic"],
+                    "compression": "metadata",
+                    "introducer": false,
+                    "paused": false,
+                    "untrusted": false
+                }
+            ])))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "list"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("SyncThing Devices:"));
+        assert!(text.contains("- Test Device (test-device-id): (paused: false)"));
+    }
+
+    #[tokio::test]
     async fn test_run_stdio_shutdown() {
         let registry = create_registry();
         let config = AppConfig::default();

@@ -1,5 +1,6 @@
 pub mod folders;
 pub mod system;
+pub mod devices;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
@@ -128,6 +129,31 @@ pub fn create_registry() -> ToolRegistry {
             }
         }),
         folders::manage_folders,
+    );
+
+    registry.register(
+        "manage_devices",
+        "Manage SyncThing devices.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": ["list", "add", "remove", "pause", "resume"],
+                    "description": "The action to perform."
+                },
+                "device_id": {
+                    "type": "string",
+                    "description": "The Device ID."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The device name (optional)."
+                }
+            },
+            "required": ["action"]
+        }),
+        devices::manage_devices,
     );
 
     registry
