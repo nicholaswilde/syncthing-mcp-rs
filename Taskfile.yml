@@ -5,6 +5,7 @@ dotenv: ['.env']
 vars:
   LOCAL_IP:
     sh: hostname -I | awk '{print $1}'
+  BINARY: target/release/syncthing-mcp-rs
 
 tasks:
   clippy:
@@ -26,6 +27,28 @@ tasks:
     cmds:
       - cargo build --release
 
+  build:amd64:
+    desc: Build for AMD64 (x86_64)
+    cmds:
+      - cross build --release --target x86_64-unknown-linux-gnu
+
+  build:arm64:
+    desc: Build for ARM64 (aarch64)
+    cmds:
+      - cross build --release --target aarch64-unknown-linux-gnu
+
+  build:armv7:
+    desc: Build for ARMv7
+    cmds:
+      - cross build --release --target armv7-unknown-linux-gnueabihf
+
+  build:
+    desc: Build for all supported architectures
+    cmds:
+      - task: build:amd64
+      - task: build:arm64
+      - task: build:armv7
+
   build:debug:
     desc: Build the project in debug mode
     cmds:
@@ -42,12 +65,22 @@ tasks:
       - cargo check
 
   test:
-    desc: Run all tests (fmt, lint, and unit tests)
+    desc: Run unit tests only
+    cmds:
+      - cargo test --lib --tests
+
+  test:ci:
+    desc: Run all checks (format, lint, and unit tests)
     cmds:
       - task: fmt:check
       - task: lint
-      - cargo test --lib --tests
+      - task: test
       - task: clippy
+
+  test:integration:
+    desc: Run Docker integration tests (requires Docker)
+    cmds:
+      - RUN_DOCKER_TESTS=true cargo test --test docker_integration_test
 
   fmt:
     desc: Format code with rustfmt
@@ -68,3 +101,25 @@ tasks:
     desc: Clean build artifacts
     cmds:
       - cargo clean
+
+  inspector:
+    desc: Run MCP Inspector (requires npx)
+    cmds:
+      - task: build:local
+      - npx @modelcontextprotocol/inspector {{.BINARY}}
+
+  coverage:
+    desc: Show coverage summary in console
+    cmds:
+      - cargo llvm-cov
+
+  coverage:report:
+    desc: Generate detailed HTML and LCOV reports
+    cmds:
+      - cargo llvm-cov --html --lcov --output-path target/coverage
+
+  coverage:upload:
+    desc: Upload coverage to Coveralls.io (requires COVERALLS_REPO_TOKEN)
+    cmds:
+      - cargo llvm-cov --lcov --output-path lcov.info
+      - coveralls --lcov lcov.info

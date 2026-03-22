@@ -325,6 +325,666 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_tool_call_manage_devices_add() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/rest/config/devices"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "add",
+                    "device_id": "new-device-id",
+                    "name": "New Device"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device new-device-id added successfully"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_devices_remove() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("DELETE"))
+            .and(path("/rest/config/devices/test-device-id"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "remove",
+                    "device_id": "test-device-id"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device test-device-id removed successfully"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_devices_pause_resume() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("PATCH"))
+            .and(path("/rest/config/devices/test-device-id"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // Test pause
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "pause",
+                    "device_id": "test-device-id"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device test-device-id paused successfully"));
+
+        // Test resume
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "resume",
+                    "device_id": "test-device-id"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device test-device-id resumed successfully"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_configure_sharing_unshare() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        // Mock GET folder
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "default",
+                "label": "Default Folder",
+                "path": "/home/sync",
+                "type": "sendreceive",
+                "devices": [{"deviceID": "device1"}],
+                "rescan_interval_s": 3600,
+                "fs_watcher_enabled": true,
+                "paused": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock PATCH folder
+        Mock::given(method("PATCH"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "configure_sharing",
+                "arguments": {
+                    "action": "unshare",
+                    "folder_id": "default",
+                    "device_id": "device1"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folder default unshared from device device1 successfully"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_ignores_set_append() {
+        use wiremock::matchers::{method, path, query_param};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        // Mock POST ignores (for set)
+        Mock::given(method("POST"))
+            .and(path("/rest/db/ignores"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        // Mock GET ignores (for append)
+        Mock::given(method("GET"))
+            .and(path("/rest/db/ignores"))
+            .and(query_param("folder", "default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "ignore": ["node_modules"]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // Test set
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_ignores",
+                "arguments": {
+                    "action": "set",
+                    "folder_id": "default",
+                    "patterns": ["temp", "bin"]
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully set 2 ignore patterns for folder default"));
+
+        // Test append
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_ignores",
+                "arguments": {
+                    "action": "append",
+                    "folder_id": "default",
+                    "patterns": ["build"]
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully appended 1 new ignore patterns to folder default"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_maintain_system() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/rest/db/scan"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/restart"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/error/clear"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // Test force_rescan
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "maintain_system",
+                "arguments": {
+                    "action": "force_rescan",
+                    "folder_id": "default"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully triggered rescan for folder: default"));
+
+        // Test restart
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "maintain_system",
+                "arguments": {
+                    "action": "restart"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully triggered SyncThing restart"));
+
+        // Test clear_errors
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(3),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "maintain_system",
+                "arguments": {
+                    "action": "clear_errors"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully cleared SyncThing errors"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_edge_cases() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // 1. manage_devices: unnamed device
+        Mock::given(method("GET"))
+            .and(path("/rest/config/devices"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+                {
+                    "deviceID": "test-device-id",
+                    "addresses": ["dynamic"],
+                    "compression": "metadata",
+                    "introducer": false,
+                    "paused": false,
+                    "untrusted": false
+                }
+            ])))
+            .mount(&mock_server)
+            .await;
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": { "action": "list" }
+            })),
+        };
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("- unnamed (test-device-id)"));
+
+        // 2. manage_devices: missing device_id for add
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": { "action": "add" }
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("device_id is required"));
+
+        // 3. manage_devices: unsupported action
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(3),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": { "action": "invalid" }
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("Unsupported action"));
+
+        // 4. configure_sharing: unshare when not shared
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "default", "label": "Default", "path": "/sync", "type": "sendreceive",
+                "devices": [], "rescan_interval_s": 3600, "fs_watcher_enabled": true, "paused": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(4),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "configure_sharing",
+                "arguments": { "action": "unshare", "folder_id": "default", "device_id": "device1" }
+            })),
+        };
+        let resp = server.handle_request(req).await.unwrap();
+        assert!(resp["content"][0]["text"].as_str().unwrap().contains("unshared"));
+
+        // 5. manage_ignores: missing patterns for set
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(5),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_ignores",
+                "arguments": { "action": "set", "folder_id": "default" }
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("patterns array is required"));
+
+        // 6. manage_ignores: append no new patterns
+        Mock::given(method("GET"))
+            .and(path("/rest/db/ignores"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "ignore": ["a"] })))
+            .mount(&mock_server)
+            .await;
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(6),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_ignores",
+                "arguments": { "action": "append", "folder_id": "default", "patterns": ["a"] }
+            })),
+        };
+        let resp = server.handle_request(req).await.unwrap();
+        assert!(resp["content"][0]["text"].as_str().unwrap().contains("Successfully appended 0"));
+
+        // 7. maintain_system: invalid action
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(7),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "maintain_system",
+                "arguments": { "action": "invalid" }
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("Invalid action"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_with_instance_selection() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server1 = MockServer::start().await;
+        let mock_server2 = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "id1", "uptime": 100, "alloc": 1000, "sys": 2000, "goroutines": 10, "pathSeparator": "/"
+            })))
+            .mount(&mock_server1)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "id2", "uptime": 200, "alloc": 2000, "sys": 4000, "goroutines": 20, "pathSeparator": "/"
+            })))
+            .mount(&mock_server2)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v1", "arch": "amd64", "os": "linux", "isRelease": true, "isBeta": false, "isCandidate": false
+            })))
+            .mount(&mock_server1)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v2", "arch": "amd64", "os": "linux", "isRelease": true, "isBeta": false, "isCandidate": false
+            })))
+            .mount(&mock_server2)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("inst1".to_string()),
+                    url: mock_server1.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("inst2".to_string()),
+                    url: mock_server2.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // Test with instance name "inst2"
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_stats",
+                "arguments": {
+                    "instance": "inst2"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("My ID: id2"));
+
+        // Test with instance index "0"
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_stats",
+                "arguments": {
+                    "instance": "0"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("My ID: id1"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_errors() {
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        // Test non-existent instance
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_stats",
+                "arguments": {
+                    "instance": "non-existent"
+                }
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("Instance not found"));
+
+        // Test missing tool name
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "arguments": {}
+            })),
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+
+        // Test unknown method
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(3),
+            method: "unknown/method".to_string(),
+            params: None,
+        };
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+        assert!(resp.unwrap_err().to_string().contains("Method not found"));
+    }
+
+    #[tokio::test]
     async fn test_run_stdio_shutdown() {
         let registry = create_registry();
         let config = AppConfig::default();

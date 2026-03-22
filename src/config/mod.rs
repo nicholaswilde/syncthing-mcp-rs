@@ -355,20 +355,52 @@ no_verify_ssl = false
     }
 
     #[test]
-    fn test_config_validation() {
+    fn test_multi_instance_map_loading() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        use std::io::Write;
+        let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
+        writeln!(
+            file,
+            r#"
+[instances.inst1]
+url = "http://inst1"
+api_key = "key1"
+
+[instances.inst2]
+url = "http://inst2"
+api_key = "key2"
+"#
+        )
+        .unwrap();
+        let path = file.path().to_str().unwrap().to_string();
+
+        let config = AppConfig::load(Some(path), vec![]).unwrap();
+        assert_eq!(config.instances.len(), 2);
+        // BTreeMap sorts by key, so inst1 should be first if visit_map uses it.
+        // Actually, into_values() on BTreeMap will be in key order.
+        assert!(config.instances.iter().any(|i| i.url == "http://inst1"));
+        assert!(config.instances.iter().any(|i| i.url == "http://inst2"));
+    }
+
+    #[test]
+    fn test_config_validation_errors() {
         let mut config = AppConfig {
-            instances: vec![],
+            instances: vec![InstanceConfig {
+                url: "".to_string(),
+                ..Default::default()
+            }],
             ..Default::default()
         };
-        assert!(config.validate().is_ok());
-        assert_eq!(config.instances.len(), 1);
-        assert_eq!(config.instances[0].name, Some("default".to_string()));
-
-        config.instances = vec![InstanceConfig {
-            url: "".to_string(),
-            ..Default::default()
-        }];
         assert!(config.validate().is_err());
+        assert!(config.validate().unwrap_err().contains("missing URL"));
+
+        config.instances = vec![];
+        config.host = "".to_string();
+        assert!(config.validate().is_err());
+        assert!(config
+            .validate()
+            .unwrap_err()
+            .contains("At least one SyncThing instance"));
     }
 
     #[test]

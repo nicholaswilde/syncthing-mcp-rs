@@ -14,6 +14,7 @@ A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
 - **Multi-Instance Management:** Manage and target multiple SyncThing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
+- **Multi-Instance Synchronization:** Synchronize configuration (folders and devices) from a source instance to a destination instance.
 - **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (TOML, YAML, JSON).
 - **Authentication:** Connects to SyncThing using API Key (`X-API-Key`).
 - **Token Optimization:** Consolidated tools into functional groups to optimize AI context window usage.
@@ -25,6 +26,7 @@ A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https
     - `manage_ignores`: Manage SyncThing ignore patterns (`.stignore`).
     - `manage_devices`: Manage SyncThing devices (list, add, remove, pause, resume).
     - `maintain_system`: Perform maintenance tasks (rescan, restart, clear errors).
+    - `replicate_config`: Sync configuration (folders and devices) from one SyncThing instance to another.
 
 ## :package: Installation
 
