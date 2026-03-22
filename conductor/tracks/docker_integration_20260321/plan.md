@@ -1,0 +1,24 @@
+# Implementation Plan: Docker Integration Tests (docker_integration_20260321)
+
+## Phase 1: Test Environment Setup
+- [ ] Task: Configure `Cargo.toml` for integration testing.
+    - [ ] Add `testcontainers` and `testcontainers-modules` (if needed) to `[dev-dependencies]`.
+- [ ] Task: Create helper for SyncThing container lifecycle.
+    - [ ] Implement a `SyncThingContainer` wrapper using `testcontainers`.
+    - [ ] Define methods to start the container with a preset API key.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Environment Setup' (Protocol in workflow.md)
+
+## Phase 2: Core Integration Tests
+- [ ] Task: Implement `get_system_stats` integration test.
+    - [ ] Write failing test in `tests/docker_integration_test.rs` that calls `get_system_stats` against the container.
+    - [ ] Implement enough of the test to verify connectivity and basic parsing.
+- [ ] Task: Implement `manage_folders` integration test.
+    - [ ] Write failing test that verifies folder listing from the real SyncThing instance.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Core Integration Tests' (Protocol in workflow.md)
+
+## Phase 3: Error Handling & Cleanup
+- [ ] Task: Test authentication failure.
+    - [ ] Write a test case using an invalid API key against the running container.
+- [ ] Task: Ensure proper cleanup.
+    - [ ] Verify that containers are stopped even if tests fail (using `testcontainers` RAII).
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Error Handling & Cleanup' (Protocol in workflow.md)

@@ -1,4 +1,4 @@
-# Track core_functionality_20260321 Context
+# Track docker_integration_20260321 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)
