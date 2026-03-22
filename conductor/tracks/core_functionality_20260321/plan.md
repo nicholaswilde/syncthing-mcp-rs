@@ -17,10 +17,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Configuration & API Client' (Protocol in workflow.md) (af31f2b)
 
 ## Phase 3: Core MCP Implementation
-- [~] Task: Implement core MCP server logic.
-    - [ ] Create `src/mcp/server.rs` with `stdio` transport.
-    - [ ] Register `get_system_stats` tool in the MCP server.
-    - [ ] Register `manage_folders` tool for listing folder status.
+- [x] Task: Implement core MCP server logic. (6105550)
+    - [x] Create `src/mcp/server.rs` with `stdio` transport.
+    - [x] Register `get_system_stats` tool in the MCP server.
+    - [x] Register `manage_folders` tool for listing folder status.
 - [ ] Task: Add basic logging and error handling.
     - [ ] Integrate `tracing` and `tracing-subscriber`.
     - [ ] Implement custom error types and `From` conversions.
