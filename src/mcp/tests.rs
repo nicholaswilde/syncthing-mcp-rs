@@ -427,4 +427,112 @@ mod tests {
         let resp = server.handle_request(req).await;
         assert!(resp.is_err());
     }
+
+    #[tokio::test]
+    async fn test_tool_call_get_sync_status_folder() {
+        use wiremock::matchers::{method, path, query_param};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/status"))
+            .and(query_param("folder", "default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "state": "idle",
+                "needBytes": 0,
+                "needFiles": 0,
+                "inSyncBytes": 1000,
+                "inSyncFiles": 10,
+                "globalBytes": 1000,
+                "globalFiles": 10,
+                "localBytes": 1000,
+                "localFiles": 10
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_sync_status",
+                "arguments": {
+                    "target": "folder",
+                    "id": "default"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folder: default"));
+        assert!(text.contains("Completion: 100.00%"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_get_sync_status_device() {
+        use wiremock::matchers::{method, path, query_param};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/completion"))
+            .and(query_param("device", "device1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "completion": 50.5,
+                "needBytes": 500,
+                "needFiles": 5,
+                "globalBytes": 1000
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_sync_status",
+                "arguments": {
+                    "target": "device",
+                    "id": "device1"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device: device1"));
+        assert!(text.contains("Completion: 50.50%"));
+        assert!(text.contains("Bytes Remaining: 500"));
+    }
 }

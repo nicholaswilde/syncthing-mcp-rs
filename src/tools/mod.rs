@@ -116,6 +116,27 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "get_sync_status",
+        "Get detailed synchronization status and completion percentage for a folder or device.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "enum": ["folder", "device"],
+                    "description": "The target to query status for."
+                },
+                "id": {
+                    "type": "string",
+                    "description": "The Folder ID or Device ID."
+                }
+            },
+            "required": ["target", "id"]
+        }),
+        system::get_sync_status,
+    );
+
+    registry.register(
         "manage_folders",
         "List SyncThing folders.",
         serde_json::json!({
