@@ -543,4 +543,42 @@ mod tests {
         let client = SyncThingClient::new(config);
         client.clear_errors().await.unwrap();
     }
+
+    #[tokio::test]
+    async fn test_retry_logic() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        // First request fails with 500, second succeeds
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(500))
+            .up_to_n_times(1)
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "myID": "test-id",
+                "uptime": 100,
+                "alloc": 1000,
+                "sys": 2000,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let status = client.get_system_status().await.unwrap();
+
+        assert_eq!(status.my_id, "test-id");
+    }
 }

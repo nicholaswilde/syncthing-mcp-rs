@@ -1,6 +1,8 @@
 use crate::api::models::*;
 use crate::config::InstanceConfig;
-use crate::error::Result;
+use crate::error::{Error, Result};
+use tokio_retry::Retry;
+use tokio_retry::strategy::{ExponentialBackoff, jitter};
 
 #[derive(Debug, Clone)]
 pub struct SyncThingClient {
@@ -24,11 +26,33 @@ impl SyncThingClient {
         request
     }
 
+    async fn send_with_retry(&self, request_builder: reqwest::RequestBuilder) -> Result<reqwest::Response> {
+        let retry_strategy = ExponentialBackoff::from_millis(100)
+            .map(jitter)
+            .take(3);
+
+        Retry::spawn(retry_strategy, || {
+            let rb = request_builder.try_clone().ok_or_else(|| {
+                Error::Internal("Failed to clone request builder for retry".to_string())
+            });
+            async move {
+                let rb = rb?;
+                let response = rb.send().await.map_err(Error::from)?;
+                
+                if response.status().is_server_error() {
+                    return Err(Error::Api(response.error_for_status().unwrap_err()));
+                }
+                
+                response.error_for_status().map_err(Error::from)
+            }
+        }).await
+    }
+
     pub async fn get_system_status(&self) -> Result<SystemStatus> {
         tracing::debug!("Fetching SyncThing system status");
         let url = format!("{}/rest/system/status", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<SystemStatus>().await?)
     }
 
@@ -36,7 +60,7 @@ impl SyncThingClient {
         tracing::debug!("Fetching SyncThing system version");
         let url = format!("{}/rest/system/version", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<SystemVersion>().await?)
     }
 
@@ -44,7 +68,7 @@ impl SyncThingClient {
         tracing::debug!("Fetching full SyncThing configuration");
         let url = format!("{}/rest/config", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<serde_json::Value>().await?)
     }
 
@@ -52,7 +76,7 @@ impl SyncThingClient {
         tracing::debug!("Setting full SyncThing configuration");
         let url = format!("{}/rest/config", self.config.url);
         let request = self.add_auth(self.client.put(&url)).json(&config);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -60,7 +84,7 @@ impl SyncThingClient {
         tracing::debug!("Listing SyncThing folders");
         let url = format!("{}/rest/config/folders", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<Vec<FolderConfig>>().await?)
     }
 
@@ -73,7 +97,7 @@ impl SyncThingClient {
             "path": path,
         });
         let request = self.add_auth(self.client.post(&url)).json(&folder);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -81,7 +105,7 @@ impl SyncThingClient {
         tracing::debug!("Fetching SyncThing folder: {}", folder_id);
         let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<FolderConfig>().await?)
     }
 
@@ -89,7 +113,7 @@ impl SyncThingClient {
         tracing::debug!("Patching SyncThing folder: {}", folder_id);
         let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -102,7 +126,7 @@ impl SyncThingClient {
         let request = self
             .add_auth(self.client.get(&url))
             .query(&[("folder", folder_id)]);
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<IgnoreConfig>().await?)
     }
 
@@ -119,7 +143,7 @@ impl SyncThingClient {
             .add_auth(self.client.post(&url))
             .query(&[("folder", folder_id)])
             .json(&body);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -127,7 +151,7 @@ impl SyncThingClient {
         tracing::debug!("Listing SyncThing devices");
         let url = format!("{}/rest/config/devices", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<Vec<DeviceConfig>>().await?)
     }
 
@@ -142,7 +166,7 @@ impl SyncThingClient {
             device["name"] = serde_json::json!(name);
         }
         let request = self.add_auth(self.client.post(&url)).json(&device);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -150,7 +174,7 @@ impl SyncThingClient {
         tracing::debug!("Removing SyncThing device: {}", device_id);
         let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
         let request = self.add_auth(self.client.delete(&url));
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -158,7 +182,7 @@ impl SyncThingClient {
         tracing::debug!("Patching SyncThing device: {}", device_id);
         let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -168,7 +192,7 @@ impl SyncThingClient {
         let request = self
             .add_auth(self.client.get(&url))
             .query(&[("folder", folder_id)]);
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<FolderStatus>().await?)
     }
 
@@ -178,18 +202,18 @@ impl SyncThingClient {
         let request = self
             .add_auth(self.client.get(&url))
             .query(&[("device", device_id)]);
-        let response = request.send().await?.error_for_status()?;
+        let response = self.send_with_retry(request).await?;
         Ok(response.json::<DeviceCompletion>().await?)
     }
 
     pub async fn rescan(&self, folder_id: Option<&str>) -> Result<()> {
         tracing::debug!("Triggering rescan (folder: {:?})", folder_id);
         let url = format!("{}/rest/db/scan", self.config.url);
-        let mut request = self.add_auth(self.client.post(&url));
+        let mut request_builder = self.add_auth(self.client.post(&url));
         if let Some(id) = folder_id {
-            request = request.query(&[("folder", id)]);
+            request_builder = request_builder.query(&[("folder", id)]);
         }
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request_builder).await?;
         Ok(())
     }
 
@@ -197,7 +221,7 @@ impl SyncThingClient {
         tracing::debug!("Triggering SyncThing restart");
         let url = format!("{}/rest/system/restart", self.config.url);
         let request = self.add_auth(self.client.post(&url));
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 
@@ -205,7 +229,7 @@ impl SyncThingClient {
         tracing::debug!("Clearing SyncThing errors");
         let url = format!("{}/rest/system/error/clear", self.config.url);
         let request = self.add_auth(self.client.post(&url));
-        request.send().await?.error_for_status()?;
+        self.send_with_retry(request).await?;
         Ok(())
     }
 }
