@@ -4,7 +4,7 @@
 - [x] Task: Add configuration get/set endpoints to `api/client.rs`. (aaa806a)
 - [x] Task: Unit tests for configuration replication methods. (aaa806a)
 
-## Phase 2: MCP Tool Implementation
+## Phase 2: MCP Tool Implementation [checkpoint: 956bc71]
 - [x] Task: Implement `replicate_config` tool in `src/tools/config.rs`. (c7e1590)
 - [x] Task: Register tool in `src/mcp/server.rs`. (c7e1590)
 - [x] Task: Implement summarized configuration difference reports. (c7e1590)
