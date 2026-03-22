@@ -321,3 +321,36 @@ async fn test_get_sync_status_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_maintain_system_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").is_err() {
+        println!("Skipping Docker test. Set RUN_DOCKER_TESTS=1 to run.");
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // 1. Force rescan
+    let result = ctx
+        .call_tool("maintain_system", json!({"action": "force_rescan"}))
+        .await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully triggered rescan"));
+
+    // 2. Clear errors
+    let result = ctx
+        .call_tool("maintain_system", json!({"action": "clear_errors"}))
+        .await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully cleared SyncThing errors"));
+
+    // 3. Restart
+    let result = ctx
+        .call_tool("maintain_system", json!({"action": "restart"}))
+        .await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully triggered SyncThing restart"));
+
+    Ok(())
+}
