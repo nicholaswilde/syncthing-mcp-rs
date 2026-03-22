@@ -27,9 +27,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Core MCP Implementation' (Protocol in workflow.md) (cb787d8)
 
 ## Phase 4: Quality & Validation
-- [ ] Task: Implement comprehensive unit tests.
-    - [ ] Create mock API tests for `src/api/client.rs`.
-    - [ ] Add integration tests for MCP tool responses.
+- [x] Task: Implement comprehensive unit tests. (3478fcc)
+    - [x] Create mock API tests for `src/api/client.rs`.
+    - [x] Add integration tests for MCP tool responses.
 - [ ] Task: Verify tool definitions and documentation.
     - [ ] Use `mcp-inspector` to validate tool descriptions and schemas.
     - [ ] Update `README.md` with setup instructions and usage examples.
