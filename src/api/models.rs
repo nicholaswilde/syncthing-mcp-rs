@@ -44,3 +44,19 @@ pub struct FolderDeviceConfiguration {
     #[serde(rename = "deviceID")]
     pub device_id: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceConfig {
+    #[serde(rename = "deviceID")]
+    pub device_id: String,
+    pub name: Option<String>,
+    pub addresses: Vec<String>,
+    #[serde(default)]
+    pub compression: String,
+    #[serde(default)]
+    pub introducer: bool,
+    #[serde(default)]
+    pub paused: bool,
+    #[serde(default)]
+    pub untrusted: bool,
+}

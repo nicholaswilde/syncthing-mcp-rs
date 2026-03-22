@@ -47,4 +47,43 @@ impl SyncThingClient {
         let response = request.send().await?.error_for_status()?;
         Ok(response.json::<Vec<FolderConfig>>().await?)
     }
+
+    pub async fn list_devices(&self) -> Result<Vec<DeviceConfig>> {
+        tracing::debug!("Listing SyncThing devices");
+        let url = format!("{}/rest/config/devices", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<Vec<DeviceConfig>>().await?)
+    }
+
+    pub async fn add_device(&self, device_id: &str, name: Option<&str>) -> Result<()> {
+        tracing::debug!("Adding SyncThing device: {}", device_id);
+        let url = format!("{}/rest/config/devices", self.config.url);
+        let mut device = serde_json::json!({
+            "deviceID": device_id,
+            "addresses": ["dynamic"],
+        });
+        if let Some(name) = name {
+            device["name"] = serde_json::json!(name);
+        }
+        let request = self.add_auth(self.client.post(&url)).json(&device);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn remove_device(&self, device_id: &str) -> Result<()> {
+        tracing::debug!("Removing SyncThing device: {}", device_id);
+        let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
+        let request = self.add_auth(self.client.delete(&url));
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn patch_device(&self, device_id: &str, patch: serde_json::Value) -> Result<()> {
+        tracing::debug!("Patching SyncThing device: {}", device_id);
+        let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
+        let request = self.add_auth(self.client.patch(&url)).json(&patch);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
 }

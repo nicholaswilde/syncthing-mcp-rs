@@ -107,4 +107,112 @@ mod tests {
         assert_eq!(folders[0].id, "default");
         assert_eq!(folders[0].label, "Default Folder");
     }
+
+    #[tokio::test]
+    async fn test_list_devices() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config/devices"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([
+                {
+                    "deviceID": "test-device-id",
+                    "name": "Test Device",
+                    "addresses": ["dynamic"],
+                    "compression": "metadata",
+                    "introducer": false,
+                    "paused": false,
+                    "untrusted": false
+                }
+            ])))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let devices = client.list_devices().await.unwrap();
+
+        assert_eq!(devices.len(), 1);
+        assert_eq!(devices[0].device_id, "test-device-id");
+        assert_eq!(devices[0].name.as_ref().unwrap(), "Test Device");
+    }
+
+    #[tokio::test]
+    async fn test_add_device() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("POST"))
+            .and(path("/rest/config/devices"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.add_device("new-device-id", Some("New Device")).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_remove_device() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("DELETE"))
+            .and(path("/rest/config/devices/test-device-id"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.remove_device("test-device-id").await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_patch_device() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("PATCH"))
+            .and(path("/rest/config/devices/test-device-id"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.patch_device("test-device-id", serde_json::json!({"paused": true})).await;
+
+        assert!(result.is_ok());
+    }
 }
