@@ -13,6 +13,6 @@
 - [x] Extend `manage_devices` with "discover" and "approve" actions. `3341c1d`
 - [x] Update tool metadata and documentation. `3341c1d`
 
-## Phase 4: Validation
+## Phase 4: Validation [checkpoint: 2a16893]
 - [x] Test the file browser with a real folder. `8530636`
 - [x] Mock the Event API to verify notifications. `db9cb21`
