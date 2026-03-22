@@ -14,7 +14,10 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Starting SyncThing MCP server...");
 
     // 2. Load config
-    let config = AppConfig::load(None, std::env::args().collect())?;
+    let config = match AppConfig::load(None, std::env::args().collect())? {
+        syncthing_mcp_rs::config::ConfigResult::Config(c) => c,
+        syncthing_mcp_rs::config::ConfigResult::Exit => return Ok(()),
+    };
     tracing::debug!("Config loaded: {:?}", config);
 
     // 3. Create tool registry

@@ -111,10 +111,28 @@ where
     deserializer.deserialize_any(InstancesVisitor)
 }
 
+pub enum ConfigResult {
+    Config(AppConfig),
+    Exit,
+}
+
 impl AppConfig {
-    pub fn load(file_path: Option<String>, cli_args: Vec<String>) -> Result<Self, ConfigError> {
+    pub fn load(file_path: Option<String>, cli_args: Vec<String>) -> Result<ConfigResult, ConfigError> {
         let mut builder = Config::builder();
         let matches = parse_args(cli_args);
+
+        if let Some(matches) = matches.subcommand_matches("encrypt") {
+            let value = matches.get_one::<String>("value").unwrap();
+            match crate::credentials::encrypt_value(value) {
+                Some(encrypted) => {
+                    println!("{}", encrypted);
+                }
+                None => {
+                    eprintln!("Failed to encrypt value");
+                }
+            }
+            return Ok(ConfigResult::Exit);
+        }
 
         // 1. Determine Config File Path
         let path_to_load = if let Some(p) = file_path {
@@ -174,7 +192,7 @@ impl AppConfig {
 
         let mut config: AppConfig = builder.build()?.try_deserialize()?;
         config.validate().map_err(ConfigError::Message)?;
-        Ok(config)
+        Ok(ConfigResult::Config(config))
     }
 
     pub fn validate(&mut self) -> Result<(), String> {
@@ -249,6 +267,11 @@ fn parse_args(args: Vec<String>) -> ArgMatches {
 
     let cmd = Command::new("syncthing-mcp-rs")
         .version(env!("CARGO_PKG_VERSION"))
+        .subcommand(
+            Command::new("encrypt")
+                .about("Encrypt a sensitive value")
+                .arg(Arg::new("value").required(true).help("Value to encrypt")),
+        )
         .arg(
             Arg::new("config")
                 .short('c')
@@ -300,7 +323,10 @@ mod tests {
             std::env::remove_var("SYNCTHING_PORT");
         }
 
-        let config = AppConfig::load(None, vec![]).unwrap();
+        let config = match AppConfig::load(None, vec![]).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
         assert_eq!(config.host, "localhost");
         assert_eq!(config.port, 8384);
         assert_eq!(config.retry_max_attempts, 3);
@@ -317,7 +343,10 @@ mod tests {
             "--port".to_string(),
             "4000".to_string(),
         ];
-        let config = AppConfig::load(None, args).unwrap();
+        let config = match AppConfig::load(None, args).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
         assert_eq!(config.host, "cli.com");
         assert_eq!(config.port, 4000);
     }
@@ -330,7 +359,10 @@ mod tests {
             std::env::set_var("SYNCTHING_PORT", "5050");
         }
 
-        let config = AppConfig::load(None, vec![]).unwrap();
+        let config = match AppConfig::load(None, vec![]).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
 
         unsafe {
             std::env::remove_var("SYNCTHING_HOST");
@@ -349,7 +381,10 @@ mod tests {
         writeln!(file, "host = \"file.com\"\nport = 6060\nretry_max_attempts = 5").unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
-        let config = AppConfig::load(Some(path), vec![]).unwrap();
+        let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
         assert_eq!(config.host, "file.com");
         assert_eq!(config.port, 6060);
         assert_eq!(config.retry_max_attempts, 5);
@@ -382,7 +417,10 @@ retry_max_attempts = 2
         .unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
-        let config = AppConfig::load(Some(path), vec![]).unwrap();
+        let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
         assert_eq!(config.instances.len(), 2);
         assert_eq!(config.instances[0].name, Some("primary".to_string()));
         assert_eq!(config.instances[0].url, "http://192.168.1.1");
@@ -412,7 +450,10 @@ api_key = "key2"
         .unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
-        let config = AppConfig::load(Some(path), vec![]).unwrap();
+        let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+            ConfigResult::Config(c) => c,
+            ConfigResult::Exit => panic!("Expected Config, got Exit"),
+        };
         assert_eq!(config.instances.len(), 2);
         // BTreeMap sorts by key, so inst1 should be first if visit_map uses it.
         // Actually, into_values() on BTreeMap will be in key order.
