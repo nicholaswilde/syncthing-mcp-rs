@@ -10,5 +10,5 @@
 - [x] Configure retry policies (max attempts, backoff strategy). `ec72037`
 
 ## Phase 3: Validation
-- [ ] Add unit tests for retry logic (using `wiremock` to simulate failures).
+- [x] Add unit tests for retry logic (using `wiremock` to simulate failures). `069f887`
 - [ ] Verify error responses via MCP Inspector.
