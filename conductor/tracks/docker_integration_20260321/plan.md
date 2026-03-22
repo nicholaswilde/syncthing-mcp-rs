@@ -1,8 +1,8 @@
 # Implementation Plan: Docker Integration Tests (docker_integration_20260321)
 
 ## Phase 1: Test Environment Setup
-- [ ] Task: Configure `Cargo.toml` for integration testing.
-    - [ ] Add `testcontainers` and `testcontainers-modules` (if needed) to `[dev-dependencies]`.
+- [x] Task: Configure `Cargo.toml` for integration testing. (9f81355)
+    - [x] Add `testcontainers` and `testcontainers-modules` (if needed) to `[dev-dependencies]`.
 - [ ] Task: Create helper for SyncThing container lifecycle.
     - [ ] Implement a `SyncThingContainer` wrapper using `testcontainers`.
     - [ ] Define methods to start the container with a preset API key.
