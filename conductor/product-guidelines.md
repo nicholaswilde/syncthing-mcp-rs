@@ -15,7 +15,7 @@
 - **Transparent Logging**: Provide detailed, levels-based logging (using `tracing` or `log`) for troubleshooting MCP/SyncThing interactions.
 
 ## 3. Security & Privacy
-- **Secure Secret Management**: Never log API keys, passwords, or other sensitive information. Support for SOPS-encrypted configuration is encouraged.
+- **Secure Secret Management**: Never log API keys, passwords, or other sensitive information. Utilize OS Keyring integration and the built-in encryption system for securing credentials in configuration files.
 - **Strict Permission Checks**: (If applicable) Ensure the MCP server only performs operations that are explicitly authorized via the provided API credentials.
 - **Local-First Privacy**: Prioritize `stdio` transport to keep data flow entirely within the user's local machine unless remote `SSE` is explicitly required.
 

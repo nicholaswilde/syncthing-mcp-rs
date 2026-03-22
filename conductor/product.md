@@ -13,7 +13,7 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 3. **Protocol Versatility**: Support both `stdio` transport for local integration (e.g., Claude Desktop) and `HTTP/SSE` for remote management.
 4. **Reliability & Performance**: Leverage Rust's safety and performance to ensure stable, low-latency interactions with the SyncThing API.
 5. **End-to-End Verification**: Utilize automated integration tests with real SyncThing Docker instances to guarantee tool correctness and API compatibility.
-6. **Security First**: Implement secure credential handling (supporting API Keys) and optional secret encryption (via SOPS).
+6. **Security First**: Implement secure credential handling (supporting API Keys), OS Keyring integration, and authenticated encryption (ChaCha20-Poly1305) for configuration fields.
 
 ## Target Users
 - **Developers & Power Users**: Who want to automate their file synchronization workflows using LLMs.
@@ -29,4 +29,4 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Event Notifications**: Receive real-time MCP notifications for key SyncThing events (e.g., folder state changes).
 - **System Maintenance**: Perform critical operations such as triggering rescans, clearing errors, and restarting SyncThing instances.
 - **Instance Synchronization**: Ability to replicate configuration (folders and devices) across multiple instances from a source instance.
-- **Flexible Configuration**: Support for TOML/YAML/JSON configuration files and environment variables.
+- **Flexible Configuration**: Support for TOML configuration files and environment variables (optimized for binary size).

@@ -12,13 +12,13 @@
 - **MCP Testing**: `mcp-inspector` for verifying MCP tool definitions and responses.
 
 ## Configuration Management
-- **Formats**: Multi-format support for **TOML**, **YAML**, and **JSON**.
+- **Formats**: Optimized support for **TOML** (YAML/JSON disabled for size).
 - **Hierarchy**: Configuration via CLI arguments, environment variables, and config files (e.g., `config.toml`).
 - **Multi-Instance Support**: Built-in logic for managing multiple SyncThing instances.
 
 ## Security & Secrets
-- **Secrets Encryption**: `sops` (Mozilla SOPS) for managing encrypted secrets.
-- **Environment Security**: Support for encrypted environment files (`.env.enc`).
+- **Secrets Encryption**: OS Keyring integration and authenticated encryption (ChaCha20-Poly1305).
+- **Environment Security**: Secure credential resolution from OS-level secret stores.
 - **Authentication**: Bearer Token for HTTP transport security; API Key support for SyncThing backend communication.
 
 ## Testing & Quality Assurance
@@ -34,7 +34,10 @@
 - **tokio**: Asynchronous runtime.
 - **tokio-retry**: Exponential backoff and retry strategy for async tasks.
 - **reqwest**: For communicating with the SyncThing REST API.
-- **serde**, **serde_json**, **toml**, **serde_yaml**: For multi-format configuration parsing.
+- **serde**, **serde_json**, **toml**: For configuration and API parsing.
+- **keyring**: OS Keyring integration.
+- **chacha20poly1305**: Authenticated encryption for sensitive fields.
+- **native-tls**: Minimal TLS implementation for reduced binary size.
 - **clap**: For robust CLI argument parsing.
 - **tracing** / **log**: For configurable logging levels.
 - **anyhow**: Flexible error handling.
