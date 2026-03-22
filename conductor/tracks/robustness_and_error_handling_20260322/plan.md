@@ -9,6 +9,6 @@
 - [x] Wrap `SyncThingClient` methods with a retry wrapper. `1abd821`
 - [x] Configure retry policies (max attempts, backoff strategy). `ec72037`
 
-## Phase 3: Validation
+## Phase 3: Validation [checkpoint: e738ddd]
 - [x] Add unit tests for retry logic (using `wiremock` to simulate failures). `069f887`
 - [x] Verify error responses via MCP Inspector. `697ce86`
