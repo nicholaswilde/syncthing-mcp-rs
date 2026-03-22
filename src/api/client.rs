@@ -25,6 +25,7 @@ impl SyncThingClient {
     }
 
     pub async fn get_system_status(&self) -> Result<SystemStatus> {
+        tracing::debug!("Fetching SyncThing system status");
         let url = format!("{}/rest/system/status", self.config.url);
         let request = self.add_auth(self.client.get(&url));
         let response = request.send().await?.error_for_status()?;
@@ -32,6 +33,7 @@ impl SyncThingClient {
     }
 
     pub async fn get_system_version(&self) -> Result<SystemVersion> {
+        tracing::debug!("Fetching SyncThing system version");
         let url = format!("{}/rest/system/version", self.config.url);
         let request = self.add_auth(self.client.get(&url));
         let response = request.send().await?.error_for_status()?;
@@ -39,6 +41,7 @@ impl SyncThingClient {
     }
 
     pub async fn list_folders(&self) -> Result<Vec<FolderConfig>> {
+        tracing::debug!("Listing SyncThing folders");
         let url = format!("{}/rest/config/folders", self.config.url);
         let request = self.add_auth(self.client.get(&url));
         let response = request.send().await?.error_for_status()?;

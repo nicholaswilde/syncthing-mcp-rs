@@ -55,26 +55,33 @@ impl McpServer {
                         }
 
                         if let Ok(Message::Request(req)) = serde_json::from_str::<Message>(input) {
+                            tracing::debug!("Received request: {}", req.method);
                             let id = req.id.clone();
                             let response = self.handle_request(req).await;
 
                             let json_resp = match response {
-                                Ok(result) => Response {
-                                    jsonrpc: "2.0".to_string(),
-                                    id,
-                                    result: Some(result),
-                                    error: None,
-                                },
-                                Err(e) => Response {
-                                    jsonrpc: "2.0".to_string(),
-                                    id,
-                                    result: None,
-                                    error: Some(ResponseError {
-                                        code: -32000,
-                                        message: e.to_string(),
-                                        data: None,
-                                    }),
-                                },
+                                Ok(result) => {
+                                    tracing::debug!("Request successful");
+                                    Response {
+                                        jsonrpc: "2.0".to_string(),
+                                        id,
+                                        result: Some(result),
+                                        error: None,
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("Request failed: {}", e);
+                                    Response {
+                                        jsonrpc: "2.0".to_string(),
+                                        id,
+                                        result: None,
+                                        error: Some(ResponseError {
+                                            code: -32000,
+                                            message: e.to_string(),
+                                            data: None,
+                                        }),
+                                    }
+                                }
                             };
 
                             let out = serde_json::to_string(&json_resp)? + "\n";

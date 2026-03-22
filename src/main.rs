@@ -1,19 +1,30 @@
 use syncthing_mcp_rs::config::AppConfig;
 use syncthing_mcp_rs::mcp::McpServer;
 use syncthing_mcp_rs::tools::create_registry;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // 1. Load config
-    let config = AppConfig::load(None, std::env::args().collect())?;
+    // 1. Initialize logging
+    tracing_subscriber::registry()
+        .with(fmt::layer().with_writer(std::io::stderr))
+        .with(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
+        .init();
 
-    // 2. Create tool registry
+    tracing::info!("Starting SyncThing MCP server...");
+
+    // 2. Load config
+    let config = AppConfig::load(None, std::env::args().collect())?;
+    tracing::debug!("Config loaded: {:?}", config);
+
+    // 3. Create tool registry
     let registry = create_registry();
 
-    // 3. Create MCP server
+    // 4. Create MCP server
     let (server, rx) = McpServer::new(registry, config);
 
-    // 4. Run server
+    // 5. Run server
+    tracing::info!("MCP server running on stdio");
     server.run_stdio(rx).await?;
 
     Ok(())
