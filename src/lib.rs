@@ -1,5 +1,6 @@
 pub mod api;
 pub mod config;
+pub mod credentials;
 pub mod error;
 #[cfg(test)]
 mod error_tests;

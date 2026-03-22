@@ -1,5 +1,6 @@
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
+use crate::credentials::resolve_api_key;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -187,7 +188,7 @@ impl AppConfig {
             self.instances.push(InstanceConfig {
                 name: Some("default".to_string()),
                 url,
-                api_key: self.api_key.clone(),
+                api_key: resolve_api_key(self.api_key.clone()),
                 no_verify_ssl: Some(self.no_verify_ssl),
                 retry_max_attempts: Some(self.retry_max_attempts),
                 retry_initial_backoff_ms: Some(self.retry_initial_backoff_ms),
@@ -202,6 +203,9 @@ impl AppConfig {
             if inst.url.is_empty() {
                 return Err(format!("Instance {} is missing URL", i));
             }
+            // Resolve API key if it's a keyring link
+            inst.api_key = resolve_api_key(inst.api_key.take());
+
             // Propagate global retry settings if not set on instance
             if inst.retry_max_attempts.is_none() {
                 inst.retry_max_attempts = Some(self.retry_max_attempts);
