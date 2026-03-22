@@ -5,9 +5,9 @@
 - [x] Task: Unit tests for API client sharing methods. (ddd4e82)
 
 ## Phase 2: MCP Tool Implementation [checkpoint: 04a407e]
-- [~] Task: Implement `configure_sharing` tool in `src/tools/folders.rs`. (04a407e)
-- [ ] Task: Register tool in `src/mcp/server.rs`. (04a407e)
-- [ ] Task: Implement summarized output for sharing operations. (04a407e)
+- [x] Task: Implement `configure_sharing` tool in `src/tools/folders.rs`. (04a407e)
+- [x] Task: Register tool in `src/mcp/server.rs`. (04a407e)
+- [x] Task: Implement summarized output for sharing operations. (04a407e)
 
 ## Phase 3: Docker Integration Tests
 - [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
