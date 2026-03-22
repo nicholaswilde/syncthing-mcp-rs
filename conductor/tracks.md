@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Implement Ignore Pattern Management tool (`manage_ignores`)**
+- [x] **Track: Implement Ignore Pattern Management tool (`manage_ignores`)**
   *Link: [./tracks/manage_ignores_20260321/](./tracks/manage_ignores_20260321/)*
 
 ---
