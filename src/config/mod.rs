@@ -31,10 +31,6 @@ fn default_transport() -> String {
     "stdio".to_string()
 }
 
-fn default_syncthing_port() -> u16 {
-    8384
-}
-
 fn default_log_level() -> String {
     "info".to_string()
 }
