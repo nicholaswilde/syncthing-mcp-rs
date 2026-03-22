@@ -14,5 +14,5 @@
 - [x] Update tool metadata and documentation. `3341c1d`
 
 ## Phase 4: Validation
-- [ ] Test the file browser with a real folder.
-- [ ] Mock the Event API to verify notifications.
+- [x] Test the file browser with a real folder. `8530636`
+- [x] Mock the Event API to verify notifications. `db9cb21`
