@@ -9,7 +9,7 @@
 - [x] Implement `browse_folder` tool in a new `src/tools/browser.rs`. `8530636`
 - [x] Add the tool to the registry. `8530636`
 
-## Phase 3: Device Discovery
+## Phase 3: Device Discovery [checkpoint: 8c60dda]
 - [x] Extend `manage_devices` with "discover" and "approve" actions. `3341c1d`
 - [x] Update tool metadata and documentation. `3341c1d`
 
