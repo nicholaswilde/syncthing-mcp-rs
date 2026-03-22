@@ -34,8 +34,11 @@ pub struct FolderConfig {
     #[serde(rename = "type")]
     pub folder_type: String,
     pub devices: Vec<FolderDeviceConfiguration>,
+    #[serde(default)]
     pub rescan_interval_s: u32,
+    #[serde(default)]
     pub fs_watcher_enabled: bool,
+    #[serde(default)]
     pub paused: bool,
 }
 

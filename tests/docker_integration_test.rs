@@ -116,3 +116,41 @@ async fn test_manage_devices_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_configure_sharing_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let container = SyncThingContainer::new().await?;
+    let client = container.client();
+    
+    let folder_id = "test-sharing-folder";
+    let dummy_id = "PIRQAMB-72MHUAV-UZDMOA4-GXFI6LX-SVYUDGG-YIXLXHE-FW4CCMO-6KVZAA3";
+
+    // 1. Create a folder
+    client.add_folder(folder_id, "Test Sharing Folder", "/tmp/test-sharing").await?;
+
+    let ctx = TestContext::from_container(container);
+
+    // 2. Share folder with device
+    let result = ctx.call_tool("configure_sharing", json!({
+        "action": "share",
+        "folder_id": folder_id,
+        "device_id": dummy_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("shared with device"));
+
+    // 3. Unshare folder from device
+    let result = ctx.call_tool("configure_sharing", json!({
+        "action": "unshare",
+        "folder_id": folder_id,
+        "device_id": dummy_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("unshared from device"));
+
+    Ok(())
+}

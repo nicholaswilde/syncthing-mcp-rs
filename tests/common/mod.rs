@@ -113,16 +113,20 @@ pub struct TestContext {
 impl TestContext {
     pub async fn new() -> Result<Self> {
         let container = SyncThingContainer::new().await?;
+        Ok(Self::from_container(container))
+    }
+
+    pub fn from_container(container: SyncThingContainer) -> Self {
         let config = container.config();
         let client = container.client();
         let registry = Arc::new(Mutex::new(syncthing_mcp_rs::tools::create_registry()));
 
-        Ok(Self {
+        Self {
             container,
             config,
             client,
             registry,
-        })
+        }
     }
 
     pub async fn call_tool(
