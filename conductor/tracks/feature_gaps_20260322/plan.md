@@ -10,8 +10,8 @@
 - [x] Add the tool to the registry. `8530636`
 
 ## Phase 3: Device Discovery
-- [ ] Extend `manage_devices` with "discover" and "approve" actions.
-- [ ] Update tool metadata and documentation.
+- [x] Extend `manage_devices` with "discover" and "approve" actions. `3341c1d`
+- [x] Update tool metadata and documentation. `3341c1d`
 
 ## Phase 4: Validation
 - [ ] Test the file browser with a real folder.
