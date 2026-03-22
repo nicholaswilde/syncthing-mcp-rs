@@ -581,4 +581,32 @@ mod tests {
 
         assert_eq!(status.my_id, "test-id");
     }
+
+    #[tokio::test]
+    async fn test_retry_failure() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        // Always fails with 500
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            retry_max_attempts: Some(2),
+            retry_initial_backoff_ms: Some(1), // Fast retry for tests
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.get_system_status().await;
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, crate::error::Error::Api(_)));
+    }
 }
