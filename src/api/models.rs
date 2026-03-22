@@ -69,3 +69,35 @@ pub struct IgnoreConfig {
     pub ignore: Option<Vec<String>>,
     pub expanded: Option<Vec<String>>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FolderStatus {
+    pub state: String,
+    #[serde(rename = "needBytes")]
+    pub need_bytes: u64,
+    #[serde(rename = "needFiles")]
+    pub need_files: u64,
+    #[serde(rename = "inSyncBytes")]
+    pub in_sync_bytes: u64,
+    #[serde(rename = "inSyncFiles")]
+    pub in_sync_files: u64,
+    #[serde(rename = "globalBytes")]
+    pub global_bytes: u64,
+    #[serde(rename = "globalFiles")]
+    pub global_files: u64,
+    #[serde(rename = "localBytes")]
+    pub local_bytes: u64,
+    #[serde(rename = "localFiles")]
+    pub local_files: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceCompletion {
+    pub completion: f64,
+    #[serde(rename = "needBytes")]
+    pub need_bytes: u64,
+    #[serde(rename = "needFiles")]
+    pub need_files: u64,
+    #[serde(rename = "globalBytes")]
+    pub global_bytes: u64,
+}

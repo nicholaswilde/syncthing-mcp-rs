@@ -136,4 +136,20 @@ impl SyncThingClient {
         request.send().await?.error_for_status()?;
         Ok(())
     }
+
+    pub async fn get_folder_status(&self, folder_id: &str) -> Result<FolderStatus> {
+        tracing::debug!("Fetching SyncThing folder status: {}", folder_id);
+        let url = format!("{}/rest/db/status", self.config.url);
+        let request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<FolderStatus>().await?)
+    }
+
+    pub async fn get_device_completion(&self, device_id: &str) -> Result<DeviceCompletion> {
+        tracing::debug!("Fetching SyncThing device completion: {}", device_id);
+        let url = format!("{}/rest/db/completion", self.config.url);
+        let request = self.add_auth(self.client.get(&url)).query(&[("device", device_id)]);
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<DeviceCompletion>().await?)
+    }
 }

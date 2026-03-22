@@ -321,7 +321,7 @@ mod tests {
         let client = SyncThingClient::new(config);
         let ignores = client.get_ignores("default").await.unwrap();
 
-        assert_eq!(ignores.ignore.unwrap().len(), 2);
+        assert_eq!(ignores.ignore.as_ref().unwrap().len(), 2);
         assert_eq!(ignores.ignore.as_ref().unwrap()[0], "node_modules");
     }
 
@@ -347,5 +347,70 @@ mod tests {
         let result = client.set_ignores("default", vec!["new_pattern".to_string()]).await;
 
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_get_folder_status() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/status"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "state": "idle",
+                "needBytes": 0,
+                "needFiles": 0,
+                "inSyncBytes": 1000,
+                "inSyncFiles": 10,
+                "globalBytes": 1000,
+                "globalFiles": 10,
+                "localBytes": 1000,
+                "localFiles": 10
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let status = client.get_folder_status("default").await.unwrap();
+
+        assert_eq!(status.state, "idle");
+        assert_eq!(status.in_sync_bytes, 1000);
+    }
+
+    #[tokio::test]
+    async fn test_get_device_completion() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/completion"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "completion": 100.0,
+                "needBytes": 0,
+                "needFiles": 0,
+                "globalBytes": 1000
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let completion = client.get_device_completion("test-device").await.unwrap();
+
+        assert_eq!(completion.completion, 100.0);
+        assert_eq!(completion.global_bytes, 1000);
     }
 }
