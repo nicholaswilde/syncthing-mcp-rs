@@ -6,9 +6,9 @@
 - [x] Task: Unit tests for status reporting methods. 8cba41b
 
 ## Phase 2: MCP Tool Implementation
-- [ ] Task: Implement `get_sync_status` tool in \text{`src/tools/system.rs`}.
-- [ ] Task: Register tool in `src/mcp/server.rs`.
-- [ ] Task: Implement summarized status reporting.
+- [x] Task: Implement `get_sync_status` tool in \text{`src/tools/system.rs`}. 6d21142
+- [x] Task: Register tool in `src/mcp/server.rs`. 6d21142
+- [x] Task: Implement summarized status reporting. 6d21142
 
 ## Phase 3: Docker Integration Tests
 - [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
