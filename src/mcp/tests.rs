@@ -170,4 +170,96 @@ mod tests {
         server.run(&input[..], &mut output, rx).await.unwrap();
         assert!(output.is_empty());
     }
+
+    #[tokio::test]
+    async fn test_run_with_request() {
+        let registry = create_registry();
+        let config = AppConfig::default();
+        let (server, rx) = McpServer::new(registry, config);
+
+        let req = json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "1.0"}
+            }
+        });
+        let input = serde_json::to_vec(&req).unwrap();
+        let mut input_with_newline = input.clone();
+        input_with_newline.push(b'\n');
+
+        let mut output = Vec::new();
+        server.run(&input_with_newline[..], &mut output, rx).await.unwrap();
+
+        let resp: crate::mcp::Response = serde_json::from_slice(&output).unwrap();
+        assert_eq!(resp.id, crate::mcp::RequestId::Number(1));
+    }
+
+    #[tokio::test]
+    async fn test_run_with_notification() {
+        let registry = create_registry();
+        let config = AppConfig::default();
+        let (server, rx) = McpServer::new(registry, config);
+
+        let (client_writer, server_reader) = tokio::io::duplex(1024);
+        let (server_writer, mut client_reader) = tokio::io::duplex(1024);
+
+        let tx = server.notification_tx.clone();
+        tokio::spawn(async move {
+            tx.send(crate::mcp::Notification {
+                jsonrpc: "2.0".to_string(),
+                method: "test/notify".to_string(),
+                params: None,
+            })
+            .await
+            .unwrap();
+            
+            // Give some time for notification to be processed
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            // Close the writer to exit the loop
+            drop(client_writer);
+        });
+
+        server.run(server_reader, server_writer, rx).await.unwrap();
+
+        let mut output = Vec::new();
+        tokio::io::copy(&mut client_reader, &mut output).await.unwrap();
+
+        let msg: crate::mcp::Message = serde_json::from_slice(&output).unwrap();
+        if let crate::mcp::Message::Notification(n) = msg {
+            assert_eq!(n.method, "test/notify");
+        } else {
+            panic!("Expected notification");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_unknown_tool() {
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "unknown_tool",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await;
+        assert!(resp.is_err());
+    }
 }
