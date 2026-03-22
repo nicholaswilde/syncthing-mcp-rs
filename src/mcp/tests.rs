@@ -159,6 +159,68 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_tool_call_configure_sharing() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        // Mock GET folder
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "default",
+                "label": "Default Folder",
+                "path": "/home/sync",
+                "type": "sendreceive",
+                "devices": [],
+                "rescan_interval_s": 3600,
+                "fs_watcher_enabled": true,
+                "paused": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock PATCH folder
+        Mock::given(method("PATCH"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "configure_sharing",
+                "arguments": {
+                    "action": "share",
+                    "folder_id": "default",
+                    "device_id": "device1"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folder default shared with device device1 successfully"));
+    }
+
+    #[tokio::test]
     async fn test_tool_call_manage_devices() {
         use wiremock::matchers::{method, path};
         use wiremock::{Mock, MockServer, ResponseTemplate};

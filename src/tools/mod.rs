@@ -132,6 +132,31 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "configure_sharing",
+        "Share or unshare a folder with a device.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": ["share", "unshare"],
+                    "description": "The action to perform."
+                },
+                "folder_id": {
+                    "type": "string",
+                    "description": "The Folder ID."
+                },
+                "device_id": {
+                    "type": "string",
+                    "description": "The Device ID."
+                }
+            },
+            "required": ["action", "folder_id", "device_id"]
+        }),
+        folders::configure_sharing,
+    );
+
+    registry.register(
         "manage_devices",
         "Manage SyncThing devices.",
         serde_json::json!({
