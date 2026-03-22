@@ -1,6 +1,6 @@
 # Implementation Plan: Feature Gaps
 
-## Phase 1: Event System
+## Phase 1: Event System [checkpoint: f38b761]
 - [x] Implement an event listener task in `src/mcp/server.rs`. `db9cb21`
 - [x] Map SyncThing events to MCP notification methods. `db9cb21`
 - [x] Add event polling to the main loop. `db9cb21`
