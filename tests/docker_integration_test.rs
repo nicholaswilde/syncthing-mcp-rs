@@ -3,6 +3,7 @@ mod common;
 use anyhow::Result;
 use common::{SyncThingContainer, TestContext};
 use serde_json::json;
+use std::sync::Arc;
 
 #[tokio::test]
 async fn test_container_starts() -> Result<()> {
@@ -351,6 +352,74 @@ async fn test_maintain_system_tool() -> Result<()> {
         .await?;
     let text = result["content"][0]["text"].as_str().unwrap();
     assert!(text.contains("Successfully triggered SyncThing restart"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_replicate_config_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").is_err() {
+        println!("Skipping Docker test. Set RUN_DOCKER_TESTS=1 to run.");
+        return Ok(());
+    }
+
+    use syncthing_mcp_rs::config::InstanceConfig;
+
+    let source_container = SyncThingContainer::new().await?;
+    let dest_container = SyncThingContainer::new().await?;
+
+    let source_config = source_container.instance_config();
+    let dest_config = dest_container.instance_config();
+
+    let mut app_config = syncthing_mcp_rs::config::AppConfig {
+        instances: vec![
+            InstanceConfig {
+                name: Some("source".to_string()),
+                ..source_config
+            },
+            InstanceConfig {
+                name: Some("dest".to_string()),
+                ..dest_config
+            },
+        ],
+        ..Default::default()
+    };
+    app_config.validate().unwrap();
+
+    let client = source_container.client();
+    let registry = Arc::new(std::sync::Mutex::new(
+        syncthing_mcp_rs::tools::create_registry(),
+    ));
+
+    // 1. Add a folder to source
+    client
+        .add_folder("test-replica", "Test Replica", "/tmp/replica")
+        .await?;
+
+    // 2. Call replicate_config
+    let handler = {
+        let reg = registry.lock().unwrap();
+        reg.get_tool("replicate_config").unwrap().handler.clone()
+    };
+
+    let result = handler(
+        &client,
+        &app_config,
+        Some(json!({
+            "source": "source",
+            "destination": "dest"
+        })),
+    )
+    .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully replicated configuration to dest"));
+    assert!(text.contains("Folders: 1 added"));
+
+    // 3. Verify on destination
+    let dest_client = dest_container.client();
+    let dest_folders = dest_client.list_folders().await?;
+    assert!(dest_folders.iter().any(|f| f.id == "test-replica"));
 
     Ok(())
 }
