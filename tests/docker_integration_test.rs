@@ -210,3 +210,44 @@ async fn test_manage_ignores_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_get_sync_status_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let container = SyncThingContainer::new().await?;
+    let client = container.client();
+    
+    let folder_id = "test-status-folder";
+
+    // 1. Create a folder so we have something to check
+    client.add_folder(folder_id, "Test Status Folder", "/tmp/test-status").await?;
+
+    let ctx = TestContext::from_container(container);
+
+    // 2. Test folder status
+    let result = ctx.call_tool("get_sync_status", json!({
+        "target": "folder",
+        "id": folder_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains(&format!("Folder: {}", folder_id)));
+    assert!(text.contains("Completion:"));
+    assert!(text.contains("State:"));
+
+    // 3. Test device status (using the local device ID since we know it exists)
+    let status = client.get_system_status().await?;
+    let my_id = status.my_id;
+
+    let result = ctx.call_tool("get_sync_status", json!({
+        "target": "device",
+        "id": my_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains(&format!("Device: {}", my_id)));
+    assert!(text.contains("Completion:"));
+
+    Ok(())
+}

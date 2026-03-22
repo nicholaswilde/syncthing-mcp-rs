@@ -73,31 +73,32 @@ pub struct IgnoreConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FolderStatus {
     pub state: String,
-    #[serde(rename = "needBytes")]
+    #[serde(rename = "needBytes", default)]
     pub need_bytes: u64,
-    #[serde(rename = "needFiles")]
+    #[serde(rename = "needFiles", default)]
     pub need_files: u64,
-    #[serde(rename = "inSyncBytes")]
+    #[serde(rename = "inSyncBytes", default)]
     pub in_sync_bytes: u64,
-    #[serde(rename = "inSyncFiles")]
+    #[serde(rename = "inSyncFiles", default)]
     pub in_sync_files: u64,
-    #[serde(rename = "globalBytes")]
+    #[serde(rename = "globalBytes", default)]
     pub global_bytes: u64,
-    #[serde(rename = "globalFiles")]
+    #[serde(rename = "globalFiles", default)]
     pub global_files: u64,
-    #[serde(rename = "localBytes")]
+    #[serde(rename = "localBytes", default)]
     pub local_bytes: u64,
-    #[serde(rename = "localFiles")]
+    #[serde(rename = "localFiles", default)]
     pub local_files: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeviceCompletion {
+    #[serde(default)]
     pub completion: f64,
-    #[serde(rename = "needBytes")]
+    #[serde(rename = "needBytes", default)]
     pub need_bytes: u64,
-    #[serde(rename = "needFiles")]
+    #[serde(rename = "needFiles", default)]
     pub need_files: u64,
-    #[serde(rename = "globalBytes")]
+    #[serde(rename = "globalBytes", default)]
     pub global_bytes: u64,
 }
