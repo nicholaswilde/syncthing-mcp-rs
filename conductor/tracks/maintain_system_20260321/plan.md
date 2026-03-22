@@ -1,6 +1,6 @@
 # Implementation Plan: Maintenance Operations (maintain_system_20260321)
 
-## Phase 1: API Client Implementation
+## Phase 1: API Client Implementation [checkpoint: 326dd9c]
 - [x] Task: Add rescan, restart, and clear errors endpoints to `api/client.rs`. (503947b)
 - [x] Task: Unit tests for maintenance methods. (503947b)
 
