@@ -10,5 +10,5 @@
 - [x] Task: Implement summarized status reporting for maintenance actions. (bfe0ca2)
 
 ## Phase 3: Docker Integration Tests
-- [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
-- [ ] Task: Verify rescan, restart, and error clearing cycle against a live instance.
+- [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (42b008b)
+- [x] Task: Verify rescan, restart, and error clearing cycle against a live instance. (42b008b)
