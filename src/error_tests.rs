@@ -1,0 +1,25 @@
+#[cfg(test)]
+mod tests {
+    use crate::error::Error;
+
+    #[tokio::test]
+    async fn test_error_mapping_unauthorized() {
+        let res = reqwest::get("http://httpbin.org/status/401").await.unwrap();
+        let err = Error::from(res.error_for_status().unwrap_err());
+        assert!(matches!(err, Error::Unauthorized(_)));
+    }
+
+    #[tokio::test]
+    async fn test_error_mapping_forbidden() {
+        let res = reqwest::get("http://httpbin.org/status/403").await.unwrap();
+        let err = Error::from(res.error_for_status().unwrap_err());
+        assert!(matches!(err, Error::Forbidden(_)));
+    }
+
+    #[tokio::test]
+    async fn test_error_mapping_not_found() {
+        let res = reqwest::get("http://httpbin.org/status/404").await.unwrap();
+        let err = Error::from(res.error_for_status().unwrap_err());
+        assert!(matches!(err, Error::NotFound(_)));
+    }
+}

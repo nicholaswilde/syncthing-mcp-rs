@@ -1,6 +1,8 @@
 pub mod api;
 pub mod config;
 pub mod error;
+#[cfg(test)]
+mod error_tests;
 pub mod mcp;
 #[cfg(test)]
 pub mod test_utils;
