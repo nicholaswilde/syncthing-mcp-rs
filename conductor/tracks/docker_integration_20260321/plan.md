@@ -3,9 +3,9 @@
 ## Phase 1: Test Environment Setup
 - [x] Task: Configure `Cargo.toml` for integration testing. (9f81355)
     - [x] Add `testcontainers` and `testcontainers-modules` (if needed) to `[dev-dependencies]`.
-- [ ] Task: Create helper for SyncThing container lifecycle.
-    - [ ] Implement a `SyncThingContainer` wrapper using `testcontainers`.
-    - [ ] Define methods to start the container with a preset API key.
+- [x] Task: Create helper for SyncThing container lifecycle. (837150a)
+    - [x] Implement a `SyncThingContainer` wrapper using `testcontainers`.
+    - [x] Define methods to start the container with a preset API key.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Environment Setup' (Protocol in workflow.md)
 
 ## Phase 2: Core Integration Tests
