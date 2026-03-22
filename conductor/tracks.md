@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Build core SyncThing MCP server functionality**
+- [x] **Track: Build core SyncThing MCP server functionality**
   *Link: [./tracks/core_functionality_20260321/](./tracks/core_functionality_20260321/)*
