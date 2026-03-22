@@ -9,6 +9,6 @@
 - [x] Task: Register tool in `src/mcp/server.rs`. (04a407e)
 - [x] Task: Implement summarized output for sharing operations. (04a407e)
 
-## Phase 3: Docker Integration Tests
-- [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
-- [ ] Task: Verify sharing and unsharing between folders and devices.
+## Phase 3: Docker Integration Tests [checkpoint: dc891ed]
+- [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (dc891ed)
+- [x] Task: Verify sharing and unsharing between folders and devices. (dc891ed)
