@@ -1,3 +1,10 @@
+pub mod config;
+pub mod error;
+#[cfg(test)]
+pub mod test_utils;
+
+pub use error::{Error, Result};
+
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }

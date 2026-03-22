@@ -8,7 +8,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding' (Protocol in workflow.md) (bc85586)
 
 ## Phase 2: Configuration & API Client
-- [ ] Task: Implement configuration loading and validation.
+- [~] Task: Implement configuration loading and validation.
     - [ ] Create `src/config/mod.rs` to handle TOML/YAML/JSON parsing.
     - [ ] Define `InstanceConfig` and `AppConfig` structs with validation.
 - [ ] Task: Develop asynchronous SyncThing REST API client.
