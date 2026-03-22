@@ -8,13 +8,13 @@
     - [x] Define methods to start the container with a preset API key.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Test Environment Setup' (Protocol in workflow.md) (5e9b167)
 
-## Phase 2: Core Integration Tests
+## Phase 2: Core Integration Tests [checkpoint: 904ebeb]
 - [x] Task: Implement `get_system_stats` integration test. (6501f93)
     - [x] Write failing test in `tests/docker_integration_test.rs` that calls `get_system_stats` against the container.
     - [x] Implement enough of the test to verify connectivity and basic parsing.
 - [x] Task: Implement `manage_folders` integration test. (71f8e76)
     - [x] Write failing test that verifies folder listing from the real SyncThing instance.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Core Integration Tests' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Core Integration Tests' (Protocol in workflow.md) (904ebeb)
 
 ## Phase 3: Error Handling & Cleanup
 - [ ] Task: Test authentication failure.
