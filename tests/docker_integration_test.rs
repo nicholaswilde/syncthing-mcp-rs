@@ -48,3 +48,21 @@ async fn test_manage_folders_tool() -> Result<()> {
     
     Ok(())
 }
+
+#[tokio::test]
+async fn test_auth_failure() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let container = SyncThingContainer::new().await?;
+    let mut config = container.instance_config();
+    config.api_key = Some("invalid-api-key".to_string());
+    
+    let client = syncthing_mcp_rs::api::SyncThingClient::new(config);
+    let result = client.get_system_status().await;
+    
+    assert!(result.is_err());
+    
+    Ok(())
+}
