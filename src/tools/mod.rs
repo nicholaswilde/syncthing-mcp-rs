@@ -1,3 +1,4 @@
+pub mod config;
 pub mod devices;
 pub mod folders;
 pub mod system;
@@ -255,6 +256,26 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["action"]
         }),
         system::maintain_system,
+    );
+
+    registry.register(
+        "replicate_config",
+        "Sync configuration (folders and devices) from one SyncThing instance to another.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "Source instance name or index (optional, defaults to current/first)."
+                },
+                "destination": {
+                    "type": "string",
+                    "description": "Destination instance name or index."
+                }
+            },
+            "required": ["destination"]
+        }),
+        config::replicate_config,
     );
 
     registry

@@ -541,4 +541,79 @@ mod tests {
         assert!(text.contains("Completion: 50.50%"));
         assert!(text.contains("Bytes Remaining: 500"));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_replicate_config() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        // Source config
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": 37,
+                "folders": [{"id": "folder1"}],
+                "devices": [{"deviceID": "device1"}]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        // Destination config (get)
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": 37,
+                "folders": [],
+                "devices": []
+            })))
+            .mount(&dest_mock)
+            .await;
+
+        // Destination config (set)
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "replicate_config",
+                "arguments": {
+                    "source": "source",
+                    "destination": "dest"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully replicated configuration to dest"));
+        assert!(text.contains("Folders: 1 added, 0 removed, 0 updated."));
+        assert!(text.contains("Devices: 1 added, 0 removed, 0 updated."));
+    }
 }
