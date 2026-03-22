@@ -5,7 +5,7 @@
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
 3. **Test-Driven Development:** Write unit tests before implementing functionality
-4. **High Code Coverage:** Aim for >80% code coverage for all modules
+4. **High Code Coverage:** Aim for >90% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 
@@ -36,7 +36,7 @@ All tasks follow a strict lifecycle:
    ```bash
    pytest --cov=app --cov-report=html
    ```
-   Target: >80% coverage for new code. The specific tools and commands will vary by language and framework.
+   Target: >90% coverage for new code. The specific tools and commands will vary by language and framework.
 
 7. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
@@ -139,13 +139,13 @@ All tasks follow a strict lifecycle:
 Before marking any task complete, verify:
 
 - [ ] All tests pass (including Docker integration tests for new tools)
-- [ ] Code coverage meets requirements (>80%)
+- [ ] Code coverage meets requirements (>90%)
 - [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
 - [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
 - [ ] Type safety is enforced (e.g., type hints, TypeScript types, Go types)
 - [ ] No linting or static analysis errors (using the project's configured tools)
 - [ ] Works correctly on mobile (if applicable)
-- [ ] Documentation updated if needed
+- [ ] Documentation updated if needed (including `README.md` for tool/function changes)
 - [ ] No security vulnerabilities introduced
 
 ## Development Commands
@@ -215,7 +215,7 @@ Before requesting review:
 3. **Testing**
    - Unit tests comprehensive
    - Integration tests pass
-   - Coverage adequate (>80%)
+   - Coverage adequate (>90%)
 
 4. **Security**
    - No hardcoded secrets
@@ -274,8 +274,9 @@ A task is complete when:
 6. Code passes all configured linting and static analysis checks
 7. Works beautifully on mobile (if applicable)
 8. Implementation notes added to `plan.md`
-9. Changes committed with proper message
-10. Git note with task summary attached to the commit
+9. **`README.md` updated if tools or functions were added or modified**
+10. Changes committed with proper message
+11. Git note with task summary attached to the commit
 
 ## Emergency Procedures
 
@@ -305,7 +306,7 @@ A task is complete when:
 
 ### Pre-Deployment Checklist
 - [ ] All tests passing
-- [ ] Coverage >80%
+- [ ] Coverage >90%
 - [ ] No linting errors
 - [ ] Mobile testing complete
 - [ ] Environment variables configured
