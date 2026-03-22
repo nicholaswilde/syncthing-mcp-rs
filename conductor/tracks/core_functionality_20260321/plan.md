@@ -21,9 +21,9 @@
     - [x] Create `src/mcp/server.rs` with `stdio` transport.
     - [x] Register `get_system_stats` tool in the MCP server.
     - [x] Register `manage_folders` tool for listing folder status.
-- [~] Task: Add basic logging and error handling.
-    - [ ] Integrate `tracing` and `tracing-subscriber`.
-    - [ ] Implement custom error types and `From` conversions.
+- [x] Task: Add basic logging and error handling. (ab360f1)
+    - [x] Integrate `tracing` and `tracing-subscriber`.
+    - [x] Implement custom error types and `From` conversions.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Core MCP Implementation' (Protocol in workflow.md)
 
 ## Phase 4: Quality & Validation
