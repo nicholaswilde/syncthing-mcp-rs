@@ -650,4 +650,32 @@ mod tests {
         assert_eq!(events[1].id, 2);
         assert_eq!(events[1].event_type, "FolderSummary");
     }
+
+    #[tokio::test]
+    async fn test_browse() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/browse"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "subdir": {},
+                "file.txt": [123456789, 1024]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.browse("default", None, Some(1)).await.unwrap();
+
+        assert!(result.get("subdir").is_some());
+        assert!(result.get("file.txt").is_some());
+    }
 }

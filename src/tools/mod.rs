@@ -1,3 +1,4 @@
+pub mod browser;
 pub mod config;
 pub mod devices;
 pub mod folders;
@@ -276,6 +277,30 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["destination"]
         }),
         config::replicate_config,
+    );
+
+    registry.register(
+        "browse_folder",
+        "List files and subdirectories within a synced folder.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The Folder ID."
+                },
+                "prefix": {
+                    "type": "string",
+                    "description": "Optional path prefix within the folder."
+                },
+                "levels": {
+                    "type": "integer",
+                    "description": "How deep to traverse (0 for current level only)."
+                }
+            },
+            "required": ["folder_id"]
+        }),
+        browser::browse_folder,
     );
 
     registry

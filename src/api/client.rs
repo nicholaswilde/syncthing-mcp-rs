@@ -256,4 +256,23 @@ impl SyncThingClient {
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<Vec<Event>>().await?)
     }
+
+    pub async fn browse(&self, folder: &str, prefix: Option<&str>, levels: Option<u32>) -> Result<serde_json::Value> {
+        tracing::debug!("Browsing SyncThing folder: {} (prefix: {:?}, levels: {:?})", folder, prefix, levels);
+        let url = format!("{}/rest/db/browse", self.config.url);
+        let mut request = self.add_auth(self.client.get(&url));
+        
+        let mut query = vec![("folder", folder.to_string())];
+        if let Some(p) = prefix {
+            query.push(("prefix", p.to_string()));
+        }
+        if let Some(l) = levels {
+            query.push(("levels", l.to_string()));
+        }
+        
+        request = request.query(&query);
+
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<serde_json::Value>().await?)
+    }
 }
