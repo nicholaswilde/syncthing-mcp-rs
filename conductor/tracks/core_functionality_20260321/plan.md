@@ -7,14 +7,14 @@
     - [x] Configure `Cargo.toml` with necessary dependencies.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding' (Protocol in workflow.md) (bc85586)
 
-## Phase 2: Configuration & API Client
+## Phase 2: Configuration & API Client [checkpoint: af31f2b]
 - [x] Task: Implement configuration loading and validation. (c5154d3)
     - [x] Create `src/config/mod.rs` to handle TOML/YAML/JSON parsing.
     - [x] Define `InstanceConfig` and `AppConfig` structs with validation.
 - [x] Task: Develop asynchronous SyncThing REST API client. (1bf7149)
     - [x] Create `src/api/client.rs` using `reqwest`.
     - [x] Implement `get_system_info` and `list_folders` API calls.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Configuration & API Client' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Configuration & API Client' (Protocol in workflow.md) (af31f2b)
 
 ## Phase 3: Core MCP Implementation
 - [ ] Task: Implement core MCP server logic.
