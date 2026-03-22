@@ -3,7 +3,7 @@
 ## Phase 1: Error Refactoring
 - [x] Add `tokio-retry` to `Cargo.toml`. `479ee91`
 - [x] Update `src/error.rs` with more granular error variants. `ad2d0b1`
-- [ ] Implement a helper to map `SyncThingError` to MCP `ResponseError`.
+- [x] Implement a helper to map `SyncThingError` to MCP `ResponseError`. `5b45c5f`
 
 ## Phase 2: Retry Logic
 - [ ] Wrap `SyncThingClient` methods with a retry wrapper.
