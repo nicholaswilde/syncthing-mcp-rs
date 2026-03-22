@@ -15,6 +15,10 @@ pub struct AppConfig {
     pub log_level: String,
     #[serde(default = "default_no_verify_ssl")]
     pub no_verify_ssl: bool,
+    #[serde(default = "default_retry_max_attempts")]
+    pub retry_max_attempts: u32,
+    #[serde(default = "default_retry_initial_backoff_ms")]
+    pub retry_initial_backoff_ms: u64,
     #[serde(default, deserialize_with = "deserialize_instances")]
     pub instances: Vec<InstanceConfig>,
 }
@@ -25,6 +29,8 @@ pub struct InstanceConfig {
     pub url: String,
     pub api_key: Option<String>,
     pub no_verify_ssl: Option<bool>,
+    pub retry_max_attempts: Option<u32>,
+    pub retry_initial_backoff_ms: Option<u64>,
 }
 
 fn default_transport() -> String {
@@ -39,6 +45,14 @@ fn default_no_verify_ssl() -> bool {
     true
 }
 
+fn default_retry_max_attempts() -> u32 {
+    3
+}
+
+fn default_retry_initial_backoff_ms() -> u64 {
+    100
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
@@ -48,6 +62,8 @@ impl Default for AppConfig {
             mcp_transport: "stdio".to_string(),
             log_level: "info".to_string(),
             no_verify_ssl: true,
+            retry_max_attempts: 3,
+            retry_initial_backoff_ms: 100,
             instances: Vec::new(),
         }
     }
@@ -112,7 +128,9 @@ impl AppConfig {
             .set_default("log_level", "info")?
             .set_default("no_verify_ssl", true)?
             .set_default("host", "localhost")?
-            .set_default("port", 8384)?;
+            .set_default("port", 8384)?
+            .set_default("retry_max_attempts", 3)?
+            .set_default("retry_initial_backoff_ms", 100)?;
 
         // 3. Load from File
         if let Some(path) = path_to_load {
@@ -171,6 +189,8 @@ impl AppConfig {
                 url,
                 api_key: self.api_key.clone(),
                 no_verify_ssl: Some(self.no_verify_ssl),
+                retry_max_attempts: Some(self.retry_max_attempts),
+                retry_initial_backoff_ms: Some(self.retry_initial_backoff_ms),
             });
         }
 
@@ -178,9 +198,16 @@ impl AppConfig {
             return Err("At least one SyncThing instance must be configured".to_string());
         }
 
-        for (i, inst) in self.instances.iter().enumerate() {
+        for (i, inst) in self.instances.iter_mut().enumerate() {
             if inst.url.is_empty() {
                 return Err(format!("Instance {} is missing URL", i));
+            }
+            // Propagate global retry settings if not set on instance
+            if inst.retry_max_attempts.is_none() {
+                inst.retry_max_attempts = Some(self.retry_max_attempts);
+            }
+            if inst.retry_initial_backoff_ms.is_none() {
+                inst.retry_initial_backoff_ms = Some(self.retry_initial_backoff_ms);
             }
         }
 
@@ -272,6 +299,8 @@ mod tests {
         let config = AppConfig::load(None, vec![]).unwrap();
         assert_eq!(config.host, "localhost");
         assert_eq!(config.port, 8384);
+        assert_eq!(config.retry_max_attempts, 3);
+        assert_eq!(config.retry_initial_backoff_ms, 100);
     }
 
     #[test]
@@ -313,12 +342,13 @@ mod tests {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         use std::io::Write;
         let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
-        writeln!(file, "host = \"file.com\"\nport = 6060").unwrap();
+        writeln!(file, "host = \"file.com\"\nport = 6060\nretry_max_attempts = 5").unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
         let config = AppConfig::load(Some(path), vec![]).unwrap();
         assert_eq!(config.host, "file.com");
         assert_eq!(config.port, 6060);
+        assert_eq!(config.retry_max_attempts, 5);
     }
 
     #[test]
@@ -330,6 +360,7 @@ mod tests {
             file,
             r#"
 host = "primary.com"
+retry_max_attempts = 10
 
 [[instances]]
 name = "primary"
@@ -341,6 +372,7 @@ name = "secondary"
 url = "http://192.168.1.2"
 api_key = "key2"
 no_verify_ssl = false
+retry_max_attempts = 2
 "#
         )
         .unwrap();
@@ -350,8 +382,10 @@ no_verify_ssl = false
         assert_eq!(config.instances.len(), 2);
         assert_eq!(config.instances[0].name, Some("primary".to_string()));
         assert_eq!(config.instances[0].url, "http://192.168.1.1");
+        assert_eq!(config.instances[0].retry_max_attempts, Some(10));
         assert_eq!(config.instances[1].name, Some("secondary".to_string()));
         assert_eq!(config.instances[1].no_verify_ssl, Some(false));
+        assert_eq!(config.instances[1].retry_max_attempts, Some(2));
     }
 
     #[test]

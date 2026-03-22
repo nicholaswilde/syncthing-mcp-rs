@@ -27,9 +27,12 @@ impl SyncThingClient {
     }
 
     async fn send_with_retry(&self, request_builder: reqwest::RequestBuilder) -> Result<reqwest::Response> {
-        let retry_strategy = ExponentialBackoff::from_millis(100)
+        let max_attempts = self.config.retry_max_attempts.unwrap_or(3) as usize;
+        let initial_backoff = self.config.retry_initial_backoff_ms.unwrap_or(100);
+
+        let retry_strategy = ExponentialBackoff::from_millis(initial_backoff)
             .map(jitter)
-            .take(3);
+            .take(max_attempts);
 
         Retry::spawn(retry_strategy, || {
             let rb = request_builder.try_clone().ok_or_else(|| {
