@@ -9,6 +9,6 @@
 - [x] Implement support for external credential providers. [e9bdb39]
 - [x] Add encryption for sensitive configuration fields. [6474f1d]
 
-## Phase 3: Validation
-- [ ] Benchmark binary size across all targets.
-- [ ] Security audit of the configuration loading process.
+## Phase 3: Validation [checkpoint: c0f32ae]
+- [x] Benchmark binary size across all targets. [f8c0249]
+- [x] Security audit of the configuration loading process. [f8c0249]
