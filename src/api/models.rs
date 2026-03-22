@@ -111,3 +111,10 @@ pub struct Event {
     pub time: String,
     pub data: Option<serde_json::Value>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PendingDevice {
+    pub time: String,
+    pub name: String,
+    pub address: String,
+}

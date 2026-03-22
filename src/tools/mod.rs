@@ -221,12 +221,12 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["list", "add", "remove", "pause", "resume"],
+                    "enum": ["list", "add", "remove", "pause", "resume", "discover", "approve"],
                     "description": "The action to perform."
                 },
                 "device_id": {
                     "type": "string",
-                    "description": "The Device ID."
+                    "description": "The Device ID (required for 'remove', 'pause', 'resume', 'approve')."
                 },
                 "name": {
                     "type": "string",

@@ -3,6 +3,7 @@ use crate::config::InstanceConfig;
 use crate::error::{Error, Result};
 use tokio_retry::Retry;
 use tokio_retry::strategy::{ExponentialBackoff, jitter};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct SyncThingClient {
@@ -274,5 +275,21 @@ impl SyncThingClient {
 
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<serde_json::Value>().await?)
+    }
+
+    pub async fn get_pending_devices(&self) -> Result<HashMap<String, PendingDevice>> {
+        tracing::debug!("Fetching pending SyncThing devices");
+        let url = format!("{}/rest/cluster/pending/devices", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<HashMap<String, PendingDevice>>().await?)
+    }
+
+    pub async fn remove_pending_device(&self, device_id: &str) -> Result<()> {
+        tracing::debug!("Removing pending SyncThing device: {}", device_id);
+        let url = format!("{}/rest/cluster/pending/devices", self.config.url);
+        let request = self.add_auth(self.client.delete(&url)).query(&[("device", device_id)]);
+        self.send_with_retry(request).await?;
+        Ok(())
     }
 }

@@ -678,4 +678,59 @@ mod tests {
         assert!(result.get("subdir").is_some());
         assert!(result.get("file.txt").is_some());
     }
+
+    #[tokio::test]
+    async fn test_get_pending_devices() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/cluster/pending/devices"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "DEVICE-ID": {
+                    "time": "2023-01-01T00:00:00Z",
+                    "name": "test-device",
+                    "address": "1.2.3.4:22000"
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let pending = client.get_pending_devices().await.unwrap();
+
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending["DEVICE-ID"].name, "test-device");
+    }
+
+    #[tokio::test]
+    async fn test_remove_pending_device() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("DELETE"))
+            .and(path("/rest/cluster/pending/devices"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.remove_pending_device("DEVICE-ID").await;
+
+        assert!(result.is_ok());
+    }
 }
