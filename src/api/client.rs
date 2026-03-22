@@ -235,4 +235,25 @@ impl SyncThingClient {
         self.send_with_retry(request).await?;
         Ok(())
     }
+
+    pub async fn get_events(&self, since: Option<u64>, limit: Option<u32>) -> Result<Vec<Event>> {
+        tracing::debug!("Fetching SyncThing events (since: {:?}, limit: {:?})", since, limit);
+        let url = format!("{}/rest/events", self.config.url);
+        let mut request = self.add_auth(self.client.get(&url));
+        
+        let mut query = Vec::new();
+        if let Some(s) = since {
+            query.push(("since", s.to_string()));
+        }
+        if let Some(l) = limit {
+            query.push(("limit", l.to_string()));
+        }
+        
+        if !query.is_empty() {
+            request = request.query(&query);
+        }
+
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<Vec<Event>>().await?)
+    }
 }

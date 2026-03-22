@@ -102,3 +102,12 @@ pub struct DeviceCompletion {
     #[serde(rename = "globalBytes", default)]
     pub global_bytes: u64,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Event {
+    pub id: u64,
+    #[serde(rename = "type")]
+    pub event_type: String,
+    pub time: String,
+    pub data: Option<serde_json::Value>,
+}

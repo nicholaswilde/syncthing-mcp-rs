@@ -7,6 +7,7 @@ use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
 use tokio::sync::mpsc;
+use std::time::Duration;
 
 #[derive(Clone)]
 pub struct McpServer {
@@ -43,6 +44,14 @@ impl McpServer {
         W: tokio::io::AsyncWrite + Unpin,
     {
         let mut reader = BufReader::new(reader).lines();
+        
+        // Spawn event polling loop
+        let server_clone = self.clone();
+        tokio::spawn(async move {
+            if let Err(e) = server_clone.event_loop().await {
+                tracing::error!("Event loop error: {}", e);
+            }
+        });
 
         loop {
             tokio::select! {
@@ -159,6 +168,43 @@ impl McpServer {
                 }
             }
             _ => Err(Error::Internal(format!("Method not found: {}", req.method))),
+        }
+    }
+
+    pub async fn event_loop(&self) -> anyhow::Result<()> {
+        let mut last_ids: std::collections::HashMap<String, u64> = std::collections::HashMap::new();
+        
+        loop {
+            for instance in &self.config.instances {
+                let instance_name = instance.name.clone().unwrap_or_else(|| "default".to_string());
+                let client = SyncThingClient::new(instance.clone());
+                
+                let since = last_ids.get(&instance_name).cloned();
+                match client.get_events(since, Some(10)).await {
+                    Ok(events) => {
+                        for event in events {
+                            // Only notify for specific events of interest
+                            if matches!(event.event_type.as_str(), "FolderStateChanged" | "DeviceConnected" | "DeviceDisconnected" | "LocalIndexUpdated") {
+                                let notification = Notification {
+                                    jsonrpc: "2.0".to_string(),
+                                    method: "notifications/message".to_string(),
+                                    params: Some(serde_json::json!({
+                                        "level": "info",
+                                        "description": format!("SyncThing Event [{}]: {}", instance_name, event.event_type),
+                                        "data": event
+                                    })),
+                                };
+                                let _ = self.notification_tx.send(notification).await;
+                            }
+                            last_ids.insert(instance_name.clone(), event.id);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to fetch events for instance {}: {}", instance_name, e);
+                    }
+                }
+            }
+            tokio::time::sleep(Duration::from_secs(5)).await;
         }
     }
 }

@@ -609,4 +609,45 @@ mod tests {
         let err = result.unwrap_err();
         assert!(matches!(err, crate::error::Error::Api(_)));
     }
+
+    #[tokio::test]
+    async fn test_get_events() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/events"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([
+                {
+                    "id": 1,
+                    "type": "Starting",
+                    "time": "2023-01-01T00:00:00Z",
+                    "data": null
+                },
+                {
+                    "id": 2,
+                    "type": "FolderSummary",
+                    "time": "2023-01-01T00:00:01Z",
+                    "data": {"folder": "default"}
+                }
+            ])))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let events = client.get_events(None, None).await.unwrap();
+
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].id, 1);
+        assert_eq!(events[0].event_type, "Starting");
+        assert_eq!(events[1].id, 2);
+        assert_eq!(events[1].event_type, "FolderSummary");
+    }
 }
