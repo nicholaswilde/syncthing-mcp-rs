@@ -7,7 +7,7 @@
 
 ## Phase 2: Retry Logic
 - [x] Wrap `SyncThingClient` methods with a retry wrapper. `1abd821`
-- [ ] Configure retry policies (max attempts, backoff strategy).
+- [x] Configure retry policies (max attempts, backoff strategy). `ec72037`
 
 ## Phase 3: Validation
 - [ ] Add unit tests for retry logic (using `wiremock` to simulate failures).
