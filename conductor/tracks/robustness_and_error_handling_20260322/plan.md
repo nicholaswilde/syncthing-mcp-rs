@@ -6,7 +6,7 @@
 - [x] Implement a helper to map `SyncThingError` to MCP `ResponseError`. `5b45c5f`
 
 ## Phase 2: Retry Logic
-- [ ] Wrap `SyncThingClient` methods with a retry wrapper.
+- [x] Wrap `SyncThingClient` methods with a retry wrapper. `1abd821`
 - [ ] Configure retry policies (max attempts, backoff strategy).
 
 ## Phase 3: Validation
