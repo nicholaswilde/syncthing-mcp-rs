@@ -48,6 +48,19 @@ impl SyncThingClient {
         Ok(response.json::<Vec<FolderConfig>>().await?)
     }
 
+    pub async fn add_folder(&self, folder_id: &str, label: &str, path: &str) -> Result<()> {
+        tracing::debug!("Adding SyncThing folder: {}", folder_id);
+        let url = format!("{}/rest/config/folders", self.config.url);
+        let folder = serde_json::json!({
+            "id": folder_id,
+            "label": label,
+            "path": path,
+        });
+        let request = self.add_auth(self.client.post(&url)).json(&folder);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn get_folder(&self, folder_id: &str) -> Result<FolderConfig> {
         tracing::debug!("Fetching SyncThing folder: {}", folder_id);
         let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
