@@ -11,5 +11,5 @@
 - [x] Task: Implement summarized status reporting. 6d21142
 
 ## Phase 3: Docker Integration Tests
-- [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
-- [ ] Task: Verify status reporting against a real Syncthing instance with mock sync progress.
+- [x] Task: Add integration tests in `tests/docker_integration_test.rs`. 0f9e3d1
+- [x] Task: Verify status reporting against a real Syncthing instance with mock sync progress. 0f9e3d1
