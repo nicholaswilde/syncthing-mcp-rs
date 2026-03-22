@@ -30,7 +30,7 @@
 - [x] Task: Implement comprehensive unit tests. (3478fcc)
     - [x] Create mock API tests for `src/api/client.rs`.
     - [x] Add integration tests for MCP tool responses.
-- [ ] Task: Verify tool definitions and documentation.
-    - [ ] Use `mcp-inspector` to validate tool descriptions and schemas.
-    - [ ] Update `README.md` with setup instructions and usage examples.
+- [x] Task: Verify tool definitions and documentation. (9092b3f)
+    - [x] Use `mcp-inspector` to validate tool descriptions and schemas.
+    - [x] Update `README.md` with setup instructions and usage examples.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Validation' (Protocol in workflow.md)
