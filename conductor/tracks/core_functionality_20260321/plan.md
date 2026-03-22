@@ -26,11 +26,11 @@
     - [x] Implement custom error types and `From` conversions.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Core MCP Implementation' (Protocol in workflow.md) (cb787d8)
 
-## Phase 4: Quality & Validation
+## Phase 4: Quality & Validation [checkpoint: e7c65bb]
 - [x] Task: Implement comprehensive unit tests. (3478fcc)
     - [x] Create mock API tests for `src/api/client.rs`.
     - [x] Add integration tests for MCP tool responses.
 - [x] Task: Verify tool definitions and documentation. (9092b3f)
     - [x] Use `mcp-inspector` to validate tool descriptions and schemas.
     - [x] Update `README.md` with setup instructions and usage examples.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Quality & Validation' (Protocol in workflow.md) (e7c65bb)
