@@ -33,3 +33,18 @@ async fn test_get_system_stats_tool() -> Result<()> {
     
     Ok(())
 }
+
+#[tokio::test]
+async fn test_manage_folders_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("manage_folders", json!({"action": "list"})).await?;
+    
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("SyncThing Folders:"));
+    
+    Ok(())
+}
