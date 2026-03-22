@@ -1,10 +1,10 @@
 # Implementation Plan: Build core SyncThing MCP server functionality (core_functionality_20260321)
 
 ## Phase 1: Project Scaffolding
-- [~] Task: Initialize Rust project and directory structure.
-    - [ ] Run `cargo init` and create basic folder structure (`src/api`, `src/mcp`, `src/config`).
-    - [ ] Create `Taskfile.yml` with basic build and test tasks.
-    - [ ] Configure `Cargo.toml` with necessary dependencies.
+- [x] Task: Initialize Rust project and directory structure. (6880b10)
+    - [x] Run `cargo init` and create basic folder structure (`src/api`, `src/mcp`, `src/config`).
+    - [x] Create `Taskfile.yml` with basic build and test tasks.
+    - [x] Configure `Cargo.toml` with necessary dependencies.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding' (Protocol in workflow.md)
 
 ## Phase 2: Configuration & API Client
