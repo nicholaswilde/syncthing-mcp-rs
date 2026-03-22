@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Improve stability with retry logic and structured error mapping.
+## [x] Track: Improve stability with retry logic and structured error mapping.
 *Link: [./tracks/robustness_and_error_handling_20260322/](./tracks/robustness_and_error_handling_20260322/)*
 
 ---
