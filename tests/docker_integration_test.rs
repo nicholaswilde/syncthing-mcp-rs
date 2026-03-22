@@ -66,3 +66,53 @@ async fn test_auth_failure() -> Result<()> {
     
     Ok(())
 }
+
+#[tokio::test]
+async fn test_manage_devices_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    
+    // 1. List devices (should have at least the local device)
+    let result = ctx.call_tool("manage_devices", json!({"action": "list"})).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("SyncThing Devices:"));
+
+    // 2. Add a device
+    let dummy_id = "PIRQAMB-72MHUAV-UZDMOA4-GXFI6LX-SVYUDGG-YIXLXHE-FW4CCMO-6KVZAA3";
+    let result = ctx.call_tool("manage_devices", json!({
+        "action": "add",
+        "device_id": dummy_id,
+        "name": "Dummy Device"
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("added successfully"));
+
+    // 3. Pause the device
+    let result = ctx.call_tool("manage_devices", json!({
+        "action": "pause",
+        "device_id": dummy_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("paused successfully"));
+
+    // 4. Resume the device
+    let result = ctx.call_tool("manage_devices", json!({
+        "action": "resume",
+        "device_id": dummy_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("resumed successfully"));
+
+    // 5. Remove the device
+    let result = ctx.call_tool("manage_devices", json!({
+        "action": "remove",
+        "device_id": dummy_id
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("removed successfully"));
+
+    Ok(())
+}
