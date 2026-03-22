@@ -24,5 +24,6 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Folder Management**: List, create, modify, and delete SyncThing folders; monitor synchronization status.
 - **Device Management**: Add, remove, and configure SyncThing devices; track connection states.
 - **System Monitoring**: Access real-time statistics, logs, and health checks for managed instances.
+- **System Maintenance**: Perform critical operations such as triggering rescans, clearing errors, and restarting SyncThing instances.
 - **Instance Synchronization**: (Future) Ability to sync configurations across multiple "replica" instances from a "master" instance.
 - **Flexible Configuration**: Support for TOML/YAML/JSON configuration files and environment variables.
