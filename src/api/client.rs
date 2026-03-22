@@ -78,20 +78,29 @@ impl SyncThingClient {
     }
 
     pub async fn get_ignores(&self, folder_id: &str) -> Result<IgnoreConfig> {
-        tracing::debug!("Fetching SyncThing ignore patterns for folder: {}", folder_id);
+        tracing::debug!(
+            "Fetching SyncThing ignore patterns for folder: {}",
+            folder_id
+        );
         let url = format!("{}/rest/db/ignores", self.config.url);
-        let request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+        let request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("folder", folder_id)]);
         let response = request.send().await?.error_for_status()?;
         Ok(response.json::<IgnoreConfig>().await?)
     }
 
     pub async fn set_ignores(&self, folder_id: &str, ignores: Vec<String>) -> Result<()> {
-        tracing::debug!("Setting SyncThing ignore patterns for folder: {}", folder_id);
+        tracing::debug!(
+            "Setting SyncThing ignore patterns for folder: {}",
+            folder_id
+        );
         let url = format!("{}/rest/db/ignores", self.config.url);
         let body = serde_json::json!({
             "ignore": ignores,
         });
-        let request = self.add_auth(self.client.post(&url))
+        let request = self
+            .add_auth(self.client.post(&url))
             .query(&[("folder", folder_id)])
             .json(&body);
         request.send().await?.error_for_status()?;
@@ -140,7 +149,9 @@ impl SyncThingClient {
     pub async fn get_folder_status(&self, folder_id: &str) -> Result<FolderStatus> {
         tracing::debug!("Fetching SyncThing folder status: {}", folder_id);
         let url = format!("{}/rest/db/status", self.config.url);
-        let request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+        let request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("folder", folder_id)]);
         let response = request.send().await?.error_for_status()?;
         Ok(response.json::<FolderStatus>().await?)
     }
@@ -148,8 +159,37 @@ impl SyncThingClient {
     pub async fn get_device_completion(&self, device_id: &str) -> Result<DeviceCompletion> {
         tracing::debug!("Fetching SyncThing device completion: {}", device_id);
         let url = format!("{}/rest/db/completion", self.config.url);
-        let request = self.add_auth(self.client.get(&url)).query(&[("device", device_id)]);
+        let request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("device", device_id)]);
         let response = request.send().await?.error_for_status()?;
         Ok(response.json::<DeviceCompletion>().await?)
+    }
+
+    pub async fn rescan(&self, folder_id: Option<&str>) -> Result<()> {
+        tracing::debug!("Triggering rescan (folder: {:?})", folder_id);
+        let url = format!("{}/rest/db/scan", self.config.url);
+        let mut request = self.add_auth(self.client.post(&url));
+        if let Some(id) = folder_id {
+            request = request.query(&[("folder", id)]);
+        }
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn restart(&self) -> Result<()> {
+        tracing::debug!("Triggering SyncThing restart");
+        let url = format!("{}/rest/system/restart", self.config.url);
+        let request = self.add_auth(self.client.post(&url));
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn clear_errors(&self) -> Result<()> {
+        tracing::debug!("Clearing SyncThing errors");
+        let url = format!("{}/rest/system/error/clear", self.config.url);
+        let request = self.add_auth(self.client.post(&url));
+        request.send().await?.error_for_status()?;
+        Ok(())
     }
 }

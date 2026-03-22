@@ -184,7 +184,9 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let result = client.patch_folder("default", serde_json::json!({"paused": true})).await;
+        let result = client
+            .patch_folder("default", serde_json::json!({"paused": true}))
+            .await;
 
         assert!(result.is_ok());
     }
@@ -292,7 +294,9 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let result = client.patch_device("test-device-id", serde_json::json!({"paused": true})).await;
+        let result = client
+            .patch_device("test-device-id", serde_json::json!({"paused": true}))
+            .await;
 
         assert!(result.is_ok());
     }
@@ -344,7 +348,9 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let result = client.set_ignores("default", vec!["new_pattern".to_string()]).await;
+        let result = client
+            .set_ignores("default", vec!["new_pattern".to_string()])
+            .await;
 
         assert!(result.is_ok());
     }
@@ -412,5 +418,71 @@ mod tests {
 
         assert_eq!(completion.completion, 100.0);
         assert_eq!(completion.global_bytes, 1000);
+    }
+
+    #[tokio::test]
+    async fn test_rescan() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("POST"))
+            .and(path("/rest/db/scan"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        client.rescan(Some("test-folder")).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_restart() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/restart"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        client.restart().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_clear_errors() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/error/clear"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        client.clear_errors().await.unwrap();
     }
 }
