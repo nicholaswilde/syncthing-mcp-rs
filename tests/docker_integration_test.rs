@@ -1,7 +1,8 @@
 mod common;
 
-use common::SyncThingContainer;
+use common::{SyncThingContainer, TestContext};
 use anyhow::Result;
+use serde_json::json;
 
 #[tokio::test]
 async fn test_container_starts() -> Result<()> {
@@ -13,6 +14,22 @@ async fn test_container_starts() -> Result<()> {
     let status = container.client().get_system_status().await?;
     
     assert!(!status.my_id.is_empty());
+    
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_system_stats_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_system_stats", json!({})).await?;
+    
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("SyncThing Version"));
+    assert!(text.contains("My ID"));
     
     Ok(())
 }
