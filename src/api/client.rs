@@ -48,6 +48,22 @@ impl SyncThingClient {
         Ok(response.json::<Vec<FolderConfig>>().await?)
     }
 
+    pub async fn get_folder(&self, folder_id: &str) -> Result<FolderConfig> {
+        tracing::debug!("Fetching SyncThing folder: {}", folder_id);
+        let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
+        let request = self.add_auth(self.client.get(&url));
+        let response = request.send().await?.error_for_status()?;
+        Ok(response.json::<FolderConfig>().await?)
+    }
+
+    pub async fn patch_folder(&self, folder_id: &str, patch: serde_json::Value) -> Result<()> {
+        tracing::debug!("Patching SyncThing folder: {}", folder_id);
+        let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
+        let request = self.add_auth(self.client.patch(&url)).json(&patch);
+        request.send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn list_devices(&self) -> Result<Vec<DeviceConfig>> {
         tracing::debug!("Listing SyncThing devices");
         let url = format!("{}/rest/config/devices", self.config.url);

@@ -215,4 +215,61 @@ mod tests {
 
         assert!(result.is_ok());
     }
+
+    #[tokio::test]
+    async fn test_get_folder() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "id": "default",
+                "label": "Default Folder",
+                "path": "/home/sync",
+                "type": "sendreceive",
+                "devices": [],
+                "rescan_interval_s": 3600,
+                "fs_watcher_enabled": true,
+                "paused": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let folder = client.get_folder("default").await.unwrap();
+
+        assert_eq!(folder.id, "default");
+    }
+
+    #[tokio::test]
+    async fn test_patch_folder() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("PATCH"))
+            .and(path("/rest/config/folders/default"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.patch_folder("default", serde_json::json!({"paused": true})).await;
+
+        assert!(result.is_ok());
+    }
 }
