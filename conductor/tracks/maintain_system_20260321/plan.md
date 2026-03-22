@@ -9,6 +9,6 @@
 - [x] Task: Register tool in `src/mcp/server.rs`. (bfe0ca2)
 - [x] Task: Implement summarized status reporting for maintenance actions. (bfe0ca2)
 
-## Phase 3: Docker Integration Tests
+## Phase 3: Docker Integration Tests [checkpoint: c0d8c7d]
 - [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (42b008b)
 - [x] Task: Verify rescan, restart, and error clearing cycle against a live instance. (42b008b)
