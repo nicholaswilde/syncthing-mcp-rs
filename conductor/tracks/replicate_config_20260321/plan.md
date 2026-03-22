@@ -1,6 +1,6 @@
 # Implementation Plan: Configuration Replication (replicate_config_20260321)
 
-## Phase 1: API Client Implementation
+## Phase 1: API Client Implementation [checkpoint: 49f9aea]
 - [x] Task: Add configuration get/set endpoints to `api/client.rs`. (aaa806a)
 - [x] Task: Unit tests for configuration replication methods. (aaa806a)
 
