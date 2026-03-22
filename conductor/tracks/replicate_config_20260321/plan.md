@@ -10,5 +10,5 @@
 - [x] Task: Implement summarized configuration difference reports. (c7e1590)
 
 ## Phase 3: Docker Integration Tests
-- [ ] Task: Add integration tests in `tests/docker_integration_test.rs`.
-- [ ] Task: Verify configuration replication between two real Syncthing instances using Docker.
+- [x] Task: Add integration tests in `tests/docker_integration_test.rs`. (7703fb3)
+- [x] Task: Verify configuration replication between two real Syncthing instances using Docker. (7703fb3)
