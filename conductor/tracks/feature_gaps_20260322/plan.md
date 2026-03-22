@@ -6,8 +6,8 @@
 - [x] Add event polling to the main loop. `db9cb21`
 
 ## Phase 2: File Browser
-- [ ] Implement `browse_folder` tool in a new `src/tools/browser.rs`.
-- [ ] Add the tool to the registry.
+- [x] Implement `browse_folder` tool in a new `src/tools/browser.rs`. `8530636`
+- [x] Add the tool to the registry. `8530636`
 
 ## Phase 3: Device Discovery
 - [ ] Extend `manage_devices` with "discover" and "approve" actions.
