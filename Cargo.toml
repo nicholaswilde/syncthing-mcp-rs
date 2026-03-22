@@ -29,7 +29,7 @@ uuid = { version = "1.20", features = ["v4", "fast-rng"] }
 http-body-util = "0.1"
 tempfile = "3.24"
 testcontainers = "0.26"
-testcontainers-modules = { version = "0.14", features = ["postgres"] }
+testcontainers-modules = "0.14"
 tower = { version = "0.5", features = ["util"] }
 wiremock = "0.6"
 
