@@ -2,7 +2,7 @@ use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::mcp::{Message, Notification, Request, Response, ResponseError};
 use crate::tools::ToolRegistry;
-use anyhow::Result;
+use crate::error::Error;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
@@ -28,7 +28,7 @@ impl McpServer {
         )
     }
 
-    pub async fn run_stdio(&self, rx: mpsc::Receiver<Notification>) -> Result<()> {
+    pub async fn run_stdio(&self, rx: mpsc::Receiver<Notification>) -> anyhow::Result<()> {
         self.run(stdin(), stdout(), rx).await
     }
 
@@ -37,7 +37,7 @@ impl McpServer {
         reader: R,
         mut writer: W,
         mut rx: mpsc::Receiver<Notification>,
-    ) -> Result<()>
+    ) -> anyhow::Result<()>
     where
         R: tokio::io::AsyncRead + Unpin,
         W: tokio::io::AsyncWrite + Unpin,
@@ -75,11 +75,7 @@ impl McpServer {
                                         jsonrpc: "2.0".to_string(),
                                         id,
                                         result: None,
-                                        error: Some(ResponseError {
-                                            code: -32000,
-                                            message: e.to_string(),
-                                            data: None,
-                                        }),
+                                        error: Some(ResponseError::from(e)),
                                     }
                                 }
                             };
@@ -104,7 +100,7 @@ impl McpServer {
         Ok(())
     }
 
-    pub async fn handle_request(&self, req: Request) -> Result<Value> {
+    pub async fn handle_request(&self, req: Request) -> Result<Value, Error> {
         match req.method.as_str() {
             "initialize" => Ok(serde_json::json!({
                 "protocolVersion": "2024-11-05",
@@ -146,10 +142,7 @@ impl McpServer {
                     .and_then(|a| a.get("instance"))
                     .and_then(|i| i.as_str());
 
-                let instance_config = match self.config.get_instance(instance_name) {
-                    Ok(c) => c,
-                    Err(e) => return Err(anyhow::anyhow!(e)),
-                };
+                let instance_config = self.config.get_instance(instance_name)?;
 
                 let client = SyncThingClient::new(instance_config.clone());
 
@@ -161,12 +154,11 @@ impl McpServer {
                 if let Some(handler) = handler {
                     handler(&client, &self.config, args)
                         .await
-                        .map_err(|e| anyhow::anyhow!(e))
                 } else {
-                    Err(anyhow::anyhow!("Tool not found: {}", tool_name))
+                    Err(Error::Internal(format!("Tool not found: {}", tool_name)))
                 }
             }
-            _ => Err(anyhow::anyhow!("Method not found: {}", req.method)),
+            _ => Err(Error::Internal(format!("Method not found: {}", req.method))),
         }
     }
 }

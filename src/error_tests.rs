@@ -22,4 +22,12 @@ mod tests {
         let err = Error::from(res.error_for_status().unwrap_err());
         assert!(matches!(err, Error::NotFound(_)));
     }
+
+    #[test]
+    fn test_response_error_conversion() {
+        use crate::mcp::ResponseError;
+        let err = Error::Unauthorized("test".to_string());
+        let resp_err = ResponseError::from(err);
+        assert_eq!(resp_err.code, -32001);
+    }
 }

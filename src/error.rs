@@ -53,4 +53,10 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<String> for Error {
+    fn from(err: String) -> Self {
+        Error::SyncThing(err)
+    }
+}
+
 pub type Result<T> = std::result::Result<T, Error>;
