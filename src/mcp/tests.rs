@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[allow(clippy::module_inception)]
 mod tests {
     use crate::config::AppConfig;
     use crate::mcp::server::McpServer;
@@ -357,7 +358,10 @@ mod tests {
         input_with_newline.push(b'\n');
 
         let mut output = Vec::new();
-        server.run(&input_with_newline[..], &mut output, rx).await.unwrap();
+        server
+            .run(&input_with_newline[..], &mut output, rx)
+            .await
+            .unwrap();
 
         let resp: crate::mcp::Response = serde_json::from_slice(&output).unwrap();
         assert_eq!(resp.id, crate::mcp::RequestId::Number(1));
@@ -381,7 +385,7 @@ mod tests {
             })
             .await
             .unwrap();
-            
+
             // Give some time for notification to be processed
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             // Close the writer to exit the loop
@@ -391,7 +395,9 @@ mod tests {
         server.run(server_reader, server_writer, rx).await.unwrap();
 
         let mut output = Vec::new();
-        tokio::io::copy(&mut client_reader, &mut output).await.unwrap();
+        tokio::io::copy(&mut client_reader, &mut output)
+            .await
+            .unwrap();
 
         let msg: crate::mcp::Message = serde_json::from_slice(&output).unwrap();
         if let crate::mcp::Message::Notification(n) = msg {

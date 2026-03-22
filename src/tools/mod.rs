@@ -1,6 +1,6 @@
+pub mod devices;
 pub mod folders;
 pub mod system;
-pub mod devices;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
@@ -30,6 +30,12 @@ pub struct Tool {
 pub struct ToolRegistry {
     tools: HashMap<String, Tool>,
     enabled_tools: HashSet<String>,
+}
+
+impl Default for ToolRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ToolRegistry {
@@ -228,6 +234,27 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["action"]
         }),
         devices::manage_devices,
+    );
+
+    registry.register(
+        "maintain_system",
+        "Perform maintenance tasks on the SyncThing instance.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": ["force_rescan", "restart", "clear_errors"],
+                    "description": "The maintenance action to perform."
+                },
+                "folder_id": {
+                    "type": "string",
+                    "description": "Optional Folder ID for 'force_rescan'. If omitted, all folders are rescanned."
+                }
+            },
+            "required": ["action"]
+        }),
+        system::maintain_system,
     );
 
     registry

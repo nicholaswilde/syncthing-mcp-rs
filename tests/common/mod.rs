@@ -1,9 +1,9 @@
+use anyhow::Result;
+use std::sync::{Arc, Mutex};
 #[allow(dead_code)]
 use syncthing_mcp_rs::api::SyncThingClient;
 use syncthing_mcp_rs::config::{AppConfig, InstanceConfig};
 use syncthing_mcp_rs::tools::ToolRegistry;
-use anyhow::Result;
-use std::sync::{Arc, Mutex};
 use testcontainers::core::{ContainerPort, WaitFor};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
@@ -47,10 +47,7 @@ impl SyncThingContainer {
         let port = container.get_host_port_ipv4(8384).await?;
         let host = "localhost".to_string();
 
-        println!(
-            "✅ SyncThing container started at http://{}:{}",
-            host, port
-        );
+        println!("✅ SyncThing container started at http://{}:{}", host, port);
 
         // Wait for web server to be ready
         let config = InstanceConfig {
@@ -91,7 +88,7 @@ impl SyncThingContainer {
             ..Default::default()
         }
     }
-    
+
     pub fn config(&self) -> AppConfig {
         AppConfig {
             host: self.host.clone(),
@@ -104,6 +101,7 @@ impl SyncThingContainer {
 }
 
 pub struct TestContext {
+    #[allow(dead_code)]
     pub container: SyncThingContainer,
     pub config: AppConfig,
     pub client: SyncThingClient,

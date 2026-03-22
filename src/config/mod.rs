@@ -159,21 +159,19 @@ impl AppConfig {
     }
 
     pub fn validate(&mut self) -> Result<(), String> {
-        if self.instances.is_empty() {
-            if !self.host.is_empty() {
-                let url = if self.host.starts_with("http") {
-                    self.host.clone()
-                } else {
-                    format!("http://{}:{}", self.host, self.port)
-                };
+        if self.instances.is_empty() && !self.host.is_empty() {
+            let url = if self.host.starts_with("http") {
+                self.host.clone()
+            } else {
+                format!("http://{}:{}", self.host, self.port)
+            };
 
-                self.instances.push(InstanceConfig {
-                    name: Some("default".to_string()),
-                    url,
-                    api_key: self.api_key.clone(),
-                    no_verify_ssl: Some(self.no_verify_ssl),
-                });
-            }
+            self.instances.push(InstanceConfig {
+                name: Some("default".to_string()),
+                url,
+                api_key: self.api_key.clone(),
+                no_verify_ssl: Some(self.no_verify_ssl),
+            });
         }
 
         if self.instances.is_empty() {
@@ -226,11 +224,7 @@ fn parse_args(args: Vec<String>) -> ArgMatches {
                 .long("config")
                 .help("Path to configuration file"),
         )
-        .arg(
-            Arg::new("host")
-                .long("host")
-                .help("SyncThing host"),
-        )
+        .arg(Arg::new("host").long("host").help("SyncThing host"))
         .arg(
             Arg::new("port")
                 .long("port")
@@ -271,8 +265,8 @@ mod tests {
     fn test_load_defaults() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         unsafe {
-            let _ = std::env::remove_var("SYNCTHING_HOST");
-            let _ = std::env::remove_var("SYNCTHING_PORT");
+            std::env::remove_var("SYNCTHING_HOST");
+            std::env::remove_var("SYNCTHING_PORT");
         }
 
         let config = AppConfig::load(None, vec![]).unwrap();
@@ -299,15 +293,15 @@ mod tests {
     fn test_env_override() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         unsafe {
-            let _ = std::env::set_var("SYNCTHING_HOST", "env.com");
-            let _ = std::env::set_var("SYNCTHING_PORT", "5050");
+            std::env::set_var("SYNCTHING_HOST", "env.com");
+            std::env::set_var("SYNCTHING_PORT", "5050");
         }
 
         let config = AppConfig::load(None, vec![]).unwrap();
 
         unsafe {
-            let _ = std::env::remove_var("SYNCTHING_HOST");
-            let _ = std::env::remove_var("SYNCTHING_PORT");
+            std::env::remove_var("SYNCTHING_HOST");
+            std::env::remove_var("SYNCTHING_PORT");
         }
 
         assert_eq!(config.host, "env.com");
@@ -319,11 +313,7 @@ mod tests {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         use std::io::Write;
         let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
-        writeln!(
-            file,
-            "host = \"file.com\"\nport = 6060"
-        )
-        .unwrap();
+        writeln!(file, "host = \"file.com\"\nport = 6060").unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
         let config = AppConfig::load(Some(path), vec![]).unwrap();
@@ -400,13 +390,22 @@ no_verify_ssl = false
         };
 
         // Get default (first)
-        assert_eq!(config.get_instance(None).unwrap().name, Some("first".to_string()));
+        assert_eq!(
+            config.get_instance(None).unwrap().name,
+            Some("first".to_string())
+        );
 
         // Get by index
-        assert_eq!(config.get_instance(Some("1")).unwrap().name, Some("second".to_string()));
+        assert_eq!(
+            config.get_instance(Some("1")).unwrap().name,
+            Some("second".to_string())
+        );
 
         // Get by name
-        assert_eq!(config.get_instance(Some("second")).unwrap().name, Some("second".to_string()));
+        assert_eq!(
+            config.get_instance(Some("second")).unwrap().name,
+            Some("second".to_string())
+        );
 
         // Not found
         assert!(config.get_instance(Some("third")).is_err());

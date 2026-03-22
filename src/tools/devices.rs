@@ -1,7 +1,7 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub async fn manage_devices(
     client: SyncThingClient,
@@ -30,7 +30,9 @@ pub async fn manage_devices(
             }))
         }
         "add" => {
-            let device_id = args["device_id"].as_str().ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
+            let device_id = args["device_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("device_id is required".to_string())
+            })?;
             let name = args["name"].as_str();
             client.add_device(device_id, name).await?;
             Ok(json!({
@@ -41,7 +43,9 @@ pub async fn manage_devices(
             }))
         }
         "remove" => {
-            let device_id = args["device_id"].as_str().ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
+            let device_id = args["device_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("device_id is required".to_string())
+            })?;
             client.remove_device(device_id).await?;
             Ok(json!({
                 "content": [{
@@ -51,8 +55,12 @@ pub async fn manage_devices(
             }))
         }
         "pause" => {
-            let device_id = args["device_id"].as_str().ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
-            client.patch_device(device_id, json!({"paused": true})).await?;
+            let device_id = args["device_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("device_id is required".to_string())
+            })?;
+            client
+                .patch_device(device_id, json!({"paused": true}))
+                .await?;
             Ok(json!({
                 "content": [{
                     "type": "text",
@@ -61,8 +69,12 @@ pub async fn manage_devices(
             }))
         }
         "resume" => {
-            let device_id = args["device_id"].as_str().ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
-            client.patch_device(device_id, json!({"paused": false})).await?;
+            let device_id = args["device_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("device_id is required".to_string())
+            })?;
+            client
+                .patch_device(device_id, json!({"paused": false}))
+                .await?;
             Ok(json!({
                 "content": [{
                     "type": "text",
@@ -70,6 +82,9 @@ pub async fn manage_devices(
                 }]
             }))
         }
-        _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
+        _ => Err(crate::error::Error::Internal(format!(
+            "Unsupported action: {}",
+            action
+        ))),
     }
 }

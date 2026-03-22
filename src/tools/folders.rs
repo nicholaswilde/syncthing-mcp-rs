@@ -1,7 +1,7 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub async fn manage_folders(
     client: SyncThingClient,
@@ -27,7 +27,10 @@ pub async fn manage_folders(
                 }]
             }))
         }
-        _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
+        _ => Err(crate::error::Error::Internal(format!(
+            "Unsupported action: {}",
+            action
+        ))),
     }
 }
 
@@ -36,19 +39,29 @@ pub async fn configure_sharing(
     _config: AppConfig,
     args: Value,
 ) -> Result<Value> {
-    let action = args["action"].as_str().ok_or_else(|| crate::error::Error::Internal("action is required".to_string()))?;
-    let folder_id = args["folder_id"].as_str().ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
-    let device_id = args["device_id"].as_str().ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
+    let action = args["action"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("action is required".to_string()))?;
+    let folder_id = args["folder_id"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
+    let device_id = args["device_id"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("device_id is required".to_string()))?;
 
     let mut folder = client.get_folder(folder_id).await?;
 
     match action {
         "share" => {
             if !folder.devices.iter().any(|d| d.device_id == device_id) {
-                folder.devices.push(crate::api::models::FolderDeviceConfiguration {
-                    device_id: device_id.to_string(),
-                });
-                client.patch_folder(folder_id, json!({"devices": folder.devices})).await?;
+                folder
+                    .devices
+                    .push(crate::api::models::FolderDeviceConfiguration {
+                        device_id: device_id.to_string(),
+                    });
+                client
+                    .patch_folder(folder_id, json!({"devices": folder.devices}))
+                    .await?;
             }
             Ok(json!({
                 "content": [{
@@ -61,7 +74,9 @@ pub async fn configure_sharing(
             let original_len = folder.devices.len();
             folder.devices.retain(|d| d.device_id != device_id);
             if folder.devices.len() != original_len {
-                client.patch_folder(folder_id, json!({"devices": folder.devices})).await?;
+                client
+                    .patch_folder(folder_id, json!({"devices": folder.devices}))
+                    .await?;
             }
             Ok(json!({
                 "content": [{
@@ -70,7 +85,10 @@ pub async fn configure_sharing(
                 }]
             }))
         }
-        _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
+        _ => Err(crate::error::Error::Internal(format!(
+            "Unsupported action: {}",
+            action
+        ))),
     }
 }
 
@@ -80,7 +98,9 @@ pub async fn manage_ignores(
     args: Value,
 ) -> Result<Value> {
     let action = args["action"].as_str().unwrap_or("get");
-    let folder_id = args["folder_id"].as_str().ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
+    let folder_id = args["folder_id"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
 
     match action {
         "get" => {
@@ -102,8 +122,13 @@ pub async fn manage_ignores(
             }))
         }
         "set" => {
-            let patterns = args["patterns"].as_array().ok_or_else(|| crate::error::Error::Internal("patterns array is required for 'set'".to_string()))?;
-            let patterns: Vec<String> = patterns.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            let patterns = args["patterns"].as_array().ok_or_else(|| {
+                crate::error::Error::Internal("patterns array is required for 'set'".to_string())
+            })?;
+            let patterns: Vec<String> = patterns
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect();
             client.set_ignores(folder_id, patterns.clone()).await?;
             Ok(json!({
                 "content": [{
@@ -113,9 +138,14 @@ pub async fn manage_ignores(
             }))
         }
         "append" => {
-            let new_patterns = args["patterns"].as_array().ok_or_else(|| crate::error::Error::Internal("patterns array is required for 'append'".to_string()))?;
-            let new_patterns: Vec<String> = new_patterns.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
-            
+            let new_patterns = args["patterns"].as_array().ok_or_else(|| {
+                crate::error::Error::Internal("patterns array is required for 'append'".to_string())
+            })?;
+            let new_patterns: Vec<String> = new_patterns
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect();
+
             let current_ignores = client.get_ignores(folder_id).await?;
             let mut ignore_list = current_ignores.ignore.unwrap_or_default();
             let mut added_count = 0;
@@ -125,11 +155,11 @@ pub async fn manage_ignores(
                     added_count += 1;
                 }
             }
-            
+
             if added_count > 0 {
                 client.set_ignores(folder_id, ignore_list.clone()).await?;
             }
-            
+
             Ok(json!({
                 "content": [{
                     "type": "text",
@@ -137,6 +167,9 @@ pub async fn manage_ignores(
                 }]
             }))
         }
-        _ => Err(crate::error::Error::Internal(format!("Unsupported action: {}", action))),
+        _ => Err(crate::error::Error::Internal(format!(
+            "Unsupported action: {}",
+            action
+        ))),
     }
 }

@@ -1,7 +1,7 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::{Error, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub async fn get_system_stats(
     client: SyncThingClient,
@@ -57,7 +57,12 @@ pub async fn get_sync_status(
                 id, completion.completion, completion.need_bytes, completion.need_files
             )
         }
-        _ => return Err(Error::ValidationError(format!("Invalid target: {}", target))),
+        _ => {
+            return Err(Error::ValidationError(format!(
+                "Invalid target: {}",
+                target
+            )));
+        }
     };
 
     Ok(json!({
@@ -68,3 +73,53 @@ pub async fn get_sync_status(
     }))
 }
 
+pub async fn maintain_system(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let action = args
+        .get("action")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::ValidationError("Missing action argument".to_string()))?;
+
+    match action {
+        "force_rescan" => {
+            let folder_id = args.get("folder_id").and_then(|v| v.as_str());
+            client.rescan(folder_id).await?;
+            let msg = if let Some(id) = folder_id {
+                format!("Successfully triggered rescan for folder: {}", id)
+            } else {
+                "Successfully triggered rescan for all folders".to_string()
+            };
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": msg
+                }]
+            }))
+        }
+        "restart" => {
+            client.restart().await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": "Successfully triggered SyncThing restart"
+                }]
+            }))
+        }
+        "clear_errors" => {
+            client.clear_errors().await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": "Successfully cleared SyncThing errors"
+                }]
+            }))
+        }
+        _ => Err(Error::ValidationError(format!(
+            "Invalid action: {}",
+            action
+        ))),
+    }
+}

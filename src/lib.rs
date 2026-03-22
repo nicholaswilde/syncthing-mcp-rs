@@ -2,9 +2,9 @@ pub mod api;
 pub mod config;
 pub mod error;
 pub mod mcp;
-pub mod tools;
 #[cfg(test)]
 pub mod test_utils;
+pub mod tools;
 
 pub use error::{Error, Result};
 
