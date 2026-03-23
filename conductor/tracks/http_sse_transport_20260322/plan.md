@@ -14,7 +14,7 @@
 - [x] Task: Implement basic authentication (e.g., bearer token) for remote access. 388381d
 - [x] Task: Add logging and metrics for HTTP/SSE connections. df3aa54
 
-## Phase 4: Validation
+## Phase 4: Validation [checkpoint: 3ecacf4]
 - [x] Task: Create integration tests using a mock HTTP client. 7b4b405
 - [x] Task: Verify functionality with a real MCP client supporting SSE. 897351c
 - [x] Task: Document the remote access setup in `README.md`. 9c908fd
