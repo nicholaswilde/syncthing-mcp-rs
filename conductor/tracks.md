@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: HTTP/SSE Transport Support
-*Link: [./tracks/http_sse_transport_20260322/](./tracks/http_sse_transport_20260322/)*
-
----
-
 ## [ ] Track: Event Notifications
 *Link: [./tracks/event_notifications_20260322/](./tracks/event_notifications_20260322/)*
 
