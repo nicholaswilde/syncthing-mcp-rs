@@ -15,6 +15,6 @@
 - [x] Task: Add logging and metrics for HTTP/SSE connections. df3aa54
 
 ## Phase 4: Validation
-- [ ] Task: Create integration tests using a mock HTTP client.
+- [x] Task: Create integration tests using a mock HTTP client. 7b4b405
 - [ ] Task: Verify functionality with a real MCP client supporting SSE.
 - [ ] Task: Document the remote access setup in `README.md`.
