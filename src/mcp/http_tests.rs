@@ -97,4 +97,56 @@ mod tests {
         assert_eq!(mcp_resp["id"], 1);
         assert_eq!(mcp_resp["result"]["serverInfo"]["name"], "syncthing-mcp-rs");
     }
+
+    #[tokio::test]
+    async fn test_tools_list_over_http() {
+        let registry = ToolRegistry::new();
+        let config = AppConfig::default();
+        let (server, _rx) = McpServer::new(registry, config);
+        let app = server.router();
+
+        // 1. Establish session
+        let response = app.clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/sse")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        
+        let mut body = response.into_body().into_data_stream();
+        let first_event = body.next().await.unwrap().unwrap();
+        let event_str = String::from_utf8(first_event.to_vec()).unwrap();
+        let session_id = event_str.split("session_id=").collect::<Vec<_>>()[1].trim();
+
+        // 2. Request tools/list
+        let mcp_req = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": "list-req",
+            "method": "tools/list",
+            "params": {}
+        });
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri(format!("/message?session_id={}", session_id))
+                    .header("content-type", "application/json")
+                    .body(Body::from(serde_json::to_vec(&mcp_req).unwrap()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        
+        let body_bytes = axum::body::to_bytes(response.into_body(), 1024).await.unwrap();
+        let mcp_resp: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
+        
+        assert_eq!(mcp_resp["id"], "list-req");
+        assert!(mcp_resp["result"]["tools"].is_array());
+    }
 }
