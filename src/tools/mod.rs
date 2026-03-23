@@ -1,7 +1,12 @@
+/// Browser tool for exploring synced folders.
 pub mod browser;
+/// Configuration replication tool.
 pub mod config;
+/// Device management tools.
 pub mod devices;
+/// Folder management tools.
 pub mod folders;
+/// System status and maintenance tools.
 pub mod system;
 
 use crate::api::SyncThingClient;
@@ -12,6 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 use std::sync::Arc;
 
+/// A type alias for tool handler functions.
 pub type ToolHandler = dyn Fn(
         &SyncThingClient,
         &AppConfig,
@@ -20,14 +26,20 @@ pub type ToolHandler = dyn Fn(
     + Send
     + Sync;
 
+/// Represents an MCP tool.
 #[derive(Clone)]
 pub struct Tool {
+    /// The name of the tool.
     pub name: String,
+    /// A description of what the tool does.
     pub description: String,
+    /// The JSON schema for the tool's input.
     pub input_schema: Value,
+    /// The handler function for the tool.
     pub handler: Arc<ToolHandler>,
 }
 
+/// A registry of available MCP tools.
 #[derive(Clone)]
 pub struct ToolRegistry {
     tools: HashMap<String, Tool>,
@@ -41,6 +53,7 @@ impl Default for ToolRegistry {
 }
 
 impl ToolRegistry {
+    /// Creates a new, empty tool registry.
     pub fn new() -> Self {
         Self {
             tools: HashMap::new(),
@@ -48,6 +61,7 @@ impl ToolRegistry {
         }
     }
 
+    /// Registers a new tool in the registry.
     pub fn register<F, Fut>(
         &mut self,
         name: &str,
@@ -73,6 +87,7 @@ impl ToolRegistry {
         self.enabled_tools.insert(name.to_string());
     }
 
+    /// Lists all enabled tools in the registry, formatted for MCP.
     pub fn list_tools(&self) -> Vec<Value> {
         let mut result = Vec::new();
 
@@ -105,11 +120,13 @@ impl ToolRegistry {
         result
     }
 
+    /// Returns a tool by its name.
     pub fn get_tool(&self, name: &str) -> Option<Tool> {
         self.tools.get(name).cloned()
     }
 }
 
+/// Creates a tool registry and registers all available tools.
 pub fn create_registry() -> ToolRegistry {
     let mut registry = ToolRegistry::new();
 

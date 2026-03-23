@@ -1,12 +1,26 @@
+//! SyncThing MCP Server.
+//!
+//! This crate provides a Model Context Protocol (MCP) server for interacting with SyncThing.
+//! It allows for managing folders, devices, and system status through an MCP-compatible client.
+
+#![deny(missing_docs)]
+
+/// API client and models for SyncThing.
 pub mod api;
+/// Configuration for the application and SyncThing instances.
 pub mod config;
+/// Credential management for SyncThing API keys.
 pub mod credentials;
+/// Error handling for the application.
 pub mod error;
 #[cfg(test)]
 mod error_tests;
+/// MCP server implementation and types.
 pub mod mcp;
+/// Utility functions for testing.
 #[cfg(test)]
 pub mod test_utils;
+/// Tool definitions and handlers for the MCP server.
 pub mod tools;
 
 use crate::config::AppConfig;
@@ -22,6 +36,13 @@ pub fn version() -> &'static str {
 }
 
 /// Runs the SyncThing MCP server.
+///
+/// This function initializes logging, loads the configuration, creates the tool registry,
+/// and starts the MCP server on standard input/output.
+///
+/// # Errors
+///
+/// Returns an error if configuration loading or server execution fails.
 pub async fn run() -> anyhow::Result<()> {
     // 1. Initialize logging
     tracing_subscriber::registry()

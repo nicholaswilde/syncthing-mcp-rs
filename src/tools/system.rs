@@ -1,8 +1,11 @@
+//! System management tools for SyncThing.
+
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::{Error, Result};
 use serde_json::{Value, json};
 
+/// Retrieves system stats and version information from SyncThing.
 pub async fn get_system_stats(
     client: SyncThingClient,
     _config: AppConfig,
@@ -22,6 +25,7 @@ pub async fn get_system_stats(
     }))
 }
 
+/// Retrieves the synchronization status for a specific folder or device.
 pub async fn get_sync_status(
     client: SyncThingClient,
     _config: AppConfig,
@@ -73,6 +77,7 @@ pub async fn get_sync_status(
     }))
 }
 
+/// Performs system maintenance tasks (rescan, restart, clear errors).
 pub async fn maintain_system(
     client: SyncThingClient,
     _config: AppConfig,

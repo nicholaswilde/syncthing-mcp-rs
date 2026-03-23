@@ -3,6 +3,7 @@ use crate::config::AppConfig;
 use crate::error::Result;
 use serde_json::{Value, json};
 
+/// Manages SyncThing devices (list, add, remove, pause, resume, discover, approve).
 pub async fn manage_devices(
     client: SyncThingClient,
     _config: AppConfig,
@@ -38,10 +39,7 @@ pub async fn manage_devices(
                 for (device_id, device) in pending {
                     text.push_str(&format!(
                         "- {} ({}): (address: {}, time: {})\n",
-                        device.name,
-                        device_id,
-                        device.address,
-                        device.time
+                        device.name, device_id, device.address, device.time
                     ));
                 }
             }
@@ -57,13 +55,13 @@ pub async fn manage_devices(
                 crate::error::Error::Internal("device_id is required for approve".to_string())
             })?;
             let name = args["name"].as_str();
-            
+
             // 1. Add device to config
             client.add_device(device_id, name).await?;
-            
+
             // 2. Remove from pending
             let _ = client.remove_pending_device(device_id).await;
-            
+
             Ok(json!({
                 "content": [{
                     "type": "text",

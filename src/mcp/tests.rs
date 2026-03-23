@@ -752,7 +752,11 @@ mod tests {
         };
         let resp = server.handle_request(req).await;
         assert!(resp.is_err());
-        assert!(resp.unwrap_err().to_string().contains("device_id is required"));
+        assert!(
+            resp.unwrap_err()
+                .to_string()
+                .contains("device_id is required")
+        );
 
         // 3. manage_devices: unsupported action
         let req = crate::mcp::Request {
@@ -788,7 +792,12 @@ mod tests {
             })),
         };
         let resp = server.handle_request(req).await.unwrap();
-        assert!(resp["content"][0]["text"].as_str().unwrap().contains("unshared"));
+        assert!(
+            resp["content"][0]["text"]
+                .as_str()
+                .unwrap()
+                .contains("unshared")
+        );
 
         // 5. manage_ignores: missing patterns for set
         let req = crate::mcp::Request {
@@ -802,7 +811,11 @@ mod tests {
         };
         let resp = server.handle_request(req).await;
         assert!(resp.is_err());
-        assert!(resp.unwrap_err().to_string().contains("patterns array is required"));
+        assert!(
+            resp.unwrap_err()
+                .to_string()
+                .contains("patterns array is required")
+        );
 
         // 6. manage_ignores: append no new patterns
         Mock::given(method("GET"))
@@ -821,7 +834,12 @@ mod tests {
             })),
         };
         let resp = server.handle_request(req).await.unwrap();
-        assert!(resp["content"][0]["text"].as_str().unwrap().contains("Successfully appended 0"));
+        assert!(
+            resp["content"][0]["text"]
+                .as_str()
+                .unwrap()
+                .contains("Successfully appended 0")
+        );
 
         // 7. maintain_system: invalid action
         let req = crate::mcp::Request {

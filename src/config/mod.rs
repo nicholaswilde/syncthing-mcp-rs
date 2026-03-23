@@ -1,36 +1,53 @@
+use crate::credentials::resolve_api_key;
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
-use crate::credentials::resolve_api_key;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::fmt;
 
+/// Application configuration.
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
+    /// The host to connect to (if only one instance).
     pub host: String,
+    /// The port to connect to.
     pub port: u16,
+    /// The API key to use.
     pub api_key: Option<String>,
+    /// The MCP transport mode (e.g., "stdio").
     #[serde(default = "default_transport")]
     pub mcp_transport: String,
+    /// The log level.
     #[serde(default = "default_log_level")]
     pub log_level: String,
+    /// Whether to skip SSL certificate verification.
     #[serde(default = "default_no_verify_ssl")]
     pub no_verify_ssl: bool,
+    /// Maximum number of retry attempts for API requests.
     #[serde(default = "default_retry_max_attempts")]
     pub retry_max_attempts: u32,
+    /// Initial backoff for retries in milliseconds.
     #[serde(default = "default_retry_initial_backoff_ms")]
     pub retry_initial_backoff_ms: u64,
+    /// A list of SyncThing instances to manage.
     #[serde(default, deserialize_with = "deserialize_instances")]
     pub instances: Vec<InstanceConfig>,
 }
 
+/// Configuration for a specific SyncThing instance.
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq, Default)]
 pub struct InstanceConfig {
+    /// The name of the instance.
     pub name: Option<String>,
+    /// The base URL of the instance.
     pub url: String,
+    /// The API key for this instance.
     pub api_key: Option<String>,
+    /// Whether to skip SSL certificate verification for this instance.
     pub no_verify_ssl: Option<bool>,
+    /// Maximum number of retry attempts for this instance.
     pub retry_max_attempts: Option<u32>,
+    /// Initial backoff for retries for this instance in milliseconds.
     pub retry_initial_backoff_ms: Option<u64>,
 }
 
@@ -111,13 +128,24 @@ where
     deserializer.deserialize_any(InstancesVisitor)
 }
 
+/// The result of a configuration load operation.
 pub enum ConfigResult {
+    /// A successfully loaded configuration.
     Config(AppConfig),
+    /// The application should exit (e.g., after successful encryption).
     Exit,
 }
 
 impl AppConfig {
-    pub fn load(file_path: Option<String>, cli_args: Vec<String>) -> Result<ConfigResult, ConfigError> {
+    /// Loads the configuration from file, environment variables, and CLI arguments.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the configuration cannot be loaded or is invalid.
+    pub fn load(
+        file_path: Option<String>,
+        cli_args: Vec<String>,
+    ) -> Result<ConfigResult, ConfigError> {
         let mut builder = Config::builder();
         let matches = parse_args(cli_args);
 
@@ -195,6 +223,7 @@ impl AppConfig {
         Ok(ConfigResult::Config(config))
     }
 
+    /// Validates the configuration and ensures at least one instance is configured.
     pub fn validate(&mut self) -> Result<(), String> {
         if self.instances.is_empty() && !self.host.is_empty() {
             let url = if self.host.starts_with("http") {
@@ -236,6 +265,7 @@ impl AppConfig {
         Ok(())
     }
 
+    /// Returns the instance configuration by name or index.
     pub fn get_instance(
         &self,
         name_or_index: Option<&str>,
@@ -378,7 +408,11 @@ mod tests {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         use std::io::Write;
         let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
-        writeln!(file, "host = \"file.com\"\nport = 6060\nretry_max_attempts = 5").unwrap();
+        writeln!(
+            file,
+            "host = \"file.com\"\nport = 6060\nretry_max_attempts = 5"
+        )
+        .unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
         let config = match AppConfig::load(Some(path), vec![]).unwrap() {
@@ -476,10 +510,12 @@ api_key = "key2"
         config.instances = vec![];
         config.host = "".to_string();
         assert!(config.validate().is_err());
-        assert!(config
-            .validate()
-            .unwrap_err()
-            .contains("At least one SyncThing instance"));
+        assert!(
+            config
+                .validate()
+                .unwrap_err()
+                .contains("At least one SyncThing instance")
+        );
     }
 
     #[test]

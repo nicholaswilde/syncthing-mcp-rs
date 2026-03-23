@@ -1,22 +1,27 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
+use crate::error::Error;
 use crate::mcp::{Message, Notification, Request, Response, ResponseError};
 use crate::tools::ToolRegistry;
-use crate::error::Error;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
 use tokio::sync::mpsc;
-use std::time::Duration;
 
+/// The Model Context Protocol (MCP) server for SyncThing.
 #[derive(Clone)]
 pub struct McpServer {
+    /// The registry of available tools.
     pub registry: Arc<Mutex<ToolRegistry>>,
+    /// The application configuration.
     pub config: AppConfig,
+    /// A sender for sending notifications to the client.
     pub notification_tx: mpsc::Sender<Notification>,
 }
 
 impl McpServer {
+    /// Creates a new MCP server with the given registry and configuration.
     pub fn new(registry: ToolRegistry, config: AppConfig) -> (Self, mpsc::Receiver<Notification>) {
         let (tx, rx) = mpsc::channel(100);
         (
@@ -29,10 +34,12 @@ impl McpServer {
         )
     }
 
+    /// Runs the server on standard input/output.
     pub async fn run_stdio(&self, rx: mpsc::Receiver<Notification>) -> anyhow::Result<()> {
         self.run(stdin(), stdout(), rx).await
     }
 
+    /// Runs the server with the given reader and writer.
     pub async fn run<R, W>(
         &self,
         reader: R,
@@ -44,7 +51,7 @@ impl McpServer {
         W: tokio::io::AsyncWrite + Unpin,
     {
         let mut reader = BufReader::new(reader).lines();
-        
+
         // Spawn event polling loop
         let server_clone = self.clone();
         tokio::spawn(async move {
@@ -109,6 +116,7 @@ impl McpServer {
         Ok(())
     }
 
+    /// Handles an incoming MCP request.
     pub async fn handle_request(&self, req: Request) -> Result<Value, Error> {
         match req.method.as_str() {
             "initialize" => Ok(serde_json::json!({
@@ -161,8 +169,7 @@ impl McpServer {
                 };
 
                 if let Some(handler) = handler {
-                    handler(&client, &self.config, args)
-                        .await
+                    handler(&client, &self.config, args).await
                 } else {
                     Err(Error::Internal(format!("Tool not found: {}", tool_name)))
                 }
@@ -171,20 +178,30 @@ impl McpServer {
         }
     }
 
+    /// A loop that polls SyncThing instances for events and sends notifications.
     pub async fn event_loop(&self) -> anyhow::Result<()> {
         let mut last_ids: std::collections::HashMap<String, u64> = std::collections::HashMap::new();
-        
+
         loop {
             for instance in &self.config.instances {
-                let instance_name = instance.name.clone().unwrap_or_else(|| "default".to_string());
+                let instance_name = instance
+                    .name
+                    .clone()
+                    .unwrap_or_else(|| "default".to_string());
                 let client = SyncThingClient::new(instance.clone());
-                
+
                 let since = last_ids.get(&instance_name).cloned();
                 match client.get_events(since, Some(10)).await {
                     Ok(events) => {
                         for event in events {
                             // Only notify for specific events of interest
-                            if matches!(event.event_type.as_str(), "FolderStateChanged" | "DeviceConnected" | "DeviceDisconnected" | "LocalIndexUpdated") {
+                            if matches!(
+                                event.event_type.as_str(),
+                                "FolderStateChanged"
+                                    | "DeviceConnected"
+                                    | "DeviceDisconnected"
+                                    | "LocalIndexUpdated"
+                            ) {
                                 let notification = Notification {
                                     jsonrpc: "2.0".to_string(),
                                     method: "notifications/message".to_string(),
@@ -200,7 +217,11 @@ impl McpServer {
                         }
                     }
                     Err(e) => {
-                        tracing::error!("Failed to fetch events for instance {}: {}", instance_name, e);
+                        tracing::error!(
+                            "Failed to fetch events for instance {}: {}",
+                            instance_name,
+                            e
+                        );
                     }
                 }
             }

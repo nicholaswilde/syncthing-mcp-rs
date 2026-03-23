@@ -4,6 +4,7 @@ use crate::error::{Error, Result};
 use serde_json::{Value, json};
 use std::collections::HashSet;
 
+/// Replicates the configuration from one SyncThing instance to another.
 pub async fn replicate_config(
     client: SyncThingClient,
     config: AppConfig,

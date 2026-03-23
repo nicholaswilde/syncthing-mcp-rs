@@ -1,8 +1,11 @@
+//! Folder management tools for SyncThing.
+
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::Result;
 use serde_json::{Value, json};
 
+/// Manages SyncThing folders (list, add, remove, pause, resume).
 pub async fn manage_folders(
     client: SyncThingClient,
     _config: AppConfig,
@@ -34,6 +37,7 @@ pub async fn manage_folders(
     }
 }
 
+/// Configures folder sharing between devices.
 pub async fn configure_sharing(
     client: SyncThingClient,
     _config: AppConfig,
@@ -92,6 +96,7 @@ pub async fn configure_sharing(
     }
 }
 
+/// Manages folder ignore patterns.
 pub async fn manage_ignores(
     client: SyncThingClient,
     _config: AppConfig,

@@ -9,7 +9,7 @@ mod tests {
     #[tokio::test]
     async fn test_mcp_error_unauthorized() {
         let mock_server = MockServer::start().await;
-        
+
         Mock::given(method("GET"))
             .and(path("/rest/system/status"))
             .respond_with(ResponseTemplate::new(401))
@@ -42,10 +42,10 @@ mod tests {
 
         let response = server.handle_request(req).await;
         assert!(response.is_err());
-        
+
         let err = response.unwrap_err();
         let mcp_err = crate::mcp::ResponseError::from(err);
-        
+
         assert_eq!(mcp_err.code, -32001);
         assert!(mcp_err.message.contains("Unauthorized"));
     }
@@ -79,10 +79,10 @@ mod tests {
 
         let response = server.handle_request(req).await;
         assert!(response.is_err());
-        
+
         let err = response.unwrap_err();
         let mcp_err = crate::mcp::ResponseError::from(err);
-        
+
         assert_eq!(mcp_err.code, -32004);
         assert!(mcp_err.message.contains("Network Error"));
     }
