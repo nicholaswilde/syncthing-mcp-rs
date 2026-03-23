@@ -3,7 +3,7 @@
 ## Phase 1: Main Refactoring
 - [x] Create `run()` in `src/lib.rs`. (4c62873)
 - [x] Move initialization and server startup logic into `run()`. (4c62873)
-- [~] Update `src/main.rs` to call `lib::run()`.
+- [x] Update `src/main.rs` to call `lib::run()`. (4747e18)
 
 ## Phase 2: Documentation
 - [ ] Add doc comments to all public modules and functions.
