@@ -1,6 +1,6 @@
 # Implementation Plan: HTTP/SSE Transport Support (http_sse_transport_20260322)
 
-## Phase 1: Infrastructure & Dependencies
+## Phase 1: Infrastructure & Dependencies [checkpoint: da8ffc0]
 - [x] Task: Add `axum`, `tower-http`, and `tokio-stream` dependencies. d908822
 - [x] Task: Extend configuration to include HTTP server settings (host, port, enabled). c9a0c86
 
