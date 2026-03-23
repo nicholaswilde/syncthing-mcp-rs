@@ -1,9 +1,9 @@
 # Implementation Plan: Code Quality
 
 ## Phase 1: Main Refactoring
-- [ ] Create `run()` in `src/lib.rs`.
-- [ ] Move initialization and server startup logic into `run()`.
-- [ ] Update `src/main.rs` to call `lib::run()`.
+- [x] Create `run()` in `src/lib.rs`. (4c62873)
+- [x] Move initialization and server startup logic into `run()`. (4c62873)
+- [~] Update `src/main.rs` to call `lib::run()`.
 
 ## Phase 2: Documentation
 - [ ] Add doc comments to all public modules and functions.
