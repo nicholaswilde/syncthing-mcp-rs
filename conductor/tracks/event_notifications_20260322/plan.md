@@ -11,8 +11,8 @@
 - [x] Task: Add basic event transformation to make them more "human-readable" for the MCP client. 8d623b8
 
 ## Phase 3: MCP Server Integration
-- [ ] Task: Extend the MCP server to support pushing notifications to clients.
-- [ ] Task: Connect the `EventManager` to the MCP server's notification channel.
+- [x] Task: Extend the MCP server to support pushing notifications to clients. 41eda66
+- [x] Task: Connect the `EventManager` to the MCP server's notification channel. 3b3ff64
 - [ ] Task: Ensure notification delivery works correctly for multiple instances.
 
 ## Phase 4: Validation
