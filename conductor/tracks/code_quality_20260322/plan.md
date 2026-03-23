@@ -6,8 +6,8 @@
 - [x] Update `src/main.rs` to call `lib::run()`. (4747e18)
 
 ## Phase 2: Documentation
-- [ ] Add doc comments to all public modules and functions.
-- [ ] Set up a documentation generation script or task.
+- [x] Add doc comments to all public modules and functions. (b331824)
+- [~] Set up a documentation generation script or task.
 
 ## Phase 3: Metadata Refinement
 - [ ] Review and improve descriptions for all tools in the registry.
