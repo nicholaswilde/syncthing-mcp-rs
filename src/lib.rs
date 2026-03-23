@@ -65,7 +65,15 @@ pub async fn run_with_args(args: Vec<String>) -> anyhow::Result<()> {
     // 4. Create MCP server
     let (server, rx) = McpServer::new(registry, config.clone());
 
-    // 5. Run server
+    // 5. Create and run Event Manager
+    let event_manager = crate::mcp::events::EventManager::new(config.clone(), server.notification_tx.clone());
+    tokio::spawn(async move {
+        if let Err(e) = event_manager.run().await {
+            tracing::error!("Event manager error: {}", e);
+        }
+    });
+
+    // 6. Run server
     if config.http_server.enabled {
         let addr = format!("{}:{}", config.http_server.host, config.http_server.port);
         tracing::info!("MCP server running on HTTP/SSE: {}", addr);
