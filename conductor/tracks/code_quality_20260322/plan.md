@@ -7,7 +7,7 @@
 
 ## Phase 2: Documentation
 - [x] Add doc comments to all public modules and functions. (b331824)
-- [~] Set up a documentation generation script or task.
+- [x] Set up a documentation generation script or task. (22a90d9)
 
 ## Phase 3: Metadata Refinement
 - [ ] Review and improve descriptions for all tools in the registry.
