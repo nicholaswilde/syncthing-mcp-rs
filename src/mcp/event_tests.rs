@@ -165,4 +165,47 @@ mod tests {
         // Cleanup
         drop(client_writer);
     }
+
+    #[tokio::test]
+    async fn test_event_manager_multi_instance() {
+        let mock_server1 = MockServer::start().await;
+        let mock_server2 = MockServer::start().await;
+        
+        let event_resp1 = serde_json::json!([{"id": 1, "type": "DeviceConnected", "time": "2023", "data": {"device": "d1", "addr": "a1", "type": "t1"}}]);
+        let event_resp2 = serde_json::json!([{"id": 1, "type": "DeviceConnected", "time": "2023", "data": {"device": "d2", "addr": "a2", "type": "t2"}}]);
+
+        Mock::given(method("GET")).and(path("/rest/events"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(&event_resp1))
+            .mount(&mock_server1).await;
+        Mock::given(method("GET")).and(path("/rest/events"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(&event_resp2))
+            .mount(&mock_server2).await;
+
+        let config = AppConfig {
+            instances: vec![
+                InstanceConfig { name: Some("inst1".to_string()), url: mock_server1.uri(), ..Default::default() },
+                InstanceConfig { name: Some("inst2".to_string()), url: mock_server2.uri(), ..Default::default() },
+            ],
+            ..Default::default()
+        };
+
+        let (tx, mut rx) = mpsc::channel(100);
+        let event_manager = EventManager::new(config, tx);
+        
+        let em_clone = event_manager.clone();
+        tokio::spawn(async move {
+            let _ = em_clone.run().await;
+        });
+
+        let n1 = rx.recv().await.unwrap();
+        let n2 = rx.recv().await.unwrap();
+        
+        let instances = vec![
+            n1.params.as_ref().unwrap()["instance"].as_str().unwrap().to_string(),
+            n2.params.as_ref().unwrap()["instance"].as_str().unwrap().to_string(),
+        ];
+        
+        assert!(instances.contains(&"inst1".to_string()));
+        assert!(instances.contains(&"inst2".to_string()));
+    }
 }
