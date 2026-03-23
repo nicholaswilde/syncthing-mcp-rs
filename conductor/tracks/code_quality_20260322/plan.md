@@ -13,6 +13,6 @@
 - [x] Review and improve descriptions for all tools in the registry. (48b5ed7)
 - [x] Ensure argument types and constraints are accurately described. (48b5ed7)
 
-## Phase 4: Validation
+## Phase 4: Validation [checkpoint: 28fd892]
 - [x] Verify unit tests for the newly refactored `run()` function. (a3ef335)
 - [x] Build and review generated documentation. (8dcc113)
