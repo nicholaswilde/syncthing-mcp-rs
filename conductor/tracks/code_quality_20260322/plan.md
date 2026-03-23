@@ -9,7 +9,7 @@
 - [x] Add doc comments to all public modules and functions. (b331824)
 - [x] Set up a documentation generation script or task. (22a90d9)
 
-## Phase 3: Metadata Refinement
+## Phase 3: Metadata Refinement [checkpoint: b702be9]
 - [x] Review and improve descriptions for all tools in the registry. (48b5ed7)
 - [x] Ensure argument types and constraints are accurately described. (48b5ed7)
 
