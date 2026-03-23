@@ -778,4 +778,34 @@ mod tests {
             panic!("Expected DeviceConnected data");
         }
     }
+
+    #[test]
+    fn test_event_summary() {
+        use crate::api::models::{Event, EventData};
+
+        let event = Event {
+            id: 1,
+            event_type: "FolderStateChanged".to_string(),
+            time: "2023".to_string(),
+            data: Some(EventData::FolderStateChanged {
+                folder: "f1".to_string(),
+                from: "idle".to_string(),
+                to: "syncing".to_string(),
+                error: None,
+            }),
+        };
+        assert_eq!(event.summary(), "Folder 'f1' changed state from idle to syncing");
+
+        let event = Event {
+            id: 2,
+            event_type: "DeviceConnected".to_string(),
+            time: "2023".to_string(),
+            data: Some(EventData::DeviceConnected {
+                device: "d1".to_string(),
+                addr: "1.2.3.4".to_string(),
+                conn_type: "tcp".to_string(),
+            }),
+        };
+        assert_eq!(event.summary(), "Device 'd1' connected via tcp at 1.2.3.4");
+    }
 }

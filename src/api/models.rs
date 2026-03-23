@@ -168,6 +168,37 @@ pub struct Event {
     pub data: Option<EventData>,
 }
 
+impl Event {
+    /// Returns a human-readable summary of the event.
+    pub fn summary(&self) -> String {
+        match &self.data {
+            Some(EventData::FolderStateChanged {
+                folder, from, to, ..
+            }) => {
+                format!("Folder '{}' changed state from {} to {}", folder, from, to)
+            }
+            Some(EventData::DeviceConnected {
+                device,
+                addr,
+                conn_type,
+            }) => {
+                format!("Device '{}' connected via {} at {}", device, conn_type, addr)
+            }
+            Some(EventData::DeviceDisconnected { device, error }) => {
+                format!("Device '{}' disconnected: {}", device, error)
+            }
+            Some(EventData::LocalIndexUpdated { folder, filenames }) => {
+                format!(
+                    "Local index updated for folder '{}' ({} files)",
+                    folder,
+                    filenames.len()
+                )
+            }
+            _ => format!("Event: {}", self.event_type),
+        }
+    }
+}
+
 /// Heterogeneous data associated with SyncThing events.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]

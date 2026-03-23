@@ -48,6 +48,7 @@ impl EventManager {
                                     method: "notifications/message".to_string(),
                                     params: Some(serde_json::json!({
                                         "instance": instance_name,
+                                        "summary": event.summary(),
                                         "event": event,
                                     })),
                                 };
