@@ -14,5 +14,5 @@
 - [x] Ensure argument types and constraints are accurately described. (48b5ed7)
 
 ## Phase 4: Validation
-- [ ] Verify unit tests for the newly refactored `run()` function.
-- [ ] Build and review generated documentation.
+- [x] Verify unit tests for the newly refactored `run()` function. (a3ef335)
+- [~] Build and review generated documentation.
