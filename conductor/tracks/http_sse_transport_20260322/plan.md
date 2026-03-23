@@ -12,7 +12,7 @@
 ## Phase 3: Integration & Security
 - [x] Task: Refactor the main entry point to support switching between stdio and HTTP transports. 5434d95
 - [x] Task: Implement basic authentication (e.g., bearer token) for remote access. 388381d
-- [ ] Task: Add logging and metrics for HTTP/SSE connections.
+- [x] Task: Add logging and metrics for HTTP/SSE connections. df3aa54
 
 ## Phase 4: Validation
 - [ ] Task: Create integration tests using a mock HTTP client.
