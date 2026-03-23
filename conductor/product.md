@@ -21,12 +21,12 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **AI Enthusiasts**: Building autonomous agents that require access to local or remote file synchronization states.
 
 ## Key Features (MVP)
-- **Folder Management**: List, create, modify, and delete SyncThing folders; monitor synchronization status.
-- **File Browsing**: Explore files and subdirectories within synced folders.
-- **Device Management**: Add, remove, and configure SyncThing devices; track connection states.
-- **Device Discovery**: Discover and approve new device connection requests.
-- **System Monitoring**: Access real-time statistics, logs, and health checks for managed instances.
-- **Event Notifications**: Receive real-time MCP notifications for key SyncThing events (e.g., folder state changes).
-- **System Maintenance**: Perform critical operations such as triggering rescans, clearing errors, and restarting SyncThing instances.
-- **Instance Synchronization**: Ability to replicate configuration (folders and devices) across multiple instances from a source instance.
-- **Flexible Configuration**: Support for TOML configuration files and environment variables (optimized for binary size).
+- **Folder Management**: List configured folders with status; share/unshare folders with devices.
+- **File Browsing**: Browse files and subdirectories within synced folders with prefix and depth control.
+- **Device Management**: Manage devices (list, add, remove, pause, resume) and approve pending requests.
+- **System Monitoring**: Access detailed system statistics, version information, and device IDs.
+- **Sync Status**: Query detailed synchronization status and completion for folders and devices.
+- **Manage Ignores**: View and modify SyncThing ignore patterns (.stignore).
+- **System Maintenance**: Trigger rescans, restart SyncThing, and clear system errors.
+- **Instance Replication**: Sync configurations across multiple SyncThing instances.
+- **Security & Secrets**: Secure credential handling with OS Keyring and authenticated encryption.

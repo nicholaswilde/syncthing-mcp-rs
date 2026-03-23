@@ -15,18 +15,24 @@ A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
 - **Multi-Instance Management:** Manage and target multiple SyncThing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
 - **Multi-Instance Synchronization:** Synchronize configuration (folders and devices) from a source instance to a destination instance.
-- **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (TOML, YAML, JSON).
-- **Authentication:** Connects to SyncThing using API Key (`X-API-Key`).
-- **Token Optimization:** Consolidated tools into functional groups to optimize AI context window usage.
+- **Event Notifications:** Receive real-time MCP notifications for key SyncThing events (e.g., folder state changes, device connections).
+- **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (**TOML**).
+- **Security & Privacy:**
+  - **OS Keyring Integration:** Securely store and retrieve API keys from the OS-level secret store.
+  - **Authenticated Encryption:** Support for encrypted configuration fields using ChaCha20-Poly1305.
+- **Authentication:** Connects to SyncThing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
+- **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
+- **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
-    - `get_system_stats`: Retrieve SyncThing version, uptime, and resource usage.
-    - `get_sync_status`: Get detailed synchronization status and completion percentage.
-    - `manage_folders`: List and monitor shared folders.
-    - `configure_sharing`: Share or unshare a folder with a device.
-    - `manage_ignores`: Manage SyncThing ignore patterns (`.stignore`).
-    - `manage_devices`: Manage SyncThing devices (list, add, remove, pause, resume).
-    - `maintain_system`: Perform maintenance tasks (rescan, restart, clear errors).
-    - `replicate_config`: Sync configuration (folders and devices) from one SyncThing instance to another.
+    - `get_system_stats`: Get SyncThing system statistics, including version, uptime, memory usage, and the unique device ID.
+    - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
+    - `manage_folders`: List all configured SyncThing folders, showing their IDs, labels, paths, and paused status.
+    - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.
+    - `configure_sharing`: Share or unshare a specific folder with a remote device.
+    - `manage_ignores`: Manage SyncThing ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
+    - `manage_devices`: Manage SyncThing devices, including listing, adding, removing, pausing, resuming, and approving pending devices.
+    - `maintain_system`: Perform system maintenance: force a rescan of folders, restart the SyncThing service, or clear internal errors.
+    - `replicate_config`: Replicate folder and device configurations from one SyncThing instance to another for easy synchronization setup.
 
 ## :package: Installation
 
@@ -47,7 +53,7 @@ To build the project, you need a Rust toolchain installed. For cross-compilation
 task build:local
 ```
 
-The binary will be available at `target/release/syncthing-mcp-rs`.
+The binary will be available at `target/release/syncthing-mcp-rs`. The release binary is highly optimized for size (approx. 2.4M).
 
 ### Cross-Compilation
 
@@ -74,7 +80,11 @@ task build
 The server can be configured via CLI arguments or environment variables.
 
 ```bash
+# Run the MCP server
 ./target/release/syncthing-mcp-rs --host "localhost" --port 8384 --api-key "your-api-key"
+
+# Encrypt a sensitive value (e.g., API key) for use in config.toml
+./target/release/syncthing-mcp-rs encrypt "your-api-key"
 ```
 
 #### Available Arguments
@@ -84,34 +94,35 @@ The server can be configured via CLI arguments or environment variables.
 | `-c, --config` | - | Path to configuration file | `config.toml` |
 | `--host` | `SYNCTHING_HOST` | SyncThing instance host | `localhost` |
 | `--port` | `SYNCTHING_PORT` | SyncThing instance port | `8384` |
-| `--api-key` | `SYNCTHING_API_KEY` | SyncThing API key | - |
+| `--api-key` | `SYNCTHING_API_KEY` | SyncThing API key (supports `keyring:...` and `encrypted:...`) | - |
 | `--transport` | `SYNCTHING_MCP_TRANSPORT` | Transport mode (`stdio`) | `stdio` |
 | `--no-verify-ssl` | `SYNCTHING_NO_VERIFY_SSL` | Disable SSL certificate verification | `true` |
 | `--log-level` | `SYNCTHING_LOG_LEVEL` | Log level (`info`, `debug`, etc.) | `info` |
+| - | `SYNCTHING_RETRY_MAX_ATTEMPTS` | Max retries for API calls | `3` |
+| - | `SYNCTHING_RETRY_INITIAL_BACKOFF_MS` | Initial retry backoff in ms | `100` |
 | - | `SYNCTHING_INSTANCES__<N>__<FIELD>` | Configuration for multiple instances | - |
 
 ### :file_folder: Configuration File
 
-The server automatically looks for `config.toml`, `config.yaml`, or `config.json` in the current directory and `~/.config/syncthing-mcp-rs/`.
+The server automatically looks for `config.toml` in the current directory and `~/.config/syncthing-mcp-rs/`.
 
 #### Multi-Instance Configuration
 
 ```toml
-# Default instance
+# Global settings
+retry_max_attempts = 3
+retry_initial_backoff_ms = 100
+
+# Default instance using OS Keyring
 host = "localhost"
 port = 8384
-api_key = "your-api-key"
+api_key = "keyring:syncthing:local-key"
 
-# OR use the instances list
-[[instances]]
-name = "primary"
-url = "http://localhost:8384"
-api_key = "your-api-key"
-
+# OR use the instances list with encrypted values
 [[instances]]
 name = "remote"
 url = "https://sync.example.com"
-api_key = "remote-api-key"
+api_key = "encrypted:v1:4jBYSgrSQQ0JbZzLwBom99zlcKJ8549tgeSUnm4dZr+L4+1rPh0WFak="
 no_verify_ssl = false
 ```
 

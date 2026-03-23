@@ -5,7 +5,7 @@
 - **Async Efficiency**: Use `tokio` for high-concurrency, asynchronous operations, particularly for network-bound tasks with the SyncThing API.
 - **Error Handling**: Implement custom error types using crates like `thiserror` or `anyhow` for clear, actionable error messages.
 - **Modularity**: Organize code into clean abstractions (e.g., `api/`, `mcp/`, `config/`) to ensure long-term maintainability.
-- **Documentation**: Provide inline documentation (using `///` comments) and clear `README` instructions for configuration and setup. **The `README.md` must be updated whenever MCP tools or functions are added or modified to ensure the AI tool list remains accurate.**
+- **Documentation**: Maintain comprehensive inline documentation (using `///` comments) for all public items, enforced by `#![deny(missing_docs)]` in `src/lib.rs`. The `README.md` must be updated whenever MCP tools or functions are added or modified to ensure the AI tool list remains accurate.
 
 ## 2. Model Context Protocol (MCP) Standards
 - **Token Optimization**: Every tool and response MUST be designed to minimize token usage for the LLM. Prefer high-level, functional abstractions over granular API data.
