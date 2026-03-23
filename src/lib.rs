@@ -63,11 +63,32 @@ pub async fn run_with_args(args: Vec<String>) -> anyhow::Result<()> {
     let registry = create_registry();
 
     // 4. Create MCP server
-    let (server, rx) = McpServer::new(registry, config);
+    let (server, rx) = McpServer::new(registry, config.clone());
 
     // 5. Run server
-    tracing::info!("MCP server running on stdio");
-    server.run_stdio(rx).await?;
+    if config.http_server.enabled {
+        let addr = format!("{}:{}", config.http_server.host, config.http_server.port);
+        tracing::info!("MCP server running on HTTP/SSE: {}", addr);
+        
+        let app = server.router();
+        let listener = tokio::net::TcpListener::bind(&addr).await?;
+        
+        // Handle notifications for SSE in the background
+        tokio::spawn(async move {
+            let mut rx = rx;
+            while let Some(n) = rx.recv().await {
+                let sessions = server.sessions.clone();
+                for session in sessions.iter() {
+                    let _ = session.tx.send(crate::mcp::Message::Notification(n.clone())).await;
+                }
+            }
+        });
+
+        axum::serve(listener, app).await?;
+    } else {
+        tracing::info!("MCP server running on stdio");
+        server.run_stdio(rx).await?;
+    }
 
     Ok(())
 }
