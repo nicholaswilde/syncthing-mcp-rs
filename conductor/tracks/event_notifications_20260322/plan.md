@@ -1,6 +1,6 @@
 # Implementation Plan: Event Notifications (event_notifications_20260322)
 
-## Phase 1: Event Client & Polling
+## Phase 1: Event Client & Polling [checkpoint: 558a69c]
 - [x] Task: Implement the `/rest/events` API call in `src/api/client.rs`. 5294549
 - [x] Task: Create a dedicated `EventManager` background task. f5df6ba
 - [x] Task: Implement a long-polling loop with proper `since` parameter management. f5df6ba
