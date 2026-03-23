@@ -5,7 +5,7 @@
 - [x] Move initialization and server startup logic into `run()`. (4c62873)
 - [x] Update `src/main.rs` to call `lib::run()`. (4747e18)
 
-## Phase 2: Documentation
+## Phase 2: Documentation [checkpoint: 1589fc7]
 - [x] Add doc comments to all public modules and functions. (b331824)
 - [x] Set up a documentation generation script or task. (22a90d9)
 
