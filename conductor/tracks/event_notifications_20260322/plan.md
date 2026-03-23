@@ -7,7 +7,7 @@
 
 ## Phase 2: Processing & Filtering
 - [x] Task: Define event models for various SyncThing event types. 6cd4e6a
-- [ ] Task: Implement a configurable filter to select which events to forward as notifications.
+- [x] Task: Implement a configurable filter to select which events to forward as notifications. cb9e60f
 - [ ] Task: Add basic event transformation to make them more "human-readable" for the MCP client.
 
 ## Phase 3: MCP Server Integration
