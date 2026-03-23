@@ -16,5 +16,5 @@
 
 ## Phase 4: Validation
 - [x] Task: Create integration tests using a mock HTTP client. 7b4b405
-- [ ] Task: Verify functionality with a real MCP client supporting SSE.
-- [ ] Task: Document the remote access setup in `README.md`.
+- [x] Task: Verify functionality with a real MCP client supporting SSE. 897351c
+- [x] Task: Document the remote access setup in `README.md`. 9c908fd
