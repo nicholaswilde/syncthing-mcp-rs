@@ -9,7 +9,7 @@
 - [x] Task: Develop the message routing logic between the HTTP layer and MCP server. 7f24003
 - [x] Task: Implement the POST endpoint for client-to-server messages. 6d8d264
 
-## Phase 3: Integration & Security
+## Phase 3: Integration & Security [checkpoint: 897351c]
 - [x] Task: Refactor the main entry point to support switching between stdio and HTTP transports. 5434d95
 - [x] Task: Implement basic authentication (e.g., bearer token) for remote access. 388381d
 - [x] Task: Add logging and metrics for HTTP/SSE connections. df3aa54
