@@ -42,18 +42,18 @@ pub fn version() -> &'static str {
 ///
 /// # Errors
 ///
-/// Returns an error if configuration loading or server execution fails.
-pub async fn run() -> anyhow::Result<()> {
-    // 1. Initialize logging
-    tracing_subscriber::registry()
+/// Runs the SyncThing MCP server with command-line arguments.
+pub async fn run_with_args(args: Vec<String>) -> anyhow::Result<()> {
+    // 1. Initialize logging (ignoring errors if already initialized)
+    let _ = tracing_subscriber::registry()
         .with(fmt::layer().with_writer(std::io::stderr))
         .with(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
-        .init();
+        .try_init();
 
     tracing::info!("Starting SyncThing MCP server...");
 
     // 2. Load config
-    let config = match AppConfig::load(None, std::env::args().collect())? {
+    let config = match AppConfig::load(None, args)? {
         crate::config::ConfigResult::Config(c) => c,
         crate::config::ConfigResult::Exit => return Ok(()),
     };
@@ -72,6 +72,11 @@ pub async fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Runs the SyncThing MCP server using environment arguments.
+pub async fn run() -> anyhow::Result<()> {
+    run_with_args(std::env::args().collect()).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,9 +87,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_run_compiles() {
-        // We can't easily run the server in a test that expects stdio,
-        // but we can at least ensure the function signature and imports are correct.
-        // If we want to truly test it, we'd need to mock stdio.
+    async fn test_run_with_encrypt_exits_successfully() {
+        let args = vec![
+            "syncthing-mcp-rs".to_string(),
+            "encrypt".to_string(),
+            "dummy".to_string(),
+        ];
+        let result = run_with_args(args).await;
+        assert!(result.is_ok());
     }
 }
