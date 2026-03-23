@@ -3,11 +3,30 @@ use crate::config::AppConfig;
 use crate::error::Error;
 use crate::mcp::{Message, Notification, Request, Response, ResponseError};
 use crate::tools::ToolRegistry;
+use axum::{
+    extract::{Query, State},
+    response::sse::{Event, Sse},
+    routing::{get, post},
+    Json, Router,
+};
+use dashmap::DashMap;
+use futures::stream::Stream;
+use serde::Deserialize;
 use serde_json::Value;
+use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
 use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
+use tokio_stream::StreamExt;
+use uuid::Uuid;
+
+/// Represents an active MCP session over SSE.
+pub struct Session {
+    /// Sender for messages to the client.
+    pub tx: mpsc::Sender<Message>,
+}
 
 /// The Model Context Protocol (MCP) server for SyncThing.
 #[derive(Clone)]
@@ -18,6 +37,15 @@ pub struct McpServer {
     pub config: AppConfig,
     /// A sender for sending notifications to the client.
     pub notification_tx: mpsc::Sender<Notification>,
+    /// Active SSE sessions.
+    pub sessions: Arc<DashMap<String, Session>>,
+}
+
+/// Query parameters for session-based messages.
+#[derive(Deserialize)]
+pub struct SessionQuery {
+    /// The unique session identifier.
+    pub session_id: String,
 }
 
 impl McpServer {
@@ -29,9 +57,18 @@ impl McpServer {
                 registry: Arc::new(Mutex::new(registry)),
                 config,
                 notification_tx: tx,
+                sessions: Arc::new(DashMap::new()),
             },
             rx,
         )
+    }
+
+    /// Returns an axum router for the MCP HTTP/SSE transport.
+    pub fn router(&self) -> Router {
+        Router::new()
+            .route("/sse", get(sse_handler))
+            .route("/message", post(message_handler))
+            .with_state(self.clone())
     }
 
     /// Runs the server on standard input/output.
@@ -106,9 +143,17 @@ impl McpServer {
                 }
                 notification = rx.recv() => {
                     if let Some(n) = notification {
-                        let out = serde_json::to_string(&Message::Notification(n))? + "\n";
+                        let out = serde_json::to_string(&Message::Notification(n.clone()))? + "\n";
                         writer.write_all(out.as_bytes()).await?;
                         writer.flush().await?;
+                        
+                        // Also notify all active SSE sessions
+                        let sessions = self.sessions.clone();
+                        tokio::spawn(async move {
+                            for session in sessions.iter() {
+                                let _ = session.tx.send(Message::Notification(n.clone())).await;
+                            }
+                        });
                     }
                 }
             }
@@ -206,9 +251,8 @@ impl McpServer {
                                     jsonrpc: "2.0".to_string(),
                                     method: "notifications/message".to_string(),
                                     params: Some(serde_json::json!({
-                                        "level": "info",
-                                        "description": format!("SyncThing Event [{}]: {}", instance_name, event.event_type),
-                                        "data": event
+                                        "instance": instance_name,
+                                        "event": event,
                                     })),
                                 };
                                 let _ = self.notification_tx.send(notification).await;
@@ -217,15 +261,82 @@ impl McpServer {
                         }
                     }
                     Err(e) => {
-                        tracing::error!(
-                            "Failed to fetch events for instance {}: {}",
-                            instance_name,
-                            e
-                        );
+                        tracing::error!("Failed to get events for instance {}: {}", instance_name, e);
                     }
                 }
             }
             tokio::time::sleep(Duration::from_secs(5)).await;
         }
+    }
+}
+
+async fn sse_handler(
+    State(server): State<McpServer>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    let session_id = Uuid::new_v4().to_string();
+    let (tx, rx) = mpsc::channel(100);
+    
+    server.sessions.insert(session_id.clone(), Session { tx });
+    
+    let endpoint_url = format!("/message?session_id={}", session_id);
+    
+    let initial_event = Event::default()
+        .event("endpoint")
+        .data(endpoint_url);
+
+    let stream = ReceiverStream::new(rx)
+        .map(|msg| {
+            let json = serde_json::to_string(&msg).unwrap_or_default();
+            Ok(Event::default().event("message").data(json))
+        });
+    
+    // Chain the initial 'endpoint' event with the message stream
+    let full_stream = tokio_stream::once(Ok(initial_event)).chain(stream);
+
+    Sse::new(full_stream).keep_alive(axum::response::sse::KeepAlive::default())
+}
+
+async fn message_handler(
+    State(server): State<McpServer>,
+    Query(query): Query<SessionQuery>,
+    Json(message): Json<Message>,
+) -> Result<Json<Value>, (axum::http::StatusCode, String)> {
+    let _session = server.sessions.get(&query.session_id).ok_or((
+        axum::http::StatusCode::NOT_FOUND,
+        "Session not found".to_string(),
+    ))?;
+
+    match message {
+        Message::Request(req) => {
+            let id = req.id.clone();
+            let response = server.handle_request(req).await;
+            
+            let json_resp = match response {
+                Ok(result) => Response {
+                    jsonrpc: "2.0".to_string(),
+                    id,
+                    result: Some(result),
+                    error: None,
+                },
+                Err(e) => Response {
+                    jsonrpc: "2.0".to_string(),
+                    id,
+                    result: None,
+                    error: Some(ResponseError::from(e)),
+                },
+            };
+            
+            // In HTTP transport, responses are sent back in the HTTP response body
+            Ok(Json(serde_json::to_value(json_resp).unwrap()))
+        }
+        Message::Notification(n) => {
+            // Notifications from client to server (if any)
+            tracing::info!("Received notification from client: {}", n.method);
+            Ok(Json(serde_json::json!({"status": "received"})))
+        }
+        _ => Err((
+            axum::http::StatusCode::BAD_REQUEST,
+            "Unsupported message type".to_string(),
+        )),
     }
 }

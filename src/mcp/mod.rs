@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod error_integration_tests;
+#[cfg(test)]
+mod http_tests;
 /// The MCP server implementation.
 pub mod server;
 /// Unit tests for the MCP server.
