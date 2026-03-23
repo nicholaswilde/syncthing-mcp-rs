@@ -1,0 +1,77 @@
+use crate::api::SyncThingClient;
+use crate::config::AppConfig;
+use crate::mcp::Notification;
+use dashmap::DashMap;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::mpsc;
+
+/// Manages event polling for SyncThing instances.
+#[derive(Clone)]
+pub struct EventManager {
+    /// The application configuration.
+    pub config: AppConfig,
+    /// A sender for sending notifications to the client.
+    pub notification_tx: mpsc::Sender<Notification>,
+    /// Last seen event ID for each instance.
+    pub last_ids: Arc<DashMap<String, u64>>,
+}
+
+impl EventManager {
+    /// Creates a new event manager.
+    pub fn new(config: AppConfig, notification_tx: mpsc::Sender<Notification>) -> Self {
+        Self {
+            config,
+            notification_tx,
+            last_ids: Arc::new(DashMap::new()),
+        }
+    }
+
+    /// Runs the event polling loop.
+    pub async fn run(&self) -> anyhow::Result<()> {
+        loop {
+            for instance in &self.config.instances {
+                let instance_name = instance
+                    .name
+                    .clone()
+                    .unwrap_or_else(|| "default".to_string());
+                let client = SyncThingClient::new(instance.clone());
+
+                let since = self.last_ids.get(&instance_name).map(|r| *r);
+                match client.get_events(since, Some(10)).await {
+                    Ok(events) => {
+                        for event in events {
+                            // Only notify for specific events of interest
+                            if matches!(
+                                event.event_type.as_str(),
+                                "FolderStateChanged"
+                                    | "DeviceConnected"
+                                    | "DeviceDisconnected"
+                                    | "LocalIndexUpdated"
+                            ) {
+                                let notification = Notification {
+                                    jsonrpc: "2.0".to_string(),
+                                    method: "notifications/message".to_string(),
+                                    params: Some(serde_json::json!({
+                                        "instance": instance_name,
+                                        "event": event,
+                                    })),
+                                };
+                                let _ = self.notification_tx.send(notification).await;
+                            }
+                            self.last_ids.insert(instance_name.clone(), event.id);
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            "Failed to get events for instance {}: {}",
+                            instance_name,
+                            e
+                        );
+                    }
+                }
+            }
+            tokio::time::sleep(Duration::from_secs(5)).await;
+        }
+    }
+}
