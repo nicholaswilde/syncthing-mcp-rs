@@ -15,4 +15,4 @@
 
 ## Phase 4: Validation
 - [x] Verify unit tests for the newly refactored `run()` function. (a3ef335)
-- [~] Build and review generated documentation.
+- [x] Build and review generated documentation. (8dcc113)
