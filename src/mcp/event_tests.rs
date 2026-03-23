@@ -49,4 +49,46 @@ mod tests {
         assert_eq!(notification.method, "notifications/message");
         assert_eq!(notification.params.unwrap()["instance"], "test");
     }
+
+    #[tokio::test]
+    async fn test_event_manager_filters_events() {
+        let mock_server = MockServer::start().await;
+        
+        let event_resp = serde_json::json!([
+            {
+                "id": 1,
+                "type": "ConfigSaved",
+                "time": "2023-01-01T00:00:00Z",
+                "data": null
+            }
+        ]);
+
+        Mock::given(method("GET"))
+            .and(path("/rest/events"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(&event_resp))
+            .mount(&mock_server)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![InstanceConfig {
+                name: Some("test".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            // Default filter does NOT include ConfigSaved
+            ..Default::default()
+        };
+
+        let (tx, mut rx) = mpsc::channel::<Notification>(100);
+        let event_manager = EventManager::new(config, tx);
+        
+        let em_clone = event_manager.clone();
+        tokio::spawn(async move {
+            let _ = em_clone.run().await;
+        });
+
+        // Use a timeout to wait for no notification
+        let result = tokio::time::timeout(tokio::time::Duration::from_millis(100), rx.recv()).await;
+        assert!(result.is_err(), "Expected no notification for filtered event");
+    }
 }

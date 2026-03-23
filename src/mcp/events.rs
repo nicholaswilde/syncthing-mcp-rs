@@ -41,14 +41,8 @@ impl EventManager {
                 match client.get_events(since, Some(10)).await {
                     Ok(events) => {
                         for event in events {
-                            // Only notify for specific events of interest
-                            if matches!(
-                                event.event_type.as_str(),
-                                "FolderStateChanged"
-                                    | "DeviceConnected"
-                                    | "DeviceDisconnected"
-                                    | "LocalIndexUpdated"
-                            ) {
+                            // Only notify for configured events
+                            if self.config.mcp_events.contains(&event.event_type) {
                                 let notification = Notification {
                                     jsonrpc: "2.0".to_string(),
                                     method: "notifications/message".to_string(),

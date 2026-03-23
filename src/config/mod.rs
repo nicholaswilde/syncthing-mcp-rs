@@ -35,6 +35,9 @@ pub struct AppConfig {
     /// The HTTP server configuration for MCP.
     #[serde(default)]
     pub http_server: HttpServerConfig,
+    /// The list of SyncThing event types to notify about.
+    #[serde(default = "default_mcp_events")]
+    pub mcp_events: Vec<String>,
 }
 
 /// Configuration for the HTTP/SSE server.
@@ -102,6 +105,15 @@ fn default_http_server_port() -> u16 {
     3000
 }
 
+fn default_mcp_events() -> Vec<String> {
+    vec![
+        "FolderStateChanged".to_string(),
+        "DeviceConnected".to_string(),
+        "DeviceDisconnected".to_string(),
+        "LocalIndexUpdated".to_string(),
+    ]
+}
+
 impl Default for HttpServerConfig {
     fn default() -> Self {
         Self {
@@ -126,6 +138,7 @@ impl Default for AppConfig {
             retry_initial_backoff_ms: 100,
             instances: Vec::new(),
             http_server: HttpServerConfig::default(),
+            mcp_events: default_mcp_events(),
         }
     }
 }
@@ -223,7 +236,8 @@ impl AppConfig {
             .set_default("retry_initial_backoff_ms", 100)?
             .set_default("http_server.enabled", false)?
             .set_default("http_server.host", "0.0.0.0")?
-            .set_default("http_server.port", 3000)?;
+            .set_default("http_server.port", 3000)?
+            .set_default("mcp_events", default_mcp_events())?;
 
         // 3. Load from File
         if let Some(path) = path_to_load {
@@ -274,6 +288,10 @@ impl AppConfig {
         }
         if let Some(key) = matches.get_one::<String>("http_server_api_key") {
             builder = builder.set_override("http_server.api_key", key.as_str())?;
+        }
+        if let Some(events) = matches.get_one::<String>("mcp_events") {
+            let event_list: Vec<String> = events.split(',').map(|s| s.trim().to_string()).collect();
+            builder = builder.set_override("mcp_events", event_list)?;
         }
 
         let mut config: AppConfig = builder.build()?.try_deserialize()?;
@@ -404,6 +422,11 @@ fn parse_args(args: Vec<String>) -> ArgMatches {
             Arg::new("http_server_api_key")
                 .long("http-api-key")
                 .help("API key for the HTTP server"),
+        )
+        .arg(
+            Arg::new("mcp_events")
+                .long("events")
+                .help("Comma-separated list of SyncThing events to notify about"),
         )
         .arg(
             Arg::new("no_verify_ssl")
