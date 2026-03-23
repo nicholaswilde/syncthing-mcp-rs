@@ -10,8 +10,8 @@
 - [x] Set up a documentation generation script or task. (22a90d9)
 
 ## Phase 3: Metadata Refinement
-- [ ] Review and improve descriptions for all tools in the registry.
-- [ ] Ensure argument types and constraints are accurately described.
+- [x] Review and improve descriptions for all tools in the registry. (48b5ed7)
+- [x] Ensure argument types and constraints are accurately described. (48b5ed7)
 
 ## Phase 4: Validation
 - [ ] Verify unit tests for the newly refactored `run()` function.
