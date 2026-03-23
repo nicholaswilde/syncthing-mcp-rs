@@ -132,7 +132,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "get_system_stats",
-        "Get SyncThing system statistics and version.",
+        "Get SyncThing system statistics, including version, uptime, memory usage, and the unique device ID.",
         serde_json::json!({
             "type": "object",
             "properties": {}
@@ -142,18 +142,18 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "get_sync_status",
-        "Get detailed synchronization status and completion percentage for a folder or device.",
+        "Get detailed synchronization status, state, and completion percentage for a specific folder or device.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "target": {
                     "type": "string",
                     "enum": ["folder", "device"],
-                    "description": "The target to query status for."
+                    "description": "The target type to query status for."
                 },
                 "id": {
                     "type": "string",
-                    "description": "The Folder ID or Device ID."
+                    "description": "The unique Folder ID or Device ID to query."
                 }
             },
             "required": ["target", "id"]
@@ -163,14 +163,14 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_folders",
-        "List SyncThing folders.",
+        "List all configured SyncThing folders, showing their IDs, labels, paths, and paused status.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
                     "enum": ["list"],
-                    "description": "The action to perform."
+                    "description": "The folder management action to perform."
                 }
             }
         }),
@@ -179,22 +179,22 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "configure_sharing",
-        "Share or unshare a folder with a device.",
+        "Share or unshare a specific folder with a remote device.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
                     "enum": ["share", "unshare"],
-                    "description": "The action to perform."
+                    "description": "Whether to share or unshare the folder."
                 },
                 "folder_id": {
                     "type": "string",
-                    "description": "The Folder ID."
+                    "description": "The ID of the folder to configure."
                 },
                 "device_id": {
                     "type": "string",
-                    "description": "The Device ID."
+                    "description": "The ID of the device to share/unshare with."
                 }
             },
             "required": ["action", "folder_id", "device_id"]
@@ -204,25 +204,25 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_ignores",
-        "Manage SyncThing ignore patterns (.stignore).",
+        "Manage SyncThing ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
                     "enum": ["get", "set", "append"],
-                    "description": "The action to perform."
+                    "description": "The ignore management action to perform."
                 },
                 "folder_id": {
                     "type": "string",
-                    "description": "The Folder ID."
+                    "description": "The ID of the folder whose ignores should be managed."
                 },
                 "patterns": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     },
-                    "description": "The ignore patterns (required for 'set' and 'append')."
+                    "description": "The list of ignore patterns (required for 'set' and 'append')."
                 }
             },
             "required": ["folder_id"]
@@ -232,22 +232,22 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_devices",
-        "Manage SyncThing devices.",
+        "Manage SyncThing devices, including listing, adding, removing, pausing, resuming, and approving pending devices.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
                     "enum": ["list", "add", "remove", "pause", "resume", "discover", "approve"],
-                    "description": "The action to perform."
+                    "description": "The device management action to perform."
                 },
                 "device_id": {
                     "type": "string",
-                    "description": "The Device ID (required for 'remove', 'pause', 'resume', 'approve')."
+                    "description": "The unique Device ID (required for all actions except 'list' and 'discover')."
                 },
                 "name": {
                     "type": "string",
-                    "description": "The device name (optional)."
+                    "description": "The friendly name for the device (optional, used for 'add' or 'approve')."
                 }
             },
             "required": ["action"]
@@ -257,7 +257,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "maintain_system",
-        "Perform maintenance tasks on the SyncThing instance.",
+        "Perform system maintenance: force a rescan of folders, restart the SyncThing service, or clear internal errors.",
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -268,7 +268,7 @@ pub fn create_registry() -> ToolRegistry {
                 },
                 "folder_id": {
                     "type": "string",
-                    "description": "Optional Folder ID for 'force_rescan'. If omitted, all folders are rescanned."
+                    "description": "Optional specific Folder ID for 'force_rescan'. If omitted, all folders are rescanned."
                 }
             },
             "required": ["action"]
@@ -278,17 +278,17 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "replicate_config",
-        "Sync configuration (folders and devices) from one SyncThing instance to another.",
+        "Replicate folder and device configurations from one SyncThing instance to another for easy synchronization setup.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "source": {
                     "type": "string",
-                    "description": "Source instance name or index (optional, defaults to current/first)."
+                    "description": "The name or index of the source SyncThing instance (defaults to the first instance)."
                 },
                 "destination": {
                     "type": "string",
-                    "description": "Destination instance name or index."
+                    "description": "The name or index of the destination SyncThing instance."
                 }
             },
             "required": ["destination"]
@@ -298,21 +298,21 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "browse_folder",
-        "List files and subdirectories within a synced folder.",
+        "Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "folder_id": {
                     "type": "string",
-                    "description": "The Folder ID."
+                    "description": "The ID of the folder to browse."
                 },
                 "prefix": {
                     "type": "string",
-                    "description": "Optional path prefix within the folder."
+                    "description": "Optional subdirectory path to start browsing from."
                 },
                 "levels": {
                     "type": "integer",
-                    "description": "How deep to traverse (0 for current level only)."
+                    "description": "How many levels deep to traverse (0 for immediate contents only)."
                 }
             },
             "required": ["folder_id"]
