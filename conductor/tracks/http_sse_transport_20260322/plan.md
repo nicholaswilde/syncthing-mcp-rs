@@ -6,7 +6,7 @@
 
 ## Phase 2: SSE Transport Implementation
 - [x] Task: Implement the SSE endpoint for client connections. 28e495d
-- [ ] Task: Develop the message routing logic between the HTTP layer and MCP server.
+- [x] Task: Develop the message routing logic between the HTTP layer and MCP server. 7f24003
 - [ ] Task: Implement the POST endpoint for client-to-server messages.
 
 ## Phase 3: Integration & Security
