@@ -733,4 +733,49 @@ mod tests {
 
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_event_data_deserialization() {
+        use crate::api::models::{Event, EventData};
+
+        // FolderStateChanged
+        let json = r#"{
+            "id": 1,
+            "type": "FolderStateChanged",
+            "time": "2023-01-01T00:00:00Z",
+            "data": {
+                "folder": "f1",
+                "from": "idle",
+                "to": "syncing"
+            }
+        }"#;
+        let event: Event = serde_json::from_str(json).unwrap();
+        if let Some(EventData::FolderStateChanged { folder, from, to, .. }) = event.data {
+            assert_eq!(folder, "f1");
+            assert_eq!(from, "idle");
+            assert_eq!(to, "syncing");
+        } else {
+            panic!("Expected FolderStateChanged data");
+        }
+
+        // DeviceConnected
+        let json = r#"{
+            "id": 2,
+            "type": "DeviceConnected",
+            "time": "2023-01-01T00:00:00Z",
+            "data": {
+                "device": "d1",
+                "addr": "1.2.3.4",
+                "type": "tcp-client"
+            }
+        }"#;
+        let event: Event = serde_json::from_str(json).unwrap();
+        if let Some(EventData::DeviceConnected { device, addr, conn_type }) = event.data {
+            assert_eq!(device, "d1");
+            assert_eq!(addr, "1.2.3.4");
+            assert_eq!(conn_type, "tcp-client");
+        } else {
+            panic!("Expected DeviceConnected data");
+        }
+    }
 }

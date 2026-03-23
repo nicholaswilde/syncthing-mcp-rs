@@ -164,8 +164,51 @@ pub struct Event {
     pub event_type: String,
     /// The time the event occurred.
     pub time: String,
-    /// Optional data associated with the event.
-    pub data: Option<serde_json::Value>,
+    /// Data associated with the event.
+    pub data: Option<EventData>,
+}
+
+/// Heterogeneous data associated with SyncThing events.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum EventData {
+    /// Data for FolderStateChanged event.
+    FolderStateChanged {
+        /// The folder ID.
+        folder: String,
+        /// From state.
+        from: String,
+        /// To state.
+        to: String,
+        /// Error message if any.
+        error: Option<String>,
+    },
+    /// Data for DeviceConnected event.
+    DeviceConnected {
+        /// The device ID.
+        device: String,
+        /// The address.
+        addr: String,
+        /// The type of connection.
+        #[serde(rename = "type")]
+        conn_type: String,
+    },
+    /// Data for DeviceDisconnected event.
+    DeviceDisconnected {
+        /// The device ID.
+        device: String,
+        /// Error message if any.
+        error: String,
+    },
+    /// Data for LocalIndexUpdated event.
+    LocalIndexUpdated {
+        /// The folder ID.
+        folder: String,
+        /// The file name.
+        filenames: Vec<String>,
+    },
+    /// Generic data for other events.
+    Generic(serde_json::Value),
 }
 
 /// A device that is pending acceptance.
