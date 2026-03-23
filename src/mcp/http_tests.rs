@@ -192,4 +192,57 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
     }
+
+    #[tokio::test]
+    async fn test_sse_notifications() {
+        let registry = ToolRegistry::new();
+        let config = AppConfig::default();
+        let (server, mut rx) = McpServer::new(registry, config);
+        let app = server.router();
+
+        // 1. Establish SSE session
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/sse")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        
+        let mut body = response.into_body().into_data_stream();
+        
+        // First event is 'endpoint'
+        let _endpoint_event = body.next().await.unwrap().unwrap();
+
+        // 2. Trigger a notification
+        let notification = crate::mcp::Notification {
+            jsonrpc: "2.0".to_string(),
+            method: "test/notification".to_string(),
+            params: Some(serde_json::json!({"foo": "bar"})),
+        };
+        
+        // In the real app, the run loop or event loop handles this.
+        // We need to simulate the notification being sent to all sessions.
+        let n_clone = notification.clone();
+        let sessions = server.sessions.clone();
+        tokio::spawn(async move {
+            for session in sessions.iter() {
+                let _ = session.tx.send(crate::mcp::Message::Notification(n_clone.clone())).await;
+            }
+        });
+        
+        // Also send it to the main rx for consistency
+        server.notification_tx.send(notification).await.unwrap();
+        let _received_by_main = rx.recv().await.unwrap();
+
+        // 3. Receive it via SSE
+        let second_event = body.next().await.unwrap().unwrap();
+        let event_str = String::from_utf8(second_event.to_vec()).unwrap();
+        
+        assert!(event_str.contains("event: message"));
+        assert!(event_str.contains("test/notification"));
+        assert!(event_str.contains("bar"));
+    }
 }
