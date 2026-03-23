@@ -13,6 +13,7 @@ A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https
 
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
+  - **HTTP with SSE:** Remote access support via Server-Sent Events (SSE) for notifications and HTTP POST for messages.
 - **Multi-Instance Management:** Manage and target multiple SyncThing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
 - **Multi-Instance Synchronization:** Synchronize configuration (folders and devices) from a source instance to a destination instance.
 - **Event Notifications:** Receive real-time MCP notifications for key SyncThing events (e.g., folder state changes, device connections).
@@ -83,9 +84,39 @@ The server can be configured via CLI arguments or environment variables.
 # Run the MCP server
 ./target/release/syncthing-mcp-rs --host "localhost" --port 8384 --api-key "your-api-key"
 
+# Run the MCP server with HTTP/SSE enabled
+./target/release/syncthing-mcp-rs --http-enabled --http-port 3000
+
 # Encrypt a sensitive value (e.g., API key) for use in config.toml
 ./target/release/syncthing-mcp-rs encrypt "your-api-key"
 ```
+
+### :remote: HTTP/SSE Remote Access
+
+To access the server remotely, you can enable the HTTP/SSE transport.
+
+1. **Start the server:**
+   ```bash
+   ./syncthing-mcp-rs --http-enabled --http-port 3000 --http-api-key "your-secret-token"
+   ```
+
+2. **Establish an SSE connection:**
+   ```bash
+   curl -N -H "Authorization: Bearer your-secret-token" http://localhost:3000/sse
+   ```
+   The first event will contain the endpoint for POSTing messages:
+   ```
+   event: endpoint
+   data: /message?session_id=d623f749-33f6-41e2-91a4-8d440171d8ab
+   ```
+
+3. **Send MCP messages via HTTP POST:**
+   ```bash
+   curl -X POST "http://localhost:3000/message?session_id=d623f749-33f6-41e2-91a4-8d440171d8ab" \
+     -H "Authorization: Bearer your-secret-token" \
+     -H "Content-Type: application/json" \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+   ```
 
 #### Available Arguments
 
@@ -96,6 +127,10 @@ The server can be configured via CLI arguments or environment variables.
 | `--port` | `SYNCTHING_PORT` | SyncThing instance port | `8384` |
 | `--api-key` | `SYNCTHING_API_KEY` | SyncThing API key (supports `keyring:...` and `encrypted:...`) | - |
 | `--transport` | `SYNCTHING_MCP_TRANSPORT` | Transport mode (`stdio`) | `stdio` |
+| `--http-enabled` | `SYNCTHING_HTTP_SERVER__ENABLED` | Enable the HTTP/SSE server | `false` |
+| `--http-host` | `SYNCTHING_HTTP_SERVER__HOST` | HTTP server host | `0.0.0.0` |
+| `--http-port` | `SYNCTHING_HTTP_SERVER__PORT` | HTTP server port | `3000` |
+| `--http-api-key` | `SYNCTHING_HTTP_SERVER__API_KEY` | Bearer token for HTTP server | - |
 | `--no-verify-ssl` | `SYNCTHING_NO_VERIFY_SSL` | Disable SSL certificate verification | `true` |
 | `--log-level` | `SYNCTHING_LOG_LEVEL` | Log level (`info`, `debug`, etc.) | `info` |
 | - | `SYNCTHING_RETRY_MAX_ATTEMPTS` | Max retries for API calls | `3` |
@@ -161,6 +196,12 @@ RUN_DOCKER_TESTS=true task test:integration
 
 # Run MCP Inspector (requires npx)
 task inspector
+
+# Generate documentation
+task docs
+
+# Generate and open documentation
+task docs:open
 
 # Update cargo dependencies
 task update
