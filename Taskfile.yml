@@ -92,6 +92,16 @@ tasks:
     cmds:
       - cargo fmt -- --check
 
+  docs:
+    desc: Generate documentation
+    cmds:
+      - cargo doc --no-deps
+
+  docs:open:
+    desc: Generate and open documentation
+    cmds:
+      - cargo doc --no-deps --open
+
   lint:
     desc: Lint code with clippy
     cmds:
