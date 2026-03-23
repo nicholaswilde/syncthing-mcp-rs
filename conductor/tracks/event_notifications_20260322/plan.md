@@ -5,7 +5,7 @@
 - [x] Task: Create a dedicated `EventManager` background task. f5df6ba
 - [x] Task: Implement a long-polling loop with proper `since` parameter management. f5df6ba
 
-## Phase 2: Processing & Filtering
+## Phase 2: Processing & Filtering [checkpoint: 0af18d3]
 - [x] Task: Define event models for various SyncThing event types. 6cd4e6a
 - [x] Task: Implement a configurable filter to select which events to forward as notifications. cb9e60f
 - [x] Task: Add basic event transformation to make them more "human-readable" for the MCP client. 8d623b8
