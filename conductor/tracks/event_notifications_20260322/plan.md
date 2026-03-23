@@ -13,7 +13,7 @@
 ## Phase 3: MCP Server Integration
 - [x] Task: Extend the MCP server to support pushing notifications to clients. 41eda66
 - [x] Task: Connect the `EventManager` to the MCP server's notification channel. 3b3ff64
-- [ ] Task: Ensure notification delivery works correctly for multiple instances.
+- [x] Task: Ensure notification delivery works correctly for multiple instances. 6b6029b
 
 ## Phase 4: Validation
 - [ ] Task: Create unit tests for event parsing and filtering.
