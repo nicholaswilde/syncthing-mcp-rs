@@ -73,6 +73,7 @@ impl McpServer {
             .with_state(self.clone());
 
         if self.config.http_server.api_key.is_some() {
+            tracing::info!("HTTP authentication enabled");
             router.layer(middleware::from_fn_with_state(self.clone(), auth_middleware))
         } else {
             router
@@ -284,6 +285,7 @@ async fn sse_handler(
     let session_id = Uuid::new_v4().to_string();
     let (tx, rx) = mpsc::channel(100);
     
+    tracing::info!("New SSE session established: {}", session_id);
     server.sessions.insert(session_id.clone(), Session { tx });
     
     let endpoint_url = format!("/message?session_id={}", session_id);
@@ -295,8 +297,9 @@ async fn sse_handler(
     let stream = ReceiverStream::new(rx)
         .map(|msg| {
             let json = serde_json::to_string(&msg).unwrap_or_default();
-            Ok(Event::default().event("message").data(json))
-        });
+            Event::default().event("message").data(json)
+        })
+        .map(Ok);
     
     // Chain the initial 'endpoint' event with the message stream
     let full_stream = tokio_stream::once(Ok(initial_event)).chain(stream);
@@ -309,29 +312,38 @@ async fn message_handler(
     Query(query): Query<SessionQuery>,
     Json(message): Json<Message>,
 ) -> Result<Json<Value>, (axum::http::StatusCode, String)> {
-    let _session = server.sessions.get(&query.session_id).ok_or((
-        axum::http::StatusCode::NOT_FOUND,
-        "Session not found".to_string(),
-    ))?;
+    tracing::debug!("Received HTTP message for session: {}", query.session_id);
+    let _session = server.sessions.get(&query.session_id).ok_or_else(|| {
+        tracing::warn!("Session not found: {}", query.session_id);
+        (axum::http::StatusCode::NOT_FOUND, "Session not found".to_string())
+    })?;
 
     match message {
         Message::Request(req) => {
             let id = req.id.clone();
+            let method = req.method.clone();
+            tracing::info!("Handling HTTP request: {}", method);
             let response = server.handle_request(req).await;
             
             let json_resp = match response {
-                Ok(result) => Response {
-                    jsonrpc: "2.0".to_string(),
-                    id,
-                    result: Some(result),
-                    error: None,
-                },
-                Err(e) => Response {
-                    jsonrpc: "2.0".to_string(),
-                    id,
-                    result: None,
-                    error: Some(ResponseError::from(e)),
-                },
+                Ok(result) => {
+                    tracing::debug!("HTTP request successful: {}", method);
+                    Response {
+                        jsonrpc: "2.0".to_string(),
+                        id,
+                        result: Some(result),
+                        error: None,
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("HTTP request failed: {}: {}", method, e);
+                    Response {
+                        jsonrpc: "2.0".to_string(),
+                        id,
+                        result: None,
+                        error: Some(ResponseError::from(e)),
+                    }
+                }
             };
             
             // In HTTP transport, responses are sent back in the HTTP response body
@@ -339,13 +351,16 @@ async fn message_handler(
         }
         Message::Notification(n) => {
             // Notifications from client to server (if any)
-            tracing::info!("Received notification from client: {}", n.method);
+            tracing::info!("Received notification from HTTP client: {}", n.method);
             Ok(Json(serde_json::json!({"status": "received"})))
         }
-        _ => Err((
-            axum::http::StatusCode::BAD_REQUEST,
-            "Unsupported message type".to_string(),
-        )),
+        _ => {
+            tracing::warn!("Unsupported message type received over HTTP");
+            Err((
+                axum::http::StatusCode::BAD_REQUEST,
+                "Unsupported message type".to_string(),
+            ))
+        }
     }
 }
 
@@ -359,14 +374,19 @@ async fn auth_middleware(
         let auth_header = headers
             .get("authorization")
             .and_then(|h| h.to_str().ok())
-            .ok_or(StatusCode::UNAUTHORIZED)?;
+            .ok_or_else(|| {
+                tracing::warn!("Missing authorization header");
+                StatusCode::UNAUTHORIZED
+            })?;
 
         if !auth_header.starts_with("Bearer ") {
+            tracing::warn!("Invalid authorization header format");
             return Err(StatusCode::UNAUTHORIZED);
         }
 
         let token = &auth_header[7..];
         if token != expected_key {
+            tracing::warn!("Invalid API key provided");
             return Err(StatusCode::UNAUTHORIZED);
         }
     }
