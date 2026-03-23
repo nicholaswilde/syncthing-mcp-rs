@@ -10,7 +10,7 @@
 - [x] Task: Implement the POST endpoint for client-to-server messages. 6d8d264
 
 ## Phase 3: Integration & Security
-- [ ] Task: Refactor the main entry point to support switching between stdio and HTTP transports.
+- [x] Task: Refactor the main entry point to support switching between stdio and HTTP transports. 5434d95
 - [ ] Task: Implement basic authentication (e.g., bearer token) for remote access.
 - [ ] Task: Add logging and metrics for HTTP/SSE connections.
 
