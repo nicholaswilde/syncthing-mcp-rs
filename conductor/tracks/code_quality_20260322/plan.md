@@ -1,6 +1,6 @@
 # Implementation Plan: Code Quality
 
-## Phase 1: Main Refactoring
+## Phase 1: Main Refactoring [checkpoint: 802e267]
 - [x] Create `run()` in `src/lib.rs`. (4c62873)
 - [x] Move initialization and server startup logic into `run()`. (4c62873)
 - [x] Update `src/main.rs` to call `lib::run()`. (4747e18)
