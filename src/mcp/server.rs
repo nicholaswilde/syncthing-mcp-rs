@@ -5,7 +5,9 @@ use crate::mcp::{Message, Notification, Request, Response, ResponseError};
 use crate::tools::ToolRegistry;
 use axum::{
     extract::{Query, State},
-    response::sse::{Event, Sse},
+    http::{HeaderMap, Request as HttpRequest, StatusCode},
+    middleware::{self, Next},
+    response::{sse::Event, Response as HttpResponse, Sse},
     routing::{get, post},
     Json, Router,
 };
@@ -65,10 +67,16 @@ impl McpServer {
 
     /// Returns an axum router for the MCP HTTP/SSE transport.
     pub fn router(&self) -> Router {
-        Router::new()
+        let router = Router::new()
             .route("/sse", get(sse_handler))
             .route("/message", post(message_handler))
-            .with_state(self.clone())
+            .with_state(self.clone());
+
+        if self.config.http_server.api_key.is_some() {
+            router.layer(middleware::from_fn_with_state(self.clone(), auth_middleware))
+        } else {
+            router
+        }
     }
 
     /// Runs the server on standard input/output.
@@ -339,4 +347,29 @@ async fn message_handler(
             "Unsupported message type".to_string(),
         )),
     }
+}
+
+async fn auth_middleware(
+    State(server): State<McpServer>,
+    headers: HeaderMap,
+    request: HttpRequest<axum::body::Body>,
+    next: Next,
+) -> Result<HttpResponse, StatusCode> {
+    if let Some(expected_key) = &server.config.http_server.api_key {
+        let auth_header = headers
+            .get("authorization")
+            .and_then(|h| h.to_str().ok())
+            .ok_or(StatusCode::UNAUTHORIZED)?;
+
+        if !auth_header.starts_with("Bearer ") {
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+
+        let token = &auth_header[7..];
+        if token != expected_key {
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+    }
+
+    Ok(next.run(request).await)
 }

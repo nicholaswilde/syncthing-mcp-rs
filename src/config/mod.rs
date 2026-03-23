@@ -49,6 +49,8 @@ pub struct HttpServerConfig {
     /// The port to bind the HTTP server to.
     #[serde(default = "default_http_server_port")]
     pub port: u16,
+    /// Optional API key for basic authentication.
+    pub api_key: Option<String>,
 }
 
 /// Configuration for a specific SyncThing instance.
@@ -106,6 +108,7 @@ impl Default for HttpServerConfig {
             enabled: false,
             host: "0.0.0.0".to_string(),
             port: 3000,
+            api_key: None,
         }
     }
 }
@@ -269,6 +272,9 @@ impl AppConfig {
         if let Some(port) = matches.get_one::<u16>("http_server_port") {
             builder = builder.set_override("http_server.port", *port)?;
         }
+        if let Some(key) = matches.get_one::<String>("http_server_api_key") {
+            builder = builder.set_override("http_server.api_key", key.as_str())?;
+        }
 
         let mut config: AppConfig = builder.build()?.try_deserialize()?;
         config.validate().map_err(ConfigError::Message)?;
@@ -393,6 +399,11 @@ fn parse_args(args: Vec<String>) -> ArgMatches {
                 .long("http-port")
                 .help("HTTP server port")
                 .value_parser(clap::value_parser!(u16)),
+        )
+        .arg(
+            Arg::new("http_server_api_key")
+                .long("http-api-key")
+                .help("API key for the HTTP server"),
         )
         .arg(
             Arg::new("no_verify_ssl")

@@ -149,4 +149,47 @@ mod tests {
         assert_eq!(mcp_resp["id"], "list-req");
         assert!(mcp_resp["result"]["tools"].is_array());
     }
+
+    #[tokio::test]
+    async fn test_http_auth_failure() {
+        let registry = ToolRegistry::new();
+        let mut config = AppConfig::default();
+        config.http_server.api_key = Some("secret-token".to_string());
+        let (server, _rx) = McpServer::new(registry, config);
+        let app = server.router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/sse")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn test_http_auth_success() {
+        let registry = ToolRegistry::new();
+        let mut config = AppConfig::default();
+        config.http_server.api_key = Some("secret-token".to_string());
+        let (server, _rx) = McpServer::new(registry, config);
+        let app = server.router();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/sse")
+                    .header("authorization", "Bearer secret-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
 }
