@@ -371,4 +371,19 @@ mod tests {
         assert_eq!(info.device_id, "ABCDEFG");
         assert_eq!(info.original_path, "/tmp/README");
     }
+
+    #[test]
+    fn test_conflict_regex_parsing_multiple_dots() {
+        let parent = Path::new("/tmp");
+        let filename = "archive.tar.gz.sync-conflict-20230101-120000-ABCDEFG.bak";
+        let info = parse_conflict_filename(filename, parent).unwrap();
+        assert_eq!(info.original_path, "/tmp/archive.tar.gz.bak");
+    }
+
+    #[test]
+    fn test_conflict_regex_parsing_invalid() {
+        let parent = Path::new("/tmp");
+        assert!(parse_conflict_filename("not-a-conflict.txt", parent).is_none());
+        assert!(parse_conflict_filename("file.sync-conflict-invalid-DEVICE.txt", parent).is_none());
+    }
 }
