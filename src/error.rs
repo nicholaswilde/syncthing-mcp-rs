@@ -95,7 +95,8 @@ impl Error {
                 let advice = if msg.contains("CSRF") {
                     "CSRF protection is active. Ensure you're using an API key, as it bypasses CSRF checks.".to_string()
                 } else {
-                    "Access is forbidden. You might be trying to access a restricted endpoint.".to_string()
+                    "Access is forbidden. You might be trying to access a restricted endpoint."
+                        .to_string()
                 };
                 Diagnostic {
                     category: "Permission".to_string(),
@@ -106,11 +107,13 @@ impl Error {
             Error::NotFound(_) => Diagnostic {
                 category: "Configuration".to_string(),
                 explanation: "The requested resource or endpoint was not found.".to_string(),
-                advice: "Verify the ID and endpoint. List folders/devices to see valid IDs.".to_string(),
+                advice: "Verify the ID and endpoint. List folders/devices to see valid IDs."
+                    .to_string(),
             },
             Error::Network(msg) => {
                 let advice = if msg.contains("refused") {
-                    "SyncThing instance is not running or is listening on a different port.".to_string()
+                    "SyncThing instance is not running or is listening on a different port."
+                        .to_string()
                 } else if msg.contains("timeout") || msg.contains("deadline exceeded") {
                     "The request took too long. Check if the server is under heavy load or network is unstable.".to_string()
                 } else {
@@ -127,19 +130,23 @@ impl Error {
                     Diagnostic {
                         category: "Configuration".to_string(),
                         explanation: format!("SyncThing error: {}", msg),
-                        advice: "Specified folder ID is incorrect. List folders to see valid IDs.".to_string(),
+                        advice: "Specified folder ID is incorrect. List folders to see valid IDs."
+                            .to_string(),
                     }
                 } else if msg.contains("device") && msg.contains("not found") {
                     Diagnostic {
                         category: "Configuration".to_string(),
                         explanation: format!("SyncThing error: {}", msg),
-                        advice: "Specified device ID is incorrect. List devices to see valid IDs.".to_string(),
+                        advice: "Specified device ID is incorrect. List devices to see valid IDs."
+                            .to_string(),
                     }
                 } else if msg.contains("disk space") {
                     Diagnostic {
                         category: "Resource".to_string(),
                         explanation: format!("SyncThing error: {}", msg),
-                        advice: "SyncThing cannot write data. Check disk space on the target machine.".to_string(),
+                        advice:
+                            "SyncThing cannot write data. Check disk space on the target machine."
+                                .to_string(),
                     }
                 } else {
                     Diagnostic {

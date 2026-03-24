@@ -24,19 +24,19 @@ pub async fn replicate_config(
     let device_filter = args.get("devices").and_then(|v| v.as_array());
 
     // Validate filters are arrays if provided
-    if let Some(v) = args.get("folders") {
-        if !v.is_array() {
-            return Err(Error::ValidationError(
-                "folders must be an array of strings".to_string(),
-            ));
-        }
+    if let Some(v) = args.get("folders")
+        && !v.is_array()
+    {
+        return Err(Error::ValidationError(
+            "folders must be an array of strings".to_string(),
+        ));
     }
-    if let Some(v) = args.get("devices") {
-        if !v.is_array() {
-            return Err(Error::ValidationError(
-                "devices must be an array of strings".to_string(),
-            ));
-        }
+    if let Some(v) = args.get("devices")
+        && !v.is_array()
+    {
+        return Err(Error::ValidationError(
+            "devices must be an array of strings".to_string(),
+        ));
     }
 
     // 1. Get source client
@@ -78,9 +78,9 @@ pub async fn replicate_config(
             .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
             .collect();
         for id in filter {
-            let id_str = id.as_str().ok_or_else(|| {
-                Error::ValidationError("folder IDs must be strings".to_string())
-            })?;
+            let id_str = id
+                .as_str()
+                .ok_or_else(|| Error::ValidationError("folder IDs must be strings".to_string()))?;
             if !source_ids.contains(id_str) {
                 return Err(Error::ValidationError(format!(
                     "Folder not found in source: {}",
@@ -95,9 +95,9 @@ pub async fn replicate_config(
             .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
             .collect();
         for id in filter {
-            let id_str = id.as_str().ok_or_else(|| {
-                Error::ValidationError("device IDs must be strings".to_string())
-            })?;
+            let id_str = id
+                .as_str()
+                .ok_or_else(|| Error::ValidationError("device IDs must be strings".to_string()))?;
             if !source_ids.contains(id_str) {
                 return Err(Error::ValidationError(format!(
                     "Device not found in source: {}",
@@ -157,14 +157,13 @@ pub async fn replicate_config(
     }
 
     for device in &source_devices_all {
-        if let Some(id) = device.get("deviceID").and_then(|id| id.as_str()) {
-            if required_device_ids.contains(id)
-                && !source_devices
-                    .iter()
-                    .any(|d| d.get("deviceID").and_then(|id| id.as_str()) == Some(id))
-            {
-                source_devices.push(device.clone());
-            }
+        if let Some(id) = device.get("deviceID").and_then(|id| id.as_str())
+            && required_device_ids.contains(id)
+            && !source_devices
+                .iter()
+                .any(|d| d.get("deviceID").and_then(|id| id.as_str()) == Some(id))
+        {
+            source_devices.push(device.clone());
         }
     }
 
@@ -213,11 +212,13 @@ pub async fn replicate_config(
             destination_name
         )
     } else {
-        format!("Successfully replicated configuration to {}", destination_name)
+        format!(
+            "Successfully replicated configuration to {}",
+            destination_name
+        )
     };
 
     let summary = format!("{}.\n{}", status_prefix, diff_summary);
-
 
     Ok(json!({
         "content": [{
