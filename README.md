@@ -25,6 +25,8 @@ A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https
 - **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
+    - `list_instances`: List all configured SyncThing instances and their current health status.
+    - `get_instance_health`: Get detailed health information for a specific SyncThing instance, including connectivity, version, uptime, and resource usage.
     - `get_system_stats`: Get SyncThing system statistics, including version, uptime, memory usage, and the unique device ID.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
     - `manage_folders`: List all configured SyncThing folders, showing their IDs, labels, paths, and paused status.
