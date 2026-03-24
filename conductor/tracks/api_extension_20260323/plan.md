@@ -16,7 +16,7 @@ Focus on endpoints that enhance the monitoring and troubleshooting capabilities 
   - Define relevant models.
   - Implement client methods.
   - Add tools to `devices.rs` and `folders.rs`.
-- [ ] Implement `GET /rest/cluster/pending/folders`
+- [x] Implement `GET /rest/cluster/pending/folders` (88e16f3)
   - Define `PendingFolder` model.
   - Implement `get_pending_folders` and `remove_pending_folder` in `SyncThingClient`.
   - Add `manage_pending_folders` tool to `folders.rs`.
