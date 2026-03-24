@@ -230,7 +230,8 @@ impl Error {
             Error::Unauthorized(_) => Diagnostic {
                 category: "Permission".to_string(),
                 explanation: "L'authentification a échoué.".to_string(),
-                advice: "La clé API est manquante ou invalide. Vérifiez votre configuration.".to_string(),
+                advice: "La clé API est manquante ou invalide. Vérifiez votre configuration."
+                    .to_string(),
             },
             Error::Forbidden(msg) => {
                 let advice = if msg.contains("CSRF") {
@@ -246,19 +247,28 @@ impl Error {
             }
             Error::NotFound(_) => {
                 let advice = match context {
-                    Some("manage_folders") => "Confirmez que l'ID du dossier existe en listant les dossiers.",
-                    Some("manage_devices") => "Confirmez que l'ID du périphérique existe en listant les périphériques.",
-                    _ => "Vérifiez l'ID et le point de terminaison. Listez les dossiers/périphériques pour voir les IDs valides.",
+                    Some("manage_folders") => {
+                        "Confirmez que l'ID du dossier existe en listant les dossiers."
+                    }
+                    Some("manage_devices") => {
+                        "Confirmez que l'ID du périphérique existe en listant les périphériques."
+                    }
+                    _ => {
+                        "Vérifiez l'ID et le point de terminaison. Listez les dossiers/périphériques pour voir les IDs valides."
+                    }
                 };
                 Diagnostic {
                     category: "Configuration".to_string(),
-                    explanation: "La ressource ou le point de terminaison demandé n'a pas été trouvé.".to_string(),
+                    explanation:
+                        "La ressource ou le point de terminaison demandé n'a pas été trouvé."
+                            .to_string(),
                     advice: advice.to_string(),
                 }
             }
             Error::Network(msg) => {
                 let advice = if msg.contains("refused") {
-                    "L'instance SyncThing ne fonctionne pas ou écoute sur un port différent.".to_string()
+                    "L'instance SyncThing ne fonctionne pas ou écoute sur un port différent."
+                        .to_string()
                 } else if msg.contains("timeout") || msg.contains("deadline exceeded") {
                     "La requête a pris trop de temps. Vérifiez si le serveur est surchargé ou si le réseau est instable.".to_string()
                 } else {
@@ -293,14 +303,16 @@ impl Error {
                     Diagnostic {
                         category: "Interne".to_string(),
                         explanation: format!("Erreur technique SyncThing : {}", msg),
-                        advice: "Inspectez les journaux SyncThing pour plus de détails.".to_string(),
+                        advice: "Inspectez les journaux SyncThing pour plus de détails."
+                            .to_string(),
                     }
                 }
             }
             _ => Diagnostic {
                 category: "Interne".to_string(),
                 explanation: self.to_string(),
-                advice: "Inspectez les journaux et vérifiez l'état de l'instance SyncThing.".to_string(),
+                advice: "Inspectez les journaux et vérifiez l'état de l'instance SyncThing."
+                    .to_string(),
             },
         }
     }

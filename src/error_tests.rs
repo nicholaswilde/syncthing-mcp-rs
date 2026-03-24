@@ -32,4 +32,14 @@ mod tests {
         let data = resp_err.data.expect("Diagnostic data should be present");
         assert_eq!(data["category"], "Permission");
     }
+
+    #[test]
+    fn test_response_error_truncation() {
+        use crate::mcp::ResponseError;
+        let long_msg = "a".repeat(1000);
+        let err = Error::Internal(long_msg);
+        let resp_err = ResponseError::from(err);
+        assert!(resp_err.message.len() <= 500);
+        assert!(resp_err.message.contains("(truncated)"));
+    }
 }

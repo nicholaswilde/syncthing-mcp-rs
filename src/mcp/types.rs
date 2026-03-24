@@ -87,7 +87,7 @@ impl From<crate::error::Error> for ResponseError {
         // Truncate very long technical messages for better AI readability,
         // but keep the important parts.
         let concise_message = if message.len() > 500 {
-            format!("{}... (truncated)", &message[..490])
+            format!("{}... (truncated)", &message[..480])
         } else {
             message
         };
