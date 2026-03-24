@@ -233,18 +233,18 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_folders",
-        "Manage SyncThing folders: list configured folders, view pending folder requests, reject pending requests, or revert local changes in Receive Only folders.",
+        "Manage SyncThing folders: list configured folders, get a specific folder, view pending folder requests, reject pending requests, or revert local changes in Receive Only folders.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["list", "pending", "reject_pending", "revert"],
+                    "enum": ["list", "get", "pending", "reject_pending", "revert"],
                     "description": "The folder management action to perform. 'revert' undoes local changes in Receive Only folders."
                 },
                 "folder_id": {
                     "type": "string",
-                    "description": "The unique Folder ID (required for 'reject_pending' and 'revert')."
+                    "description": "The unique Folder ID (required for 'get', 'reject_pending' and 'revert')."
                 }
             },
             "required": ["action"]

@@ -138,9 +138,7 @@ impl TestContext {
         };
 
         if let Some(handler) = handler {
-            handler(&self.client, &self.config, Some(args))
-                .await
-                .map_err(|e| anyhow::anyhow!(e))
+            handler(&self.client, &self.config, Some(args)).await.map_err(Into::into)
         } else {
             Err(anyhow::anyhow!("Tool not found: {}", name))
         }

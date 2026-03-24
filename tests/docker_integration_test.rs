@@ -458,3 +458,37 @@ async fn test_replicate_config_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_tool_error_reporting() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx
+        .call_tool(
+            "manage_folders",
+            json!({
+                "action": "get",
+                "folder_id": "non-existent-folder"
+            }),
+        )
+        .await;
+
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    let resp_err = err.downcast_ref::<syncthing_mcp_rs::error::Error>().unwrap();
+
+    let diagnostic = resp_err.diagnose();
+    assert!(diagnostic.advice.contains("Verify the ID and endpoint"));
+
+    match resp_err {
+        syncthing_mcp_rs::error::Error::NotFound(_) => {
+            // Expected error
+        }
+        _ => panic!("Expected NotFound error, but got {:?}", resp_err),
+    }
+
+    Ok(())
+}

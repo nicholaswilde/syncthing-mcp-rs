@@ -2,8 +2,8 @@
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
-use crate::error::Result;
-use serde_json::{Value, json};
+use crate::error::{Error, Result};
+use serde_json::{json, Value};
 
 /// Manages SyncThing folders (list, add, remove, pause, resume).
 pub async fn manage_folders(
@@ -27,6 +27,18 @@ pub async fn manage_folders(
                 "content": [{
                     "type": "text",
                     "text": text
+                }]
+            }))
+        }
+        "get" => {
+            let folder_id = args["folder_id"].as_str().ok_or_else(|| {
+                Error::Internal("folder_id is required for get action".to_string())
+            })?;
+            let folder = client.get_folder(folder_id).await?;
+            Ok(json!({
+                "content": [{
+                    "type": "json",
+                    "json": serde_json::to_value(folder)?
                 }]
             }))
         }
