@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Advanced Config Replication
-*Link: [./tracks/advanced_replication_20260322/](./tracks/advanced_replication_20260322/)*
-
----
-
 ## [ ] Track: Enhanced Error Handling & Diagnostics
 *Link: [./tracks/error_diagnostics_20260322/](./tracks/error_diagnostics_20260322/)*
 
