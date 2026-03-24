@@ -7,7 +7,7 @@
 ## Phase 2: Tool Development
 - [x] Task: Implement the `list_conflicts` tool. (14e8e62)
 - [x] Task: Develop the `resolve_conflict` tool with basic "keep original" or "keep conflict" actions. (eae6a5c)
-- [ ] Task: Implement a `delete_conflict` tool for simple cleanup of unwanted conflict files.
+- [x] Task: Implement a `delete_conflict` tool for simple cleanup of unwanted conflict files. (a739e6d)
 
 ## Phase 3: Safety & UI Enhancements
 - [ ] Task: Add "dry-run" mode to resolution tools to preview changes.
