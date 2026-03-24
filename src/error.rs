@@ -84,7 +84,7 @@ pub enum Language {
 
 impl Language {
     /// Returns the language from a string (e.g., "en", "fr").
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "fr" | "french" => Language::French,
             _ => Language::English,

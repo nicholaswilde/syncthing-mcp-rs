@@ -64,7 +64,11 @@ mod tests {
 
         let err = Error::SyncThing("folder \"abc\" not found".to_string());
         let diagnostic = err.diagnose_with_language(Language::French);
-        assert!(diagnostic.advice.contains("ID du dossier spécifié est incorrect"));
+        assert!(
+            diagnostic
+                .advice
+                .contains("ID du dossier spécifié est incorrect")
+        );
 
         let err = Error::SyncThing("disk space".to_string());
         let diagnostic = err.diagnose_with_language(Language::French);

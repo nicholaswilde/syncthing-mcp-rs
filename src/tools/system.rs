@@ -312,9 +312,9 @@ pub async fn analyze_error(
     } else if error_message.to_lowercase().contains("404")
         || error_message.to_lowercase().contains("not found")
     {
-        if error_message.to_lowercase().contains("folder") {
-            Error::SyncThing(error_message.to_string()).diagnose()
-        } else if error_message.to_lowercase().contains("device") {
+        if error_message.to_lowercase().contains("folder")
+            || error_message.to_lowercase().contains("device")
+        {
             Error::SyncThing(error_message.to_string()).diagnose()
         } else {
             Error::NotFound(error_message.to_string()).diagnose()
