@@ -15,6 +15,10 @@ pub async fn replicate_config(
         .get("destination")
         .and_then(|v| v.as_str())
         .ok_or_else(|| Error::ValidationError("destination is required".to_string()))?;
+    let dry_run = args
+        .get("dry_run")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
     // 1. Get source client
     let source_client = if let Some(name) = source_name {
@@ -105,11 +109,19 @@ pub async fn replicate_config(
     }
 
     // 7. Apply to destination
-    dest_client.set_config(dest_config).await?;
+    if !dry_run {
+        dest_client.set_config(dest_config).await?;
+    }
+
+    let status_prefix = if dry_run {
+        format!("[DRY RUN] Would replicate configuration to {}", destination_name)
+    } else {
+        format!("Successfully replicated configuration to {}", destination_name)
+    };
 
     let summary = format!(
-        "Successfully replicated configuration to {}.\n{}",
-        destination_name,
+        "{}.\n{}",
+        status_prefix,
         diff_report.join("\n")
     );
 

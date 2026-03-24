@@ -2,6 +2,9 @@
 pub mod browser;
 /// Configuration replication tool.
 pub mod config;
+/// Unit tests for configuration replication.
+#[cfg(test)]
+pub mod config_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
 /// Device management tools.
