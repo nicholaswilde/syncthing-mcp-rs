@@ -8,7 +8,7 @@ Focus on endpoints that enhance the monitoring and troubleshooting capabilities 
   - Define `ConnectionStatus` model.
   - Implement `get_connections` in `SyncThingClient`.
   - Add `get_system_connections` tool to `system.rs`.
-- [ ] Implement `GET /rest/system/log`
+- [x] Implement `GET /rest/system/log` (bdc574f)
   - Define `LogEntry` model.
   - Implement `get_system_log` in `SyncThingClient`.
   - Add `get_system_log` tool to `system.rs`.
