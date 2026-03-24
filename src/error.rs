@@ -72,6 +72,27 @@ impl From<String> for Error {
 }
 
 /// Diagnostic information for an error.
+/// Supported languages for diagnostic messages.
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
+pub enum Language {
+    /// English (default).
+    #[default]
+    English,
+    /// French.
+    French,
+}
+
+impl Language {
+    /// Returns the language from a string (e.g., "en", "fr").
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "fr" | "french" => Language::French,
+            _ => Language::English,
+        }
+    }
+}
+
+/// Diagnostic information for an error.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Diagnostic {
     /// The category of the error (e.g., Network, Permission).
@@ -83,8 +104,20 @@ pub struct Diagnostic {
 }
 
 impl Error {
-    /// Diagnoses the error and returns a structured diagnostic.
+    /// Diagnoses the error and returns a structured diagnostic in English.
     pub fn diagnose(&self) -> Diagnostic {
+        self.diagnose_with_language(Language::English)
+    }
+
+    /// Diagnoses the error and returns a structured diagnostic in the specified language.
+    pub fn diagnose_with_language(&self, lang: Language) -> Diagnostic {
+        match lang {
+            Language::English => self.diagnose_en(),
+            Language::French => self.diagnose_fr(),
+        }
+    }
+
+    fn diagnose_en(&self) -> Diagnostic {
         match self {
             Error::Unauthorized(_) => Diagnostic {
                 category: "Permission".to_string(),
@@ -160,6 +193,79 @@ impl Error {
                 category: "Internal".to_string(),
                 explanation: self.to_string(),
                 advice: "Inspect the logs and check the SyncThing instance status.".to_string(),
+            },
+        }
+    }
+
+    fn diagnose_fr(&self) -> Diagnostic {
+        match self {
+            Error::Unauthorized(_) => Diagnostic {
+                category: "Permission".to_string(),
+                explanation: "L'authentification a échoué.".to_string(),
+                advice: "La clé API est manquante ou invalide. Vérifiez votre configuration.".to_string(),
+            },
+            Error::Forbidden(msg) => {
+                let advice = if msg.contains("CSRF") {
+                    "La protection CSRF est active. Assurez-vous d'utiliser une clé API, car elle contourne les vérifications CSRF.".to_string()
+                } else {
+                    "L'accès est interdit. Vous essayez peut-être d'accéder à un point de terminaison restreint.".to_string()
+                };
+                Diagnostic {
+                    category: "Permission".to_string(),
+                    explanation: format!("Permission refusée : {}", msg),
+                    advice,
+                }
+            }
+            Error::NotFound(_) => Diagnostic {
+                category: "Configuration".to_string(),
+                explanation: "La ressource ou le point de terminaison demandé n'a pas été trouvé.".to_string(),
+                advice: "Vérifiez l'ID et le point de terminaison. Listez les dossiers/périphériques pour voir les IDs valides.".to_string(),
+            },
+            Error::Network(msg) => {
+                let advice = if msg.contains("refused") {
+                    "L'instance SyncThing ne fonctionne pas ou écoute sur un port différent.".to_string()
+                } else if msg.contains("timeout") || msg.contains("deadline exceeded") {
+                    "La requête a pris trop de temps. Vérifiez si le serveur est surchargé ou si le réseau est instable.".to_string()
+                } else {
+                    "Vérifiez votre connexion réseau et l'URL du serveur SyncThing.".to_string()
+                };
+                Diagnostic {
+                    category: "Network".to_string(),
+                    explanation: format!("Erreur réseau : {}", msg),
+                    advice,
+                }
+            }
+            Error::SyncThing(msg) => {
+                if msg.contains("folder") && msg.contains("not found") {
+                    Diagnostic {
+                        category: "Configuration".to_string(),
+                        explanation: format!("Erreur SyncThing : {}", msg),
+                        advice: "L'ID du dossier spécifié est incorrect. Listez les dossiers pour voir les IDs valides.".to_string(),
+                    }
+                } else if msg.contains("device") && msg.contains("not found") {
+                    Diagnostic {
+                        category: "Configuration".to_string(),
+                        explanation: format!("Erreur SyncThing : {}", msg),
+                        advice: "L'ID du périphérique spécifié est incorrect. Listez les périphériques pour voir les IDs valides.".to_string(),
+                    }
+                } else if msg.contains("disk space") {
+                    Diagnostic {
+                        category: "Ressource".to_string(),
+                        explanation: format!("Erreur SyncThing : {}", msg),
+                        advice: "SyncThing ne peut pas écrire de données. Vérifiez l'espace disque sur la machine cible.".to_string(),
+                    }
+                } else {
+                    Diagnostic {
+                        category: "Interne".to_string(),
+                        explanation: format!("Erreur technique SyncThing : {}", msg),
+                        advice: "Inspectez les journaux SyncThing pour plus de détails.".to_string(),
+                    }
+                }
+            }
+            _ => Diagnostic {
+                category: "Interne".to_string(),
+                explanation: self.to_string(),
+                advice: "Inspectez les journaux et vérifiez l'état de l'instance SyncThing.".to_string(),
             },
         }
     }
