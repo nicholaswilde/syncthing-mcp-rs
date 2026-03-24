@@ -19,6 +19,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: API Extension and Review
+## [x] Track: API Extension and Review
 *Link: [./tracks/api_extension_20260323/](./tracks/api_extension_20260323/)*
 
