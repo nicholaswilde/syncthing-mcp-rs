@@ -195,6 +195,23 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_replicate_config_tool_schema() {
+        use crate::tools::create_registry;
+        let registry = create_registry();
+        let tool = registry.get_tool("replicate_config").unwrap();
+        let schema = tool.input_schema;
+
+        let props = schema["properties"].as_object().unwrap();
+        assert!(props.contains_key("dry_run"));
+        assert!(props.contains_key("folders"));
+        assert!(props.contains_key("devices"));
+
+        assert_eq!(props["dry_run"]["type"], "boolean");
+        assert_eq!(props["folders"]["type"], "array");
+        assert_eq!(props["devices"]["type"], "array");
+    }
+
+    #[tokio::test]
     async fn test_config_diff_generation() {
         use crate::tools::config_diff::ConfigDiff;
 

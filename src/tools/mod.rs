@@ -350,17 +350,32 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "replicate_config",
-        "Replicate folder and device configurations from one SyncThing instance to another for easy synchronization setup.",
+        "Replicate configuration (folders and devices) from one SyncThing instance to another. Optionally perform a dry run or select specific folders/devices.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "source": {
                     "type": "string",
-                    "description": "The name or index of the source SyncThing instance (defaults to the first instance)."
+                    "description": "Name or index of the source SyncThing instance (defaults to the first instance)."
                 },
                 "destination": {
                     "type": "string",
-                    "description": "The name or index of the destination SyncThing instance."
+                    "description": "Name or index of the destination SyncThing instance."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, preview changes without applying them.",
+                    "default": false
+                },
+                "folders": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Optional list of folder IDs to replicate. If omitted, all folders are replicated."
+                },
+                "devices": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Optional list of device IDs to replicate. If omitted, all devices are replicated."
                 }
             },
             "required": ["destination"]
