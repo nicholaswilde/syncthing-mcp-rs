@@ -15,6 +15,8 @@ pub mod credentials;
 pub mod error;
 #[cfg(test)]
 mod error_tests;
+#[cfg(test)]
+mod error_diagnostics_tests;
 /// MCP server implementation and types.
 pub mod mcp;
 /// Utility functions for testing.
