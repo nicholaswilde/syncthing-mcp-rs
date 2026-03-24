@@ -1,4 +1,4 @@
-# :arrows_counterclockwise: SyncThing MCP Server (Rust) :robot:
+# :arrows_counterclockwise: Syncthing MCP Server (Rust) :robot:
 
 [![Coveralls](https://img.shields.io/coveralls/github/nicholaswilde/syncthing-mcp-rs/main?style=for-the-badge&logo=coveralls)](https://coveralls.io/github/nicholaswilde/syncthing-mcp-rs?branch=main)
 [![task](https://img.shields.io/badge/Task-Enabled-brightgreen?style=for-the-badge&logo=task&logoColor=white)](https://taskfile.dev/#/)
@@ -7,39 +7,50 @@
 > [!WARNING]
 > This project is currently in active development (v0.1.0) and is **not production-ready**. Features may change, and breaking changes may occur without notice. **Use this MCP server at your own risk.**
 
-A Rust implementation of a SyncThing [MCP (Model Context Protocol) server](https://modelcontextprotocol.io/docs/getting-started/intro). This server connects to one or more SyncThing instances and exposes tools to monitor and manage file synchronization via the Model Context Protocol.
+A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Context Protocol) server](https://modelcontextprotocol.io/docs/getting-started/intro). This server connects to one or more Syncthing instances and exposes tools to monitor and manage file synchronization via the Model Context Protocol.
 
 ## :sparkles: Features
 
 - **Multi-Transport Support:**
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
   - **HTTP with SSE:** Remote access support via Server-Sent Events (SSE) for notifications and HTTP POST for messages.
-- **Multi-Instance Management:** Manage and target multiple SyncThing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
+- **Multi-Instance Management:** Manage and target multiple Syncthing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
 - **Multi-Instance Synchronization:** Synchronize configuration (folders and devices) from a source instance to a destination instance.
-- **Event Notifications:** Receive real-time MCP notifications for key SyncThing events (e.g., folder state changes, device connections).
+- **Event Notifications:** Receive real-time MCP notifications for key Syncthing events (e.g., folder state changes, device connections).
 - **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (**TOML**).
 - **Security & Privacy:**
   - **OS Keyring Integration:** Securely store and retrieve API keys from the OS-level secret store.
   - **Authenticated Encryption:** Support for encrypted configuration fields using ChaCha20-Poly1305.
-- **Authentication:** Connects to SyncThing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
+- **Authentication:** Connects to Syncthing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
 - **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
-    - `list_instances`: List all configured SyncThing instances and their current health status.
-    - `get_instance_health`: Get detailed health information for a specific SyncThing instance, including connectivity, version, uptime, and resource usage.
-    - `get_system_stats`: Get SyncThing system statistics, including version, uptime, memory usage, and the unique device ID.
-    - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
-    - `manage_folders`: List all configured SyncThing folders, showing their IDs, labels, paths, and paused status.
+    - `analyze_error`: Analyze a technical error message and provide a diagnostic summary with actionable advice.
     - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.
-    - `configure_sharing`: Share or unshare a specific folder with a remote device.
-    - `manage_ignores`: Manage SyncThing ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
-    - `manage_devices`: Manage SyncThing devices, including listing, adding, removing, pausing, resuming, and approving pending devices.
-    - `maintain_system`: Perform system maintenance: force a rescan of folders, restart the SyncThing service, or clear internal errors.
-    - `replicate_config`: Replicate folder and device configurations from one SyncThing instance to another for easy synchronization setup.
+    - `configure_sharing`: Configure folder sharing between devices (share or unshare).
+    - `delete_conflict`: Permanently delete a Syncthing conflict file.
+    - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
+    - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
+    - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
+    - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
+    - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices.
+    - `get_system_log`: Get recent log entries from the Syncthing service for troubleshooting.
+    - `get_system_status`: Get comprehensive system status information, including version, uptime, memory usage, and the unique device ID.
+    - `list_conflicts`: List Syncthing conflict files in a specific folder.
+    - `list_instances`: List all configured Syncthing instances and their current health status.
+    - `maintain_system`: Perform system maintenance: force a rescan of folders, restart the Syncthing service, or shut down the service.
+    - `manage_devices`: Manage Syncthing devices: list, add, remove, pause, resume, approve pending devices, or validate device IDs.
+    - `manage_folders`: Manage Syncthing folders: list configured folders, get a specific folder, view pending folder requests, reject pending requests, or revert local changes in Receive Only folders.
+    - `manage_ignores`: Manage folder ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
+    - `replicate_config`: Replicate configuration (folders and devices) from one Syncthing instance to another. Optionally perform a dry run or select specific folders/devices.
+    - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version.
 
 ## :package: Installation
 
 ### Homebrew
+
+> [!NOTE]
+> The brew installation method is not currently implemented.
 
 ```bash
 brew install nicholaswilde/tap/syncthing-mcp-rs
@@ -93,7 +104,7 @@ The server can be configured via CLI arguments or environment variables.
 ./target/release/syncthing-mcp-rs encrypt "your-api-key"
 ```
 
-### :remote: HTTP/SSE Remote Access
+### :joystick: HTTP/SSE Remote Access
 
 To access the server remotely, you can enable the HTTP/SSE transport.
 
@@ -125,9 +136,9 @@ To access the server remotely, you can enable the HTTP/SSE transport.
 | Argument | Environment Variable | Description | Default |
 | :--- | :--- | :--- | :--- |
 | `-c, --config` | - | Path to configuration file | `config.toml` |
-| `--host` | `SYNCTHING_HOST` | SyncThing instance host | `localhost` |
-| `--port` | `SYNCTHING_PORT` | SyncThing instance port | `8384` |
-| `--api-key` | `SYNCTHING_API_KEY` | SyncThing API key (supports `keyring:...` and `encrypted:...`) | - |
+| `--host` | `SYNCTHING_HOST` | Syncthing instance host | `localhost` |
+| `--port` | `SYNCTHING_PORT` | Syncthing instance port | `8384` |
+| `--api-key` | `SYNCTHING_API_KEY` | Syncthing API key (supports `keyring:...` and `encrypted:...`) | - |
 | `--transport` | `SYNCTHING_MCP_TRANSPORT` | Transport mode (`stdio`) | `stdio` |
 | `--http-enabled` | `SYNCTHING_HTTP_SERVER__ENABLED` | Enable the HTTP/SSE server | `false` |
 | `--http-host` | `SYNCTHING_HTTP_SERVER__HOST` | HTTP server host | `0.0.0.0` |
