@@ -1,8 +1,8 @@
 # Implementation Plan: Instance Management Tools (instance_management_20260322)
 
 ## Phase 1: Core Monitoring Logic
-- [ ] Task: Implement a health check function that tests connectivity to the SyncThing REST API.
-- [ ] Task: Create a health check result model (status, latency, errors, version).
+- [x] Task: Implement a health check function that tests connectivity to the SyncThing REST API. 79a6f95
+- [x] Task: Create a health check result model (status, latency, errors, version). 79a6f95
 
 ## Phase 2: Tool Implementation
 - [ ] Task: Develop the `list_instances` tool with status badges (Online, Offline, Error).
