@@ -51,3 +51,4 @@
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.
 - **trash**: Cross-platform file deletion to trash.
+- **async-recursion**: Procedural macro for recursive async functions.

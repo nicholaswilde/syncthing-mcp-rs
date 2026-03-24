@@ -33,42 +33,56 @@ pub struct ConflictInfo {
     pub original_modified: Option<String>,
 }
 
-/// Scans a directory for SyncThing conflict files.
+/// Scans a directory and its subdirectories for SyncThing conflict files.
 pub async fn scan_conflicts(path: &Path) -> Result<Vec<ConflictInfo>> {
     let mut conflicts = Vec::new();
-    if !path.is_dir() {
-        return Ok(conflicts);
+    scan_recursive(path, path, &mut conflicts).await?;
+    Ok(conflicts)
+}
+
+#[async_recursion::async_recursion]
+async fn scan_recursive(root: &Path, current: &Path, conflicts: &mut Vec<ConflictInfo>) -> Result<()> {
+    if !current.is_dir() {
+        return Ok(());
     }
 
-    let mut dir = tokio::fs::read_dir(path)
+    let mut dir = tokio::fs::read_dir(current)
         .await
         .map_err(|e| crate::error::Error::Internal(format!("Failed to read directory: {}", e)))?;
 
     while let Some(entry) = dir.next_entry().await.map_err(|e| {
         crate::error::Error::Internal(format!("Failed to read directory entry: {}", e))
     })? {
-        let file_name = entry.file_name();
-        let file_name_str = file_name.to_string_lossy();
-        if let Some(mut info) = parse_conflict_filename(&file_name_str, path) {
-            // Fetch metadata
-            if let Ok(metadata) = entry.metadata().await {
-                info.conflict_size = metadata.len();
-                info.conflict_modified = format_system_time(metadata.modified().ok());
-            }
+        let file_type = entry.file_type().await.map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to get file type: {}", e))
+        })?;
 
-            let original_path = Path::new(&info.original_path);
-            if original_path.exists() {
-                if let Ok(metadata) = tokio::fs::metadata(original_path).await {
-                    info.original_size = Some(metadata.len());
-                    info.original_modified = Some(format_system_time(metadata.modified().ok()));
+        if file_type.is_dir() {
+            scan_recursive(root, &entry.path(), conflicts).await?;
+        } else {
+            let file_name = entry.file_name();
+            let file_name_str = file_name.to_string_lossy();
+            if let Some(mut info) = parse_conflict_filename(&file_name_str, current) {
+                // Fetch metadata
+                if let Ok(metadata) = entry.metadata().await {
+                    info.conflict_size = metadata.len();
+                    info.conflict_modified = format_system_time(metadata.modified().ok());
                 }
-            }
 
-            conflicts.push(info);
+                let original_path = Path::new(&info.original_path);
+                if original_path.exists() {
+                    if let Ok(metadata) = tokio::fs::metadata(original_path).await {
+                        info.original_size = Some(metadata.len());
+                        info.original_modified = Some(format_system_time(metadata.modified().ok()));
+                    }
+                }
+
+                conflicts.push(info);
+            }
         }
     }
 
-    Ok(conflicts)
+    Ok(())
 }
 
 fn format_system_time(time: Option<std::time::SystemTime>) -> String {
