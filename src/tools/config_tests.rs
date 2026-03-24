@@ -79,4 +79,118 @@ mod tests {
             .collect();
         assert_eq!(put_requests.len(), 0, "PUT /rest/config should not have been called in dry-run mode");
     }
+
+    #[tokio::test]
+    async fn test_replicate_config_invalid_filters() {
+        let mock_server = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("source".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        // 1. folders not an array
+        let args = json!({
+            "destination": "source",
+            "folders": "not-an-array"
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(_))));
+
+        // 2. devices not an array
+        let args = json!({
+            "destination": "source",
+            "devices": 123
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(_))));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_filter_not_found() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "exists"}],
+                "devices": [{"deviceID": "exists"}]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        // Folder not found
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["non-existent"]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(result.is_err());
+        if let Err(crate::error::Error::ValidationError(msg)) = result {
+            assert!(msg.contains("Folder not found in source: non-existent"));
+        } else {
+            panic!("Expected ValidationError, got {:?}", result);
+        }
+
+        // Device not found
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "devices": ["non-existent"]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(result.is_err());
+        if let Err(crate::error::Error::ValidationError(msg)) = result {
+            assert!(msg.contains("Device not found in source: non-existent"));
+        } else {
+            panic!("Expected ValidationError, got {:?}", result);
+        }
+
+        // Folder ID not string
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": [123]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings")));
+
+        // Device ID not string
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "devices": [true]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
+    }
 }

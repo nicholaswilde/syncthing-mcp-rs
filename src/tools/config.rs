@@ -20,6 +20,25 @@ pub async fn replicate_config(
         .and_then(|v| v.as_bool())
         .unwrap_or(false);
 
+    let folder_filter = args.get("folders").and_then(|v| v.as_array());
+    let device_filter = args.get("devices").and_then(|v| v.as_array());
+
+    // Validate filters are arrays if provided
+    if let Some(v) = args.get("folders") {
+        if !v.is_array() {
+            return Err(Error::ValidationError(
+                "folders must be an array of strings".to_string(),
+            ));
+        }
+    }
+    if let Some(v) = args.get("devices") {
+        if !v.is_array() {
+            return Err(Error::ValidationError(
+                "devices must be an array of strings".to_string(),
+            ));
+        }
+    }
+
     // 1. Get source client
     let source_client = if let Some(name) = source_name {
         let inst_config = config
@@ -51,6 +70,42 @@ pub async fn replicate_config(
         .and_then(|d| d.as_array())
         .cloned()
         .unwrap_or_default();
+
+    // Validate that filtered IDs exist in source
+    if let Some(filter) = folder_filter {
+        let source_ids: HashSet<_> = source_folders
+            .iter()
+            .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
+            .collect();
+        for id in filter {
+            let id_str = id.as_str().ok_or_else(|| {
+                Error::ValidationError("folder IDs must be strings".to_string())
+            })?;
+            if !source_ids.contains(id_str) {
+                return Err(Error::ValidationError(format!(
+                    "Folder not found in source: {}",
+                    id_str
+                )));
+            }
+        }
+    }
+    if let Some(filter) = device_filter {
+        let source_ids: HashSet<_> = source_devices
+            .iter()
+            .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
+            .collect();
+        for id in filter {
+            let id_str = id.as_str().ok_or_else(|| {
+                Error::ValidationError("device IDs must be strings".to_string())
+            })?;
+            if !source_ids.contains(id_str) {
+                return Err(Error::ValidationError(format!(
+                    "Device not found in source: {}",
+                    id_str
+                )));
+            }
+        }
+    }
 
     // 5. Build difference report
     let mut diff_report = Vec::new();
