@@ -16,5 +16,5 @@
 
 ## Phase 4: Validation
 - [x] Task: Unit tests for conflict filename regex and parsing. (069b082)
-- [ ] Task: Integration tests with temporary test files and directories.
+- [x] Task: Integration tests with temporary test files and directories. (71a365c)
 - [ ] Task: Verify tool behavior when files are locked or inaccessible.
