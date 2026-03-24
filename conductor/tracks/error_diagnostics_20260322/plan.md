@@ -1,6 +1,6 @@
 # Implementation Plan: Enhanced Error Handling & Diagnostics (error_diagnostics_20260322)
 
-## Phase 1: Error Mapping & Taxonomy
+## Phase 1: Error Mapping & Taxonomy [checkpoint: aa16b69]
 - [x] Task: Research and document a set of common SyncThing REST API error messages and behaviors. `7ba9b57`
 - [x] Task: Create a structured error taxonomy (Network, Permission, Configuration, Resource). `6cf3ba7`
 - [x] Task: Implement the core mapping engine in `src/error.rs`. `70c747a`
