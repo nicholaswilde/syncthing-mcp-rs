@@ -352,3 +352,12 @@ pub struct OfferedBy {
     #[serde(rename = "remoteEncrypted")]
     pub remote_encrypted: bool,
 }
+
+/// Response from /rest/svc/deviceid.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceIdResponse {
+    /// The formatted device ID.
+    pub id: Option<String>,
+    /// Error message if the ID is invalid.
+    pub error: Option<String>,
+}

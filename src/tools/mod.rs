@@ -258,13 +258,13 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_devices",
-        "Manage SyncThing devices, including listing, adding, removing, pausing, resuming, and approving pending devices.",
+        "Manage SyncThing devices, including listing, adding, removing, pausing, resuming, approving, and validating device IDs.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["list", "add", "remove", "pause", "resume", "discover", "approve"],
+                    "enum": ["list", "add", "remove", "pause", "resume", "discover", "approve", "validate"],
                     "description": "The device management action to perform."
                 },
                 "device_id": {

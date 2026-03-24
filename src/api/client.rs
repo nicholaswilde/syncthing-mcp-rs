@@ -214,6 +214,15 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Validates and formats a device ID.
+    pub async fn validate_device_id(&self, device_id: &str) -> Result<DeviceIdResponse> {
+        tracing::debug!("Validating SyncThing device ID: {}", device_id);
+        let url = format!("{}/rest/svc/deviceid", self.config.url);
+        let request = self.add_auth(self.client.get(&url)).query(&[("id", device_id)]);
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<DeviceIdResponse>().await?)
+    }
+
     /// Returns the status for a specific folder.
     pub async fn get_folder_status(&self, folder_id: &str) -> Result<FolderStatus> {
         tracing::debug!("Fetching SyncThing folder status: {}", folder_id);

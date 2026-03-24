@@ -122,6 +122,28 @@ pub async fn manage_devices(
                 }]
             }))
         }
+        "validate" => {
+            let device_id = args["device_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("device_id is required for validate".to_string())
+            })?;
+            let resp = client.validate_device_id(device_id).await?;
+            if let Some(id) = resp.id {
+                Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("Device ID is valid. Canonical format: {}", id)
+                    }]
+                }))
+            } else {
+                let error = resp.error.unwrap_or_else(|| "Unknown error".to_string());
+                Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("Device ID is invalid: {}", error)
+                    }]
+                }))
+            }
+        }
         _ => Err(crate::error::Error::Internal(format!(
             "Unsupported action: {}",
             action

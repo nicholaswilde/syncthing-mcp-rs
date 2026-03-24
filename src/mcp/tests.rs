@@ -406,7 +406,80 @@ mod tests {
 
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("Device test-device-id removed successfully"));
+        assert!(text.contains("Device DEVICE-ID-1 removed successfully"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_devices_validate() {
+        use wiremock::matchers::{method, path, query_param};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        // Test Success
+        Mock::given(method("GET"))
+            .and(path("/rest/svc/deviceid"))
+            .and(query_param("id", "test-id"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "FORMATTED-ID"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "validate",
+                    "device_id": "test-id"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device ID is valid. Canonical format: FORMATTED-ID"));
+
+        // Test Error
+        Mock::given(method("GET"))
+            .and(path("/rest/svc/deviceid"))
+            .and(query_param("id", "invalid-id"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "error": "invalid length"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_devices",
+                "arguments": {
+                    "action": "validate",
+                    "device_id": "invalid-id"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Device ID is invalid: invalid length"));
     }
 
     #[tokio::test]
