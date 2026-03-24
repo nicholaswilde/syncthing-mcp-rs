@@ -5,7 +5,7 @@
 - [x] Task: Create a model for conflict file information (original path, conflict path, device ID, timestamp). (887d447)
 
 ## Phase 2: Tool Development
-- [ ] Task: Implement the `list_conflicts` tool.
+- [x] Task: Implement the `list_conflicts` tool. (14e8e62)
 - [ ] Task: Develop the `resolve_conflict` tool with basic "keep original" or "keep conflict" actions.
 - [ ] Task: Implement a `delete_conflict` tool for simple cleanup of unwanted conflict files.
 
