@@ -6,7 +6,7 @@
 - [x] Task: Create a diff generator for SyncThing configuration changes. 1e7aacb
 
 
-## Phase 2: Tool Enhancements
+## Phase 2: Tool Enhancements [checkpoint: 25a8268]
 - [x] Task: Update the `replicate_config` MCP tool with new optional parameters. 4bd2534
 - [x] Task: Implement the folder-level replication logic. 5c0a74c
 - [x] Task: Implement the device-level replication logic. 5c0a74c
