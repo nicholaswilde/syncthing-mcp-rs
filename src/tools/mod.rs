@@ -15,6 +15,9 @@ pub mod devices;
 pub mod folders;
 /// System status and maintenance tools.
 pub mod system;
+/// Unit tests for system tools.
+#[cfg(test)]
+pub mod system_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
@@ -155,6 +158,22 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {}
         }),
         system::get_instance_health,
+    );
+
+    registry.register(
+        "analyze_error",
+        "Analyze a technical error message and provide a diagnostic summary with actionable advice.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "error_message": {
+                    "type": "string",
+                    "description": "The technical error message to analyze."
+                }
+            },
+            "required": ["error_message"]
+        }),
+        system::analyze_error,
     );
 
     registry.register(

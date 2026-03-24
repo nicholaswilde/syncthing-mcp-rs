@@ -288,3 +288,54 @@ pub async fn get_instance_health(
         }]
     }))
 }
+
+/// Analyzes a technical error message and provides a diagnostic summary.
+pub async fn analyze_error(
+    _client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let error_message = args
+        .get("error_message")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::ValidationError("Missing error_message argument".to_string()))?;
+
+    // Try to map simple error strings to Error variants for diagnosis.
+    let diagnostic = if error_message.to_lowercase().contains("401")
+        || error_message.to_lowercase().contains("unauthorized")
+    {
+        Error::Unauthorized(error_message.to_string()).diagnose()
+    } else if error_message.to_lowercase().contains("403")
+        || error_message.to_lowercase().contains("forbidden")
+    {
+        Error::Forbidden(error_message.to_string()).diagnose()
+    } else if error_message.to_lowercase().contains("404")
+        || error_message.to_lowercase().contains("not found")
+    {
+        if error_message.to_lowercase().contains("folder") {
+            Error::SyncThing(error_message.to_string()).diagnose()
+        } else if error_message.to_lowercase().contains("device") {
+            Error::SyncThing(error_message.to_string()).diagnose()
+        } else {
+            Error::NotFound(error_message.to_string()).diagnose()
+        }
+    } else if error_message.to_lowercase().contains("refused")
+        || error_message.to_lowercase().contains("timeout")
+    {
+        Error::Network(error_message.to_string()).diagnose()
+    } else {
+        Error::SyncThing(error_message.to_string()).diagnose()
+    };
+
+    let text = format!(
+        "### Error Analysis\n\n- **Category**: {}\n- **Explanation**: {}\n- **Advice**: {}",
+        diagnostic.category, diagnostic.explanation, diagnostic.advice
+    );
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }]
+    }))
+}
