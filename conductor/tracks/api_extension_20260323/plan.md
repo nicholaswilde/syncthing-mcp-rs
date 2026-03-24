@@ -28,7 +28,7 @@ Focus on providing more granular management capabilities.
 - [x] Implement `POST /rest/db/revert` (53d2f33)
   - Implement `revert_folder` in `SyncThingClient`.
   - Add to `folders.rs`.
-- [ ] Implement `POST /rest/system/shutdown`
+- [x] Implement `POST /rest/system/shutdown` (0f6c144)
   - Implement `shutdown` in `SyncThingClient`.
   - Add to `system.rs`.
 - [ ] Implement `GET /rest/svc/deviceid`
