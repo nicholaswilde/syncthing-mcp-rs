@@ -11,8 +11,8 @@
 - [x] Task: Support for multiple languages in diagnostic messages (optional, basic framework). `95adfd7`
 
 ## Phase 3: System-Wide Integration
-- [ ] Task: Update all existing MCP tools to use the enhanced error reporting.
-- [ ] Task: Implement contextual diagnostics based on the specific tool that failed.
+- [x] Task: Update all existing MCP tools to use the enhanced error reporting. `f98a605`
+- [x] Task: Implement contextual diagnostics based on the specific tool that failed. `30f21fa`
 - [ ] Task: Improve formatting of technical stack traces for better AI readability.
 
 ## Phase 4: Validation
