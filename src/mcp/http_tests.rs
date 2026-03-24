@@ -5,8 +5,8 @@ mod tests {
     use crate::tools::ToolRegistry;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
-    use tower::ServiceExt;
     use futures::StreamExt;
+    use tower::ServiceExt;
 
     #[tokio::test]
     async fn test_sse_endpoint_establishes_session() {
@@ -16,22 +16,20 @@ mod tests {
         let app = server.router();
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/sse")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/sse").body(Body::empty()).unwrap())
             .await
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
-        assert_eq!(response.headers().get("content-type").unwrap(), "text/event-stream");
+        assert_eq!(
+            response.headers().get("content-type").unwrap(),
+            "text/event-stream"
+        );
 
         let mut body = response.into_body().into_data_stream();
         let first_event = body.next().await.unwrap().unwrap();
         let event_str = String::from_utf8(first_event.to_vec()).unwrap();
-        
+
         // MCP SSE spec says the first event should be 'endpoint' containing the URL for POSTing messages
         assert!(event_str.contains("event: endpoint"));
         assert!(event_str.contains("data: /message?session_id="));
@@ -45,20 +43,16 @@ mod tests {
         let app = server.router();
 
         // 1. Establish session
-        let response = app.clone()
-            .oneshot(
-                Request::builder()
-                    .uri("/sse")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+        let response = app
+            .clone()
+            .oneshot(Request::builder().uri("/sse").body(Body::empty()).unwrap())
             .await
             .unwrap();
-        
+
         let mut body = response.into_body().into_data_stream();
         let first_event = body.next().await.unwrap().unwrap();
         let event_str = String::from_utf8(first_event.to_vec()).unwrap();
-        
+
         // Extract session ID from endpoint data: "/message?session_id=UUID"
         let session_id = event_str.split("session_id=").collect::<Vec<_>>()[1].trim();
 
@@ -90,10 +84,12 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
-        
-        let body_bytes = axum::body::to_bytes(response.into_body(), 1024).await.unwrap();
+
+        let body_bytes = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
         let mcp_resp: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
-        
+
         assert_eq!(mcp_resp["id"], 1);
         assert_eq!(mcp_resp["result"]["serverInfo"]["name"], "syncthing-mcp-rs");
     }
@@ -106,16 +102,12 @@ mod tests {
         let app = server.router();
 
         // 1. Establish session
-        let response = app.clone()
-            .oneshot(
-                Request::builder()
-                    .uri("/sse")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+        let response = app
+            .clone()
+            .oneshot(Request::builder().uri("/sse").body(Body::empty()).unwrap())
             .await
             .unwrap();
-        
+
         let mut body = response.into_body().into_data_stream();
         let first_event = body.next().await.unwrap().unwrap();
         let event_str = String::from_utf8(first_event.to_vec()).unwrap();
@@ -142,10 +134,12 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
-        
-        let body_bytes = axum::body::to_bytes(response.into_body(), 1024).await.unwrap();
+
+        let body_bytes = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
         let mcp_resp: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
-        
+
         assert_eq!(mcp_resp["id"], "list-req");
         assert!(mcp_resp["result"]["tools"].is_array());
     }
@@ -159,12 +153,7 @@ mod tests {
         let app = server.router();
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/sse")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/sse").body(Body::empty()).unwrap())
             .await
             .unwrap();
 
@@ -202,17 +191,12 @@ mod tests {
 
         // 1. Establish SSE session
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/sse")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/sse").body(Body::empty()).unwrap())
             .await
             .unwrap();
-        
+
         let mut body = response.into_body().into_data_stream();
-        
+
         // First event is 'endpoint'
         let _endpoint_event = body.next().await.unwrap().unwrap();
 
@@ -222,17 +206,20 @@ mod tests {
             method: "test/notification".to_string(),
             params: Some(serde_json::json!({"foo": "bar"})),
         };
-        
+
         // In the real app, the run loop or event loop handles this.
         // We need to simulate the notification being sent to all sessions.
         let n_clone = notification.clone();
         let sessions = server.sessions.clone();
         tokio::spawn(async move {
             for session in sessions.iter() {
-                let _ = session.tx.send(crate::mcp::Message::Notification(n_clone.clone())).await;
+                let _ = session
+                    .tx
+                    .send(crate::mcp::Message::Notification(n_clone.clone()))
+                    .await;
             }
         });
-        
+
         // Also send it to the main rx for consistency
         server.notification_tx.send(notification).await.unwrap();
         let _received_by_main = rx.recv().await.unwrap();
@@ -240,7 +227,7 @@ mod tests {
         // 3. Receive it via SSE
         let second_event = body.next().await.unwrap().unwrap();
         let event_str = String::from_utf8(second_event.to_vec()).unwrap();
-        
+
         assert!(event_str.contains("event: message"));
         assert!(event_str.contains("test/notification"));
         assert!(event_str.contains("bar"));

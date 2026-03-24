@@ -8,6 +8,22 @@ vars:
   BINARY: target/release/syncthing-mcp-rs
 
 tasks:
+  encrypt:
+    desc: Encrypt files using SOPS
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doens't exist"
+    cmds:
+      - sops -e --input-type dotenv --output-type dotenv .env > .env.enc
+
+  decrypt:
+    desc: Decrypt files using SOPS
+    preconditions:
+      - sh: test -f .env.enc
+        msg: ".env.enc doesn't exist"
+    cmds:
+      - sops -d --input-type dotenv --output-type dotenv .env.enc > .env
+
   clippy:
     desc: Run cargo clippy
     cmds:
@@ -82,6 +98,14 @@ tasks:
     cmds:
       - RUN_DOCKER_TESTS=true cargo test --test docker_integration_test
 
+  test:live:
+    desc: Run tests against a live SyncThing instance (requires .env)
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doesn't exist"
+    cmds:
+      - RUN_LIVE_TESTS=true cargo test --test live -- --nocapture
+
   fmt:
     desc: Format code with rustfmt
     cmds:
@@ -119,17 +143,21 @@ tasks:
       - npx @modelcontextprotocol/inspector {{.BINARY}}
 
   coverage:
-    desc: Show coverage summary in console
+    desc: Run tests and show coverage summary
     cmds:
-      - cargo llvm-cov
+      - cargo llvm-cov --workspace --all-features --summary-only
 
   coverage:report:
-    desc: Generate detailed HTML and LCOV reports
+    desc: Generate coverage reports (lcov and html)
     cmds:
-      - cargo llvm-cov --html --lcov --output-path target/coverage
+      - cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+      - cargo llvm-cov --workspace --all-features --html
 
   coverage:upload:
-    desc: Upload coverage to Coveralls.io (requires COVERALLS_REPO_TOKEN)
+    desc: Upload coverage report to Coveralls
+    precondition:
+      - sh: test -f lcov.info
+        msg: "lcov.info doesn't exist"
     cmds:
-      - cargo llvm-cov --lcov --output-path lcov.info
-      - coveralls --lcov lcov.info
+      - coveralls report lcov.info  -n -r {{ .COVERALLS_REPO_TOKEN }}
+    silent: true

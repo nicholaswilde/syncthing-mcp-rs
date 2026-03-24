@@ -1,0 +1,12 @@
+// {}
+{
+  "mcpServers": {
+    "recipes": {
+        "command": "cargo",
+        "args": [
+          "run"
+        ],
+        "trust": true
+    }
+  }
+}

@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Sync Conflict Management
+## [~] Track: Sync Conflict Management
 *Link: [./tracks/conflict_management_20260322/](./tracks/conflict_management_20260322/)*
 
 ---

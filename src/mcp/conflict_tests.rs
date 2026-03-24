@@ -4,17 +4,17 @@ mod tests {
     use crate::mcp::server::McpServer;
     use crate::tools::create_registry;
     use serde_json::json;
-    use wiremock::matchers::{method, path};
-    use wiremock::{Mock, MockServer, ResponseTemplate};
     use std::fs;
     use tempfile::tempdir;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
     async fn test_tool_call_list_conflicts_success() {
         let mock_server = MockServer::start().await;
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         // Create a conflict file
         let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
         fs::write(&conflict_file, "conflict content").unwrap();
@@ -69,7 +69,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         Mock::given(method("GET"))
             .and(path("/rest/config/folders/default"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
@@ -117,7 +117,7 @@ mod tests {
     async fn test_tool_call_resolve_conflict_keep_original() {
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         let original_file = folder_path.join("notes.txt");
         let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
         fs::write(&original_file, "original content").unwrap();
@@ -150,17 +150,20 @@ mod tests {
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Resolved conflict by keeping original version"));
-        
+
         assert!(original_file.exists());
         assert!(!conflict_file.exists());
-        assert_eq!(fs::read_to_string(&original_file).unwrap(), "original content");
+        assert_eq!(
+            fs::read_to_string(&original_file).unwrap(),
+            "original content"
+        );
     }
 
     #[tokio::test]
     async fn test_tool_call_resolve_conflict_keep_conflict() {
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         let original_file = folder_path.join("notes.txt");
         let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
         fs::write(&original_file, "original content").unwrap();
@@ -193,17 +196,20 @@ mod tests {
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Resolved conflict by keeping conflict version"));
-        
+
         assert!(original_file.exists());
         assert!(!conflict_file.exists());
-        assert_eq!(fs::read_to_string(&original_file).unwrap(), "conflict content");
+        assert_eq!(
+            fs::read_to_string(&original_file).unwrap(),
+            "conflict content"
+        );
     }
 
     #[tokio::test]
     async fn test_tool_call_delete_conflict() {
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
         fs::write(&conflict_file, "conflict content").unwrap();
 
@@ -233,7 +239,7 @@ mod tests {
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Deleted conflict file:"));
-        
+
         assert!(!conflict_file.exists());
     }
 }

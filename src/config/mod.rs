@@ -187,7 +187,7 @@ where
 /// The result of a configuration load operation.
 pub enum ConfigResult {
     /// A successfully loaded configuration.
-    Config(AppConfig),
+    Config(Box<AppConfig>),
     /// The application should exit (e.g., after successful encryption).
     Exit,
 }
@@ -296,7 +296,7 @@ impl AppConfig {
 
         let mut config: AppConfig = builder.build()?.try_deserialize()?;
         config.validate().map_err(ConfigError::Message)?;
-        Ok(ConfigResult::Config(config))
+        Ok(ConfigResult::Config(Box::new(config)))
     }
 
     /// Validates the configuration and ensures at least one instance is configured.
@@ -444,6 +444,6 @@ fn parse_args(args: Vec<String>) -> ArgMatches {
 }
 
 #[cfg(test)]
-mod tests;
-#[cfg(test)]
 mod http_tests;
+#[cfg(test)]
+mod tests;

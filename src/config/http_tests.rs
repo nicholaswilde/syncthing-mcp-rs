@@ -21,7 +21,7 @@ port = 8080
         let path = file.path().to_str().unwrap().to_string();
 
         let config = match AppConfig::load(Some(path), vec![]).unwrap() {
-            ConfigResult::Config(c) => c,
+            ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
 
@@ -34,7 +34,7 @@ port = 8080
     fn test_http_server_config_defaults() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let config = match AppConfig::load(None, vec![]).unwrap() {
-            ConfigResult::Config(c) => c,
+            ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
 
@@ -55,7 +55,7 @@ port = 8080
             "9090".to_string(),
         ];
         let config = match AppConfig::load(None, args).unwrap() {
-            ConfigResult::Config(c) => c,
+            ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
 
@@ -78,12 +78,16 @@ mcp_events = ["FolderStateChanged", "DeviceConnected"]
         let path = file.path().to_str().unwrap().to_string();
 
         let config = match AppConfig::load(Some(path), vec![]).unwrap() {
-            ConfigResult::Config(c) => c,
+            ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
 
         assert_eq!(config.mcp_events.len(), 2);
-        assert!(config.mcp_events.contains(&"FolderStateChanged".to_string()));
+        assert!(
+            config
+                .mcp_events
+                .contains(&"FolderStateChanged".to_string())
+        );
         assert!(config.mcp_events.contains(&"DeviceConnected".to_string()));
     }
 
@@ -91,13 +95,21 @@ mcp_events = ["FolderStateChanged", "DeviceConnected"]
     fn test_mcp_events_defaults() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let config = match AppConfig::load(None, vec![]).unwrap() {
-            ConfigResult::Config(c) => c,
+            ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
 
-        assert!(config.mcp_events.contains(&"FolderStateChanged".to_string()));
+        assert!(
+            config
+                .mcp_events
+                .contains(&"FolderStateChanged".to_string())
+        );
         assert!(config.mcp_events.contains(&"DeviceConnected".to_string()));
-        assert!(config.mcp_events.contains(&"DeviceDisconnected".to_string()));
+        assert!(
+            config
+                .mcp_events
+                .contains(&"DeviceDisconnected".to_string())
+        );
         assert!(config.mcp_events.contains(&"LocalIndexUpdated".to_string()));
     }
 }

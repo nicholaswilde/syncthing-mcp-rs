@@ -182,7 +182,10 @@ impl Event {
                 addr,
                 conn_type,
             }) => {
-                format!("Device '{}' connected via {} at {}", device, conn_type, addr)
+                format!(
+                    "Device '{}' connected via {} at {}",
+                    device, conn_type, addr
+                )
             }
             Some(EventData::DeviceDisconnected { device, error }) => {
                 format!("Device '{}' disconnected: {}", device, error)

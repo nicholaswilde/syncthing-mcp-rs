@@ -32,9 +32,9 @@ pub async fn scan_conflicts(path: &Path) -> Result<Vec<ConflictInfo>> {
         return Ok(conflicts);
     }
 
-    let mut dir = tokio::fs::read_dir(path).await.map_err(|e| {
-        crate::error::Error::Internal(format!("Failed to read directory: {}", e))
-    })?;
+    let mut dir = tokio::fs::read_dir(path)
+        .await
+        .map_err(|e| crate::error::Error::Internal(format!("Failed to read directory: {}", e)))?;
 
     while let Some(entry) = dir.next_entry().await.map_err(|e| {
         crate::error::Error::Internal(format!("Failed to read directory entry: {}", e))
@@ -140,7 +140,9 @@ pub async fn resolve_conflict(
     })?;
     let filename = conflict_path
         .file_name()
-        .ok_or_else(|| crate::error::Error::Internal("Invalid conflict_path: no filename".to_string()))?
+        .ok_or_else(|| {
+            crate::error::Error::Internal("Invalid conflict_path: no filename".to_string())
+        })?
         .to_string_lossy();
 
     let info = parse_conflict_filename(&filename, parent).ok_or_else(|| {
@@ -149,9 +151,11 @@ pub async fn resolve_conflict(
 
     match action {
         "keep_original" => {
-            tokio::fs::remove_file(&info.conflict_path).await.map_err(|e| {
-                crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
-            })?;
+            tokio::fs::remove_file(&info.conflict_path)
+                .await
+                .map_err(|e| {
+                    crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+                })?;
             Ok(json!({
                 "content": [{
                     "type": "text",
@@ -198,7 +202,9 @@ pub async fn delete_conflict(
     })?;
     let filename = conflict_path
         .file_name()
-        .ok_or_else(|| crate::error::Error::Internal("Invalid conflict_path: no filename".to_string()))?
+        .ok_or_else(|| {
+            crate::error::Error::Internal("Invalid conflict_path: no filename".to_string())
+        })?
         .to_string_lossy();
 
     // Validate that it is indeed a conflict file
@@ -233,7 +239,10 @@ mod tests {
         assert_eq!(info.timestamp, "20230101-120000");
         assert_eq!(info.device_id, "ABCDEFG");
         assert_eq!(info.original_path, "/tmp/notes.txt");
-        assert_eq!(info.conflict_path, "/tmp/notes.sync-conflict-20230101-120000-ABCDEFG.txt");
+        assert_eq!(
+            info.conflict_path,
+            "/tmp/notes.sync-conflict-20230101-120000-ABCDEFG.txt"
+        );
     }
 
     #[test]

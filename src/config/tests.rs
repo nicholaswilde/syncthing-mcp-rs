@@ -10,7 +10,7 @@ fn test_load_defaults() {
     }
 
     let config = match AppConfig::load(None, vec![]).unwrap() {
-        ConfigResult::Config(c) => c,
+        ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
     assert_eq!(config.host, "localhost");
@@ -46,7 +46,7 @@ fn test_env_override() {
     }
 
     let config = match AppConfig::load(None, vec![]).unwrap() {
-        ConfigResult::Config(c) => c,
+        ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
 
@@ -72,7 +72,7 @@ fn test_file_override() {
     let path = file.path().to_str().unwrap().to_string();
 
     let config = match AppConfig::load(Some(path), vec![]).unwrap() {
-        ConfigResult::Config(c) => c,
+        ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
     assert_eq!(config.host, "file.com");
@@ -108,7 +108,7 @@ retry_max_attempts = 2
     let path = file.path().to_str().unwrap().to_string();
 
     let config = match AppConfig::load(Some(path), vec![]).unwrap() {
-        ConfigResult::Config(c) => c,
+        ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
     assert_eq!(config.instances.len(), 2);
@@ -141,7 +141,7 @@ api_key = "key2"
     let path = file.path().to_str().unwrap().to_string();
 
     let config = match AppConfig::load(Some(path), vec![]).unwrap() {
-        ConfigResult::Config(c) => c,
+        ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
     assert_eq!(config.instances.len(), 2);

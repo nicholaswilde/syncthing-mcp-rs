@@ -4,12 +4,12 @@ use crate::error::Error;
 use crate::mcp::{Message, Notification, Request, Response, ResponseError};
 use crate::tools::ToolRegistry;
 use axum::{
+    Json, Router,
     extract::{Query, State},
     http::{HeaderMap, Request as HttpRequest, StatusCode},
     middleware::{self, Next},
-    response::{sse::Event, Response as HttpResponse, Sse},
+    response::{Response as HttpResponse, Sse, sse::Event},
     routing::{get, post},
-    Json, Router,
 };
 use dashmap::DashMap;
 use futures::stream::Stream;
@@ -19,8 +19,8 @@ use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
 use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
 use tokio_stream::StreamExt;
+use tokio_stream::wrappers::ReceiverStream;
 use uuid::Uuid;
 
 /// Represents an active MCP session over SSE.
@@ -73,7 +73,10 @@ impl McpServer {
 
         if self.config.http_server.api_key.is_some() {
             tracing::info!("HTTP authentication enabled");
-            router.layer(middleware::from_fn_with_state(self.clone(), auth_middleware))
+            router.layer(middleware::from_fn_with_state(
+                self.clone(),
+                auth_middleware,
+            ))
         } else {
             router
         }
@@ -146,7 +149,7 @@ impl McpServer {
                         let out = serde_json::to_string(&Message::Notification(n.clone()))? + "\n";
                         writer.write_all(out.as_bytes()).await?;
                         writer.flush().await?;
-                        
+
                         // Also notify all active SSE sessions
                         let sessions = self.sessions.clone();
                         tokio::spawn(async move {
@@ -229,15 +232,13 @@ async fn sse_handler(
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let session_id = Uuid::new_v4().to_string();
     let (tx, rx) = mpsc::channel(100);
-    
+
     tracing::info!("New SSE session established: {}", session_id);
     server.sessions.insert(session_id.clone(), Session { tx });
-    
+
     let endpoint_url = format!("/message?session_id={}", session_id);
-    
-    let initial_event = Event::default()
-        .event("endpoint")
-        .data(endpoint_url);
+
+    let initial_event = Event::default().event("endpoint").data(endpoint_url);
 
     let stream = ReceiverStream::new(rx)
         .map(|msg| {
@@ -245,7 +246,7 @@ async fn sse_handler(
             Event::default().event("message").data(json)
         })
         .map(Ok);
-    
+
     // Chain the initial 'endpoint' event with the message stream
     let full_stream = tokio_stream::once(Ok(initial_event)).chain(stream);
 
@@ -260,7 +261,10 @@ async fn message_handler(
     tracing::debug!("Received HTTP message for session: {}", query.session_id);
     let _session = server.sessions.get(&query.session_id).ok_or_else(|| {
         tracing::warn!("Session not found: {}", query.session_id);
-        (axum::http::StatusCode::NOT_FOUND, "Session not found".to_string())
+        (
+            axum::http::StatusCode::NOT_FOUND,
+            "Session not found".to_string(),
+        )
     })?;
 
     match message {
@@ -269,7 +273,7 @@ async fn message_handler(
             let method = req.method.clone();
             tracing::info!("Handling HTTP request: {}", method);
             let response = server.handle_request(req).await;
-            
+
             let json_resp = match response {
                 Ok(result) => {
                     tracing::debug!("HTTP request successful: {}", method);
@@ -290,7 +294,7 @@ async fn message_handler(
                     }
                 }
             };
-            
+
             // In HTTP transport, responses are sent back in the HTTP response body
             Ok(Json(serde_json::to_value(json_resp).unwrap()))
         }

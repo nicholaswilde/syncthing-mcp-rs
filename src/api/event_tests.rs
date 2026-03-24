@@ -14,9 +14,15 @@ mod tests {
                 "to": "syncing"
             }
         }"#;
-        let event: Event = serde_json::from_str(json).expect("Should deserialize FolderStateChanged");
+        let event: Event =
+            serde_json::from_str(json).expect("Should deserialize FolderStateChanged");
         match &event.data {
-            Some(EventData::FolderStateChanged { folder, from, to, error }) => {
+            Some(EventData::FolderStateChanged {
+                folder,
+                from,
+                to,
+                error,
+            }) => {
                 assert_eq!(folder, "f1");
                 assert_eq!(from, "idle");
                 assert_eq!(to, "syncing");
@@ -24,7 +30,10 @@ mod tests {
             }
             _ => panic!("Expected FolderStateChanged data"),
         }
-        assert_eq!(event.summary(), "Folder 'f1' changed state from idle to syncing");
+        assert_eq!(
+            event.summary(),
+            "Folder 'f1' changed state from idle to syncing"
+        );
     }
 
     #[test]
@@ -41,14 +50,21 @@ mod tests {
         }"#;
         let event: Event = serde_json::from_str(json).expect("Should deserialize DeviceConnected");
         match &event.data {
-            Some(EventData::DeviceConnected { device, addr, conn_type }) => {
+            Some(EventData::DeviceConnected {
+                device,
+                addr,
+                conn_type,
+            }) => {
                 assert_eq!(device, "d1");
                 assert_eq!(addr, "1.2.3.4");
                 assert_eq!(conn_type, "tcp-client");
             }
             _ => panic!("Expected DeviceConnected data"),
         }
-        assert_eq!(event.summary(), "Device 'd1' connected via tcp-client at 1.2.3.4");
+        assert_eq!(
+            event.summary(),
+            "Device 'd1' connected via tcp-client at 1.2.3.4"
+        );
     }
 
     #[test]
@@ -62,7 +78,8 @@ mod tests {
                 "error": "connection reset"
             }
         }"#;
-        let event: Event = serde_json::from_str(json).expect("Should deserialize DeviceDisconnected");
+        let event: Event =
+            serde_json::from_str(json).expect("Should deserialize DeviceDisconnected");
         match &event.data {
             Some(EventData::DeviceDisconnected { device, error }) => {
                 assert_eq!(device, "d1");
@@ -70,7 +87,10 @@ mod tests {
             }
             _ => panic!("Expected DeviceDisconnected data"),
         }
-        assert_eq!(event.summary(), "Device 'd1' disconnected: connection reset");
+        assert_eq!(
+            event.summary(),
+            "Device 'd1' disconnected: connection reset"
+        );
     }
 
     #[test]
@@ -84,7 +104,8 @@ mod tests {
                 "filenames": ["a.txt", "b.txt"]
             }
         }"#;
-        let event: Event = serde_json::from_str(json).expect("Should deserialize LocalIndexUpdated");
+        let event: Event =
+            serde_json::from_str(json).expect("Should deserialize LocalIndexUpdated");
         match &event.data {
             Some(EventData::LocalIndexUpdated { folder, filenames }) => {
                 assert_eq!(folder, "f1");
@@ -92,7 +113,10 @@ mod tests {
             }
             _ => panic!("Expected LocalIndexUpdated data"),
         }
-        assert_eq!(event.summary(), "Local index updated for folder 'f1' (2 files)");
+        assert_eq!(
+            event.summary(),
+            "Local index updated for folder 'f1' (2 files)"
+        );
     }
 
     #[test]
@@ -123,7 +147,8 @@ mod tests {
             "time": "2023-01-01T00:00:00Z",
             "data": null
         }"#;
-        let event: Event = serde_json::from_str(json).expect("Should deserialize event with no data");
+        let event: Event =
+            serde_json::from_str(json).expect("Should deserialize event with no data");
         assert!(event.data.is_none());
         assert_eq!(event.summary(), "Event: ListenAddressesChanged");
     }
