@@ -21,7 +21,7 @@ Focus on endpoints that enhance the monitoring and troubleshooting capabilities 
   - Implement `get_pending_folders` and `remove_pending_folder` in `SyncThingClient`.
   - Add `manage_pending_folders` tool to `folders.rs`.
 
-## Phase 2: Configuration and Utility Endpoints
+## Phase 2: Configuration and Utility Endpoints [checkpoint: 031efcc]
 Focus on providing more granular management capabilities.
 
 ### Tasks
