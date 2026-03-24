@@ -65,6 +65,18 @@ pub async fn manage_folders(
                 }]
             }))
         }
+        "revert" => {
+            let folder_id = args["folder_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("folder_id is required for revert".to_string())
+            })?;
+            client.revert_folder(folder_id).await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Successfully triggered revert for folder: {}", folder_id)
+                }]
+            }))
+        }
         _ => Err(crate::error::Error::Internal(format!(
             "Unsupported action: {}",
             action

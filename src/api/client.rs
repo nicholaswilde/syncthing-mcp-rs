@@ -248,6 +248,17 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Reverts local changes in a Receive Only folder.
+    pub async fn revert_folder(&self, folder_id: &str) -> Result<()> {
+        tracing::debug!("Reverting folder: {}", folder_id);
+        let url = format!("{}/rest/db/revert", self.config.url);
+        let request = self
+            .add_auth(self.client.post(&url))
+            .query(&[("folder", folder_id)]);
+        self.send_with_retry(request).await?;
+        Ok(())
+    }
+
     /// Restarts SyncThing.
     pub async fn restart(&self) -> Result<()> {
         tracing::debug!("Triggering SyncThing restart");

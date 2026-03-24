@@ -191,12 +191,12 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["list", "pending", "reject_pending"],
-                    "description": "The folder management action to perform."
+                    "enum": ["list", "pending", "reject_pending", "revert"],
+                    "description": "The folder management action to perform. 'revert' undoes local changes in Receive Only folders."
                 },
                 "folder_id": {
                     "type": "string",
-                    "description": "The unique Folder ID (required for 'reject_pending')."
+                    "description": "The unique Folder ID (required for 'reject_pending' and 'revert')."
                 }
             }
         }),

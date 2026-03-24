@@ -1544,4 +1544,47 @@ mod tests {
         assert!(text.contains("- folder1 (folder1)"));
         assert!(text.contains("Offered by: DEVICE1 (label: Test Folder, time: 2023-10-27T10:00:00Z)"));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_folders_revert() {
+        use wiremock::matchers::{method, path, query_param};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/rest/db/revert"))
+            .and(query_param("folder", "default"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_folders",
+                "arguments": {
+                    "action": "revert",
+                    "folder_id": "default"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully triggered revert for folder: default"));
+    }
 }
