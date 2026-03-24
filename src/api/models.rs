@@ -297,3 +297,34 @@ pub struct SystemLog {
     /// The list of log entries.
     pub messages: Vec<LogEntry>,
 }
+
+/// Statistics for a device.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeviceStats {
+    /// The time the device was last seen.
+    #[serde(rename = "lastSeen")]
+    pub last_seen: String,
+    /// The duration of the last connection in seconds.
+    #[serde(rename = "lastConnectionDurationS")]
+    pub last_connection_duration_s: f64,
+}
+
+/// Statistics for a folder.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FolderStats {
+    /// The time of the last scan.
+    #[serde(rename = "lastScan")]
+    pub last_scan: String,
+    /// Information about the last file synced.
+    #[serde(rename = "lastFile")]
+    pub last_file: Option<LastFileStats>,
+}
+
+/// Information about the last file synced in a folder.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LastFileStats {
+    /// The name of the file.
+    pub filename: String,
+    /// The time the file was synced.
+    pub at: String,
+}

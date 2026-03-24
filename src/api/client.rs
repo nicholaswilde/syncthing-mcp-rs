@@ -357,4 +357,22 @@ impl SyncThingClient {
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<SystemLog>().await?)
     }
+
+    /// Returns device statistics.
+    pub async fn get_device_stats(&self) -> Result<HashMap<String, DeviceStats>> {
+        tracing::debug!("Fetching SyncThing device statistics");
+        let url = format!("{}/rest/stats/device", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<HashMap<String, DeviceStats>>().await?)
+    }
+
+    /// Returns folder statistics.
+    pub async fn get_folder_stats(&self) -> Result<HashMap<String, FolderStats>> {
+        tracing::debug!("Fetching SyncThing folder statistics");
+        let url = format!("{}/rest/stats/folder", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<HashMap<String, FolderStats>>().await?)
+    }
 }

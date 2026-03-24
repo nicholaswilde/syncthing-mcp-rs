@@ -1394,4 +1394,100 @@ mod tests {
         assert!(text.contains("SyncThing System Log:"));
         assert!(text.contains("[2023-10-27T10:00:00Z] test log message"));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_get_device_stats() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/stats/device"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "DEVICE-ID-1": {
+                    "lastSeen": "2023-10-27T15:33:10Z",
+                    "lastConnectionDurationS": 3600.5
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_device_stats",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("SyncThing Device Statistics:"));
+        assert!(text.contains("Device: DEVICE-ID-1"));
+        assert!(text.contains("Last Seen: 2023-10-27T15:33:10Z"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_get_folder_stats() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/stats/folder"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folder1": {
+                    "lastScan": "2023-10-27T14:20:01Z",
+                    "lastFile": {
+                        "filename": "test.txt",
+                        "at": "2023-10-27T14:19:55Z"
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_folder_stats",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("SyncThing Folder Statistics:"));
+        assert!(text.contains("Folder: folder1"));
+        assert!(text.contains("Last Scan: 2023-10-27T14:20:01Z"));
+        assert!(text.contains("Filename: test.txt"));
+    }
 }

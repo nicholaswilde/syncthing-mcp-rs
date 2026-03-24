@@ -178,3 +178,32 @@ pub async fn manage_ignores(
         ))),
     }
 }
+
+/// Retrieves statistics for all folders.
+pub async fn get_folder_stats(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let stats = client.get_folder_stats().await?;
+
+    let mut text = String::from("SyncThing Folder Statistics:\n\n");
+    for (folder_id, folder_stats) in stats {
+        text.push_str(&format!("Folder: {}\n", folder_id));
+        text.push_str(&format!("  Last Scan: {}\n", folder_stats.last_scan));
+        if let Some(last_file) = folder_stats.last_file {
+            text.push_str("  Last Synced File:\n");
+            text.push_str(&format!("    Filename: {}\n", last_file.filename));
+            text.push_str(&format!("    At: {}\n\n", last_file.at));
+        } else {
+            text.push_str("  Last Synced File: None\n\n");
+        }
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end()
+        }]
+    }))
+}

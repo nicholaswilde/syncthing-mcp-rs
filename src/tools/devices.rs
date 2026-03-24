@@ -128,3 +128,29 @@ pub async fn manage_devices(
         ))),
     }
 }
+
+/// Retrieves statistics for all devices.
+pub async fn get_device_stats(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let stats = client.get_device_stats().await?;
+
+    let mut text = String::from("SyncThing Device Statistics:\n\n");
+    for (device_id, device_stats) in stats {
+        text.push_str(&format!("Device: {}\n", device_id));
+        text.push_str(&format!("  Last Seen: {}\n", device_stats.last_seen));
+        text.push_str(&format!(
+            "  Last Connection Duration: {:.2}s\n\n",
+            device_stats.last_connection_duration_s
+        ));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end()
+        }]
+    }))
+}

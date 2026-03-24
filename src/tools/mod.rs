@@ -278,6 +278,26 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "get_device_stats",
+        "Get connection statistics for all devices.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        devices::get_device_stats,
+    );
+
+    registry.register(
+        "get_folder_stats",
+        "Get statistics for all folders.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        folders::get_folder_stats,
+    );
+
+    registry.register(
         "maintain_system",
         "Perform system maintenance: force a rescan of folders, restart the SyncThing service, or clear internal errors.",
         serde_json::json!({
