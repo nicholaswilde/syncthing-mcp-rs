@@ -112,4 +112,90 @@ mod tests {
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("No conflicts found in folder default."));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_resolve_conflict_keep_original() {
+        let temp_dir = tempdir().unwrap();
+        let folder_path = temp_dir.path();
+        
+        let original_file = folder_path.join("notes.txt");
+        let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
+        fs::write(&original_file, "original content").unwrap();
+        fs::write(&conflict_file, "conflict content").unwrap();
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "resolve_conflict",
+                "arguments": {
+                    "conflict_path": conflict_file.to_str().unwrap(),
+                    "action": "keep_original"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Resolved conflict by keeping original version"));
+        
+        assert!(original_file.exists());
+        assert!(!conflict_file.exists());
+        assert_eq!(fs::read_to_string(&original_file).unwrap(), "original content");
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_resolve_conflict_keep_conflict() {
+        let temp_dir = tempdir().unwrap();
+        let folder_path = temp_dir.path();
+        
+        let original_file = folder_path.join("notes.txt");
+        let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
+        fs::write(&original_file, "original content").unwrap();
+        fs::write(&conflict_file, "conflict content").unwrap();
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "resolve_conflict",
+                "arguments": {
+                    "conflict_path": conflict_file.to_str().unwrap(),
+                    "action": "keep_conflict"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Resolved conflict by keeping conflict version"));
+        
+        assert!(original_file.exists());
+        assert!(!conflict_file.exists());
+        assert_eq!(fs::read_to_string(&original_file).unwrap(), "conflict content");
+    }
 }

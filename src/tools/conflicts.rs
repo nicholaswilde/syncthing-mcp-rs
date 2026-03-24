@@ -121,6 +121,67 @@ pub async fn list_conflicts(
     }))
 }
 
+/// Resolves a SyncThing conflict file.
+pub async fn resolve_conflict(
+    _client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let conflict_path_str = args["conflict_path"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("conflict_path is required".to_string()))?;
+    let action = args["action"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("action is required".to_string()))?;
+
+    let conflict_path = Path::new(conflict_path_str);
+    let parent = conflict_path.parent().ok_or_else(|| {
+        crate::error::Error::Internal("Invalid conflict_path: no parent directory".to_string())
+    })?;
+    let filename = conflict_path
+        .file_name()
+        .ok_or_else(|| crate::error::Error::Internal("Invalid conflict_path: no filename".to_string()))?
+        .to_string_lossy();
+
+    let info = parse_conflict_filename(&filename, parent).ok_or_else(|| {
+        crate::error::Error::Internal(format!("Not a valid SyncThing conflict file: {}", filename))
+    })?;
+
+    match action {
+        "keep_original" => {
+            tokio::fs::remove_file(&info.conflict_path).await.map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+            })?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Resolved conflict by keeping original version (deleted {})", filename)
+                }]
+            }))
+        }
+        "keep_conflict" => {
+            tokio::fs::rename(&info.conflict_path, &info.original_path)
+                .await
+                .map_err(|e| {
+                    crate::error::Error::Internal(format!(
+                        "Failed to replace original file with conflict file: {}",
+                        e
+                    ))
+                })?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Resolved conflict by keeping conflict version (replaced original with {})", filename)
+                }]
+            }))
+        }
+        _ => Err(crate::error::Error::Internal(format!(
+            "Unsupported action: {}",
+            action
+        ))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -338,5 +338,26 @@ pub fn create_registry() -> ToolRegistry {
         conflicts::list_conflicts,
     );
 
+    registry.register(
+        "resolve_conflict",
+        "Resolve a SyncThing conflict file by keeping either the original or the conflict version.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "conflict_path": {
+                    "type": "string",
+                    "description": "The full path to the conflict file."
+                },
+                "action": {
+                    "type": "string",
+                    "enum": ["keep_original", "keep_conflict"],
+                    "description": "The resolution action: 'keep_original' (deletes conflict) or 'keep_conflict' (replaces original with conflict)."
+                }
+            },
+            "required": ["conflict_path", "action"]
+        }),
+        conflicts::resolve_conflict,
+    );
+
     registry
 }
