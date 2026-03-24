@@ -10,7 +10,7 @@
 - [x] Task: Implement a `delete_conflict` tool for simple cleanup of unwanted conflict files. (a739e6d)
 
 ## Phase 3: Safety & UI Enhancements
-- [ ] Task: Add "dry-run" mode to resolution tools to preview changes.
+- [x] Task: Add "dry-run" mode to resolution tools to preview changes. (50975f5)
 - [ ] Task: Implement backup logic (e.g., move to trash) before overwriting files.
 - [ ] Task: Provide more detailed file comparisons in `list_conflicts` output.
 
