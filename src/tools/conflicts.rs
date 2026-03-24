@@ -1,6 +1,9 @@
+use crate::api::SyncThingClient;
+use crate::config::AppConfig;
 use crate::error::Result;
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde_json::{Value, json};
 use std::path::Path;
 
 lazy_static! {
@@ -68,6 +71,54 @@ fn parse_conflict_filename(filename: &str, parent: &Path) -> Option<ConflictInfo
         timestamp: timestamp.to_string(),
         device_id: device_id.to_string(),
     })
+}
+
+/// Lists SyncThing conflict files.
+pub async fn list_conflicts(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let folder_id = args["folder_id"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("folder_id is required".to_string()))?;
+
+    let folder = client.get_folder(folder_id).await?;
+    let path = Path::new(&folder.path);
+
+    let conflicts = scan_conflicts(path).await?;
+
+    if conflicts.is_empty() {
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": format!("No conflicts found in folder {}.", folder_id)
+            }]
+        }));
+    }
+
+    let mut text = format!("Conflicts in folder {}:\n", folder_id);
+    for conflict in conflicts {
+        let conflict_file = Path::new(&conflict.conflict_path)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let original_file = Path::new(&conflict.original_path)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+        text.push_str(&format!(
+            "- {} (Original: {}, Device: {}, Time: {})\n",
+            conflict_file, original_file, conflict.device_id, conflict.timestamp
+        ));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }]
+    }))
 }
 
 #[cfg(test)]

@@ -322,5 +322,21 @@ pub fn create_registry() -> ToolRegistry {
         browser::browse_folder,
     );
 
+    registry.register(
+        "list_conflicts",
+        "List SyncThing conflict files in a specific folder.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder to scan for conflicts."
+                }
+            },
+            "required": ["folder_id"]
+        }),
+        conflicts::list_conflicts,
+    );
+
     registry
 }
