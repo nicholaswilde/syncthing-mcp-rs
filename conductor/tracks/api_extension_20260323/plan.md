@@ -25,7 +25,7 @@ Focus on endpoints that enhance the monitoring and troubleshooting capabilities 
 Focus on providing more granular management capabilities.
 
 ### Tasks
-- [ ] Implement `POST /rest/db/revert`
+- [x] Implement `POST /rest/db/revert` (53d2f33)
   - Implement `revert_folder` in `SyncThingClient`.
   - Add to `folders.rs`.
 - [ ] Implement `POST /rest/system/shutdown`
