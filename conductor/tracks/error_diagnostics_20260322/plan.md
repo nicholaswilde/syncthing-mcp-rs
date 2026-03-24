@@ -5,7 +5,7 @@
 - [x] Task: Create a structured error taxonomy (Network, Permission, Configuration, Resource). `6cf3ba7`
 - [x] Task: Implement the core mapping engine in `src/error.rs`. `70c747a`
 
-## Phase 2: Diagnostic Tool Development
+## Phase 2: Diagnostic Tool Development [checkpoint: fe69d43]
 - [x] Task: Develop the `analyze_error` MCP tool. `9594339`
 - [x] Task: Integrate the diagnostic engine into the standard `SyncThingError` type. `f98a605`
 - [x] Task: Support for multiple languages in diagnostic messages (optional, basic framework). `95adfd7`
