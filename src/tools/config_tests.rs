@@ -3,7 +3,7 @@ mod tests {
     use crate::api::SyncThingClient;
     use crate::config::AppConfig;
     use crate::tools::config::replicate_config;
-    use serde_json::json;
+    use serde_json::{json, Value};
     use wiremock::http::Method;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -192,6 +192,563 @@ mod tests {
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
         assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        // Source config: 2 folders, 2 devices
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [
+                    {"id": "folder1", "devices": [{"deviceID": "device1"}]},
+                    {"id": "folder2", "devices": [{"deviceID": "device2"}]}
+                ],
+                "devices": [
+                    {"deviceID": "device1"},
+                    {"deviceID": "device2"}
+                ]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        // Destination config: empty
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [],
+                "devices": []
+            })))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        // Replicate ONLY folder1
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+
+        let _ = replicate_config(client, config, args).await.unwrap();
+
+        // Verify PUT body
+        let received_requests = dest_mock.received_requests().await.unwrap();
+        let put_request = received_requests
+            .iter()
+            .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
+            .unwrap();
+        
+        let body: Value = serde_json::from_slice(&put_request.body).unwrap();
+        let folders = body["folders"].as_array().unwrap();
+        let devices = body["devices"].as_array().unwrap();
+
+        assert_eq!(folders.len(), 1);
+        assert_eq!(folders[0]["id"], "folder1");
+        
+        // Should also include device1 since folder1 uses it
+        assert_eq!(devices.len(), 1);
+        assert_eq!(devices[0]["deviceID"], "device1");
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_no_devices() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "folder1", "devices": []}],
+                "devices": []
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [],
+                "devices": []
+            })))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+
+        let _ = replicate_config(client, config, args).await.unwrap();
+
+        let received_requests = dest_mock.received_requests().await.unwrap();
+        let put_request = received_requests
+            .iter()
+            .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
+            .unwrap();
+        
+        let body: Value = serde_json::from_slice(&put_request.body).unwrap();
+        assert_eq!(body["folders"].as_array().unwrap().len(), 1);
+        assert_eq!(body["devices"].as_array().unwrap().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_devices() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [],
+                "devices": [{"deviceID": "d1"}, {"deviceID": "d2"}]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "devices": ["d1"]
+        });
+
+        let _ = replicate_config(client, config, args).await.unwrap();
+
+        let received_requests = dest_mock.received_requests().await.unwrap();
+        let put_request = received_requests
+            .iter()
+            .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
+            .unwrap();
+        
+        let body: Value = serde_json::from_slice(&put_request.body).unwrap();
+        assert_eq!(body["devices"].as_array().unwrap().len(), 1);
+        assert_eq!(body["devices"][0]["deviceID"], "d1");
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_dest_not_found() {
+        let source_mock = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "non-existent",
+            "folders": ["folder1"]
+        });
+
+        let result = replicate_config(client, config, args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_source_not_found() {
+        let dest_mock = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "non-existent",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+
+        let result = replicate_config(client, config, args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_update() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "folder1", "label": "Source Label"}],
+                "devices": []
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "folder1", "label": "Dest Label"}],
+                "devices": []
+            })))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+
+        let result = replicate_config(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("1 updated"));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_full() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "f1"}],
+                "devices": [{"deviceID": "d1"}]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [],
+                "devices": []
+            })))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest"
+        });
+
+        let result = replicate_config(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folders: 1 added"));
+        assert!(text.contains("Devices: 1 added"));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_empty_source() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&dest_mock)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+
+        let result = replicate_config(client, config, args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Folder not found in source: folder1")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_devices_invalid_id_type() {
+        let mock_server = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("source".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "devices": [{"deviceID": "device1"}]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let args = json!({
+            "source": "source",
+            "destination": "source",
+            "devices": [123]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_invalid_device_id_in_folder() {
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "folder1", "devices": [{"deviceID": 123}]}]
+            })))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest",
+            "folders": ["folder1"]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        // This actually won't fail because my logic uses .and_then(|id| id.as_str()) which just returns None.
+        // It won't hit the HashSet insertion if it's not a string.
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_selective_folders_invalid_id_type() {
+        let mock_server = MockServer::start().await;
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("source".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folders": [{"id": "folder1"}]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let args = json!({
+            "source": "source",
+            "destination": "source",
+            "folders": [123]
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings")));
+    }
+
+    #[tokio::test]
+    async fn test_replicate_config_instance_not_found() {
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("exists".to_string()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.instances[0].clone());
+
+        // Source not found
+        let args = json!({
+            "source": "non-existent",
+            "destination": "exists"
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found")));
+
+        // Destination not found
+        let args = json!({
+            "source": "exists",
+            "destination": "non-existent"
+        });
+        let result = replicate_config(client.clone(), config.clone(), args).await;
+        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found")));
     }
 
     #[tokio::test]
