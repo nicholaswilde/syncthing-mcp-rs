@@ -255,3 +255,29 @@ pub struct PendingDevice {
     /// The address of the device.
     pub address: String,
 }
+
+/// Connection status for a device.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConnectionStatus {
+    /// The time the status was recorded.
+    pub at: Option<String>,
+    /// Total bytes received.
+    #[serde(rename = "inBytesTotal", default)]
+    pub in_bytes_total: u64,
+    /// Total bytes sent.
+    #[serde(rename = "outBytesTotal", default)]
+    pub out_bytes_total: u64,
+    /// The remote address.
+    pub address: Option<String>,
+    /// The client version of the remote device.
+    #[serde(rename = "clientVersion")]
+    pub client_version: Option<String>,
+    /// Whether the device is currently connected.
+    pub connected: bool,
+    /// The type of connection.
+    #[serde(rename = "type")]
+    pub connection_type: Option<String>,
+    /// Whether the connection is paused.
+    #[serde(rename = "isPaused", default)]
+    pub is_paused: bool,
+}

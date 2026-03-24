@@ -128,3 +128,37 @@ pub async fn maintain_system(
         ))),
     }
 }
+
+/// Retrieves the current connection status for all devices.
+pub async fn get_system_connections(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let connections = client.get_connections().await?;
+
+    let mut text = String::from("SyncThing Connection Status:\n\n");
+    for (device_id, conn) in connections {
+        text.push_str(&format!("Device: {}\n", device_id));
+        text.push_str(&format!("  Connected: {}\n", conn.connected));
+        if let Some(addr) = &conn.address {
+            text.push_str(&format!("  Address: {}\n", addr));
+        }
+        if let Some(version) = &conn.client_version {
+            text.push_str(&format!("  Version: {}\n", version));
+        }
+        if let Some(conn_type) = &conn.connection_type {
+            text.push_str(&format!("  Type: {}\n", conn_type));
+        }
+        text.push_str(&format!("  In Bytes: {}\n", conn.in_bytes_total));
+        text.push_str(&format!("  Out Bytes: {}\n", conn.out_bytes_total));
+        text.push_str(&format!("  Paused: {}\n\n", conn.is_paused));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end()
+        }]
+    }))
+}

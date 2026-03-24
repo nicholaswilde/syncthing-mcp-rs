@@ -143,6 +143,16 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "get_system_connections",
+        "Get the current connection status for all connected devices.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::get_system_connections,
+    );
+
+    registry.register(
         "get_sync_status",
         "Get detailed synchronization status, state, and completion percentage for a specific folder or device.",
         serde_json::json!({

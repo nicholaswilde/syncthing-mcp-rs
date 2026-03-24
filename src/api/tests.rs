@@ -733,4 +733,43 @@ mod tests {
 
         assert!(result.is_ok());
     }
+
+    #[tokio::test]
+    async fn test_get_connections() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/connections"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "DEVICE-ID-1": {
+                    "at": "2023-10-24T12:34:56Z",
+                    "inBytesTotal": 1000,
+                    "outBytesTotal": 2000,
+                    "address": "1.2.3.4:22000",
+                    "clientVersion": "v1.27.0",
+                    "connected": true,
+                    "type": "tcp-client",
+                    "isPaused": false
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let connections = client.get_connections().await.unwrap();
+
+        assert_eq!(connections.len(), 1);
+        let conn = &connections["DEVICE-ID-1"];
+        assert!(conn.connected);
+        assert_eq!(conn.in_bytes_total, 1000);
+        assert_eq!(conn.client_version, Some("v1.27.0".to_string()));
+    }
 }

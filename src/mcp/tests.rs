@@ -1294,4 +1294,57 @@ mod tests {
         assert!(text.contains("Folders: 1 added, 0 removed, 0 updated."));
         assert!(text.contains("Devices: 1 added, 0 removed, 0 updated."));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_get_system_connections() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/connections"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "DEVICE-ID-1": {
+                    "at": "2023-10-24T12:34:56Z",
+                    "inBytesTotal": 1000,
+                    "outBytesTotal": 2000,
+                    "address": "1.2.3.4:22000",
+                    "clientVersion": "v1.27.0",
+                    "connected": true,
+                    "type": "tcp-client",
+                    "isPaused": false
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_connections",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("SyncThing Connection Status:"));
+        assert!(text.contains("Device: DEVICE-ID-1"));
+        assert!(text.contains("Connected: true"));
+        assert!(text.contains("In Bytes: 1000"));
+    }
 }
