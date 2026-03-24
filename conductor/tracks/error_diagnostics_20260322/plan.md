@@ -6,7 +6,7 @@
 - [x] Task: Implement the core mapping engine in `src/error.rs`. `70c747a`
 
 ## Phase 2: Diagnostic Tool Development
-- [ ] Task: Develop the `analyze_error` MCP tool.
+- [x] Task: Develop the `analyze_error` MCP tool. `9594339`
 - [ ] Task: Integrate the diagnostic engine into the standard `SyncThingError` type.
 - [ ] Task: Support for multiple languages in diagnostic messages (optional, basic framework).
 
