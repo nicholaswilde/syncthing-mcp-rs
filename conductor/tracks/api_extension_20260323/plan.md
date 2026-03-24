@@ -36,6 +36,6 @@ Focus on providing more granular management capabilities.
   - Add to `devices.rs`.
 
 ## Phase 3: Review and Refactor
-- [ ] Review all tool descriptions for clarity and consistency.
-- [ ] Ensure all tools have comprehensive unit tests.
-- [ ] Validate implementation against real Syncthing instances (if possible).
+- [x] Review all tool descriptions for clarity and consistency.
+- [x] Ensure all tools have comprehensive unit tests.
+- [x] Validate implementation against real Syncthing instances (if possible).

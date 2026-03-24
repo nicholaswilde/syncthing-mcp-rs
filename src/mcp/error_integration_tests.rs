@@ -35,7 +35,7 @@ mod tests {
             id: RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {}
             })),
         };
@@ -72,7 +72,7 @@ mod tests {
             id: RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {}
             })),
         };

@@ -133,8 +133,8 @@ pub fn create_registry() -> ToolRegistry {
     let mut registry = ToolRegistry::new();
 
     registry.register(
-        "get_system_stats",
-        "Get SyncThing system statistics, including version, uptime, memory usage, and the unique device ID.",
+        "get_system_status",
+        "Get comprehensive system status information, including version, uptime, memory usage, and the local device ID.",
         serde_json::json!({
             "type": "object",
             "properties": {}
@@ -144,7 +144,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "get_system_connections",
-        "Get the current connection status for all connected devices.",
+        "Get the current connection status and data transfer statistics for all connected devices.",
         serde_json::json!({
             "type": "object",
             "properties": {}
@@ -154,7 +154,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "get_system_log",
-        "Get recent SyncThing system log entries.",
+        "Get recent log entries from the SyncThing service for troubleshooting.",
         serde_json::json!({
             "type": "object",
             "properties": {}
@@ -164,7 +164,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "get_sync_status",
-        "Get detailed synchronization status, state, and completion percentage for a specific folder or device.",
+        "Get detailed synchronization status, including state, completion percentage, and download/upload rates for a specific folder or device.",
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -185,7 +185,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_folders",
-        "List all configured SyncThing folders, showing their IDs, labels, paths, and paused status.",
+        "Manage SyncThing folders: list configured folders, view pending folder requests, reject pending requests, or revert local changes in Receive Only folders.",
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -198,14 +198,15 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "string",
                     "description": "The unique Folder ID (required for 'reject_pending' and 'revert')."
                 }
-            }
+            },
+            "required": ["action"]
         }),
         folders::manage_folders,
     );
 
     registry.register(
         "configure_sharing",
-        "Share or unshare a specific folder with a remote device.",
+        "Configure folder sharing between devices (share or unshare).",
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -230,7 +231,7 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "manage_ignores",
-        "Manage SyncThing ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.",
+        "Manage folder ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.",
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -251,21 +252,21 @@ pub fn create_registry() -> ToolRegistry {
                     "description": "The list of ignore patterns (required for 'set' and 'append')."
                 }
             },
-            "required": ["folder_id"]
+            "required": ["folder_id", "action"]
         }),
         folders::manage_ignores,
     );
 
     registry.register(
         "manage_devices",
-        "Manage SyncThing devices, including listing, adding, removing, pausing, resuming, approving, and validating device IDs.",
+        "Manage SyncThing devices: list, add, remove, pause, resume, approve pending devices, or validate device IDs.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
                     "enum": ["list", "add", "remove", "pause", "resume", "discover", "approve", "validate"],
-                    "description": "The device management action to perform."
+                    "description": "The device management action to perform. 'discover' lists pending device requests."
                 },
                 "device_id": {
                     "type": "string",
@@ -282,8 +283,8 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
-        "get_device_stats",
-        "Get connection statistics for all devices.",
+        "get_device_statistics",
+        "Get detailed connection statistics for all devices, including last seen time and last connection duration.",
         serde_json::json!({
             "type": "object",
             "properties": {}
@@ -292,8 +293,8 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
-        "get_folder_stats",
-        "Get statistics for all folders.",
+        "get_folder_statistics",
+        "Get detailed statistics for all folders, including last scan time and information about the last synced file.",
         serde_json::json!({
             "type": "object",
             "properties": {}

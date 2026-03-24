@@ -34,13 +34,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
-    println!("\n--- Testing get_device_stats ---");
-    let tool = registry.get_tool("get_device_stats").unwrap();
+    println!("\n--- Testing get_device_statistics ---");
+    let tool = registry.get_tool("get_device_statistics").unwrap();
     let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
-    println!("\n--- Testing get_folder_stats ---");
-    let tool = registry.get_tool("get_folder_stats").unwrap();
+    println!("\n--- Testing get_folder_statistics ---");
+    let tool = registry.get_tool("get_folder_statistics").unwrap();
     let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 

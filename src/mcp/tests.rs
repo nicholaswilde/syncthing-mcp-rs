@@ -38,12 +38,12 @@ mod tests {
 
         let resp = server.handle_request(req).await.unwrap();
         let tools = resp["tools"].as_array().unwrap();
-        assert!(tools.iter().any(|t| t["name"] == "get_system_stats"));
+        assert!(tools.iter().any(|t| t["name"] == "get_system_status"));
         assert!(tools.iter().any(|t| t["name"] == "manage_folders"));
     }
 
     #[tokio::test]
-    async fn test_tool_call_get_system_stats() {
+    async fn test_tool_call_get_system_status() {
         use wiremock::matchers::{method, path};
         use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -93,7 +93,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {}
             })),
         };
@@ -1016,7 +1016,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {
                     "instance": "inst2"
                 }
@@ -1033,7 +1033,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(2),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {
                     "instance": "0"
                 }
@@ -1064,7 +1064,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_system_stats",
+                "name": "get_system_status",
                 "arguments": {
                     "instance": "non-existent"
                 }
@@ -1527,7 +1527,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_device_stats",
+                "name": "get_device_statistics",
                 "arguments": {}
             })),
         };
@@ -1576,7 +1576,7 @@ mod tests {
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
             params: Some(json!({
-                "name": "get_folder_stats",
+                "name": "get_folder_statistics",
                 "arguments": {}
             })),
         };

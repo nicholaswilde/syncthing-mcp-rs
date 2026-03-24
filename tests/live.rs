@@ -99,7 +99,7 @@ async fn test_live_get_system_stats() -> Result<()> {
     }
 
     let ctx = LiveTestContext::new().await?;
-    let result = ctx.call_tool("get_system_stats", json!({})).await?;
+    let result = ctx.call_tool("get_system_status", json!({})).await?;
     println!(
         "Live System Stats:\n{}",
         result["content"][0]["text"].as_str().unwrap()

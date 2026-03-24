@@ -51,7 +51,7 @@ impl SyncThingClient {
                 let response = rb.send().await.map_err(Error::from)?;
 
                 if response.status().is_server_error() {
-                    return Err(Error::Api(response.error_for_status().unwrap_err()));
+                    return Err(Error::from(response.error_for_status().unwrap_err()));
                 }
 
                 Ok(response)

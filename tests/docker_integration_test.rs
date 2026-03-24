@@ -20,13 +20,13 @@ async fn test_container_starts() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_get_system_stats_tool() -> Result<()> {
+async fn test_get_system_status_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
     }
 
     let ctx = TestContext::new().await?;
-    let result = ctx.call_tool("get_system_stats", json!({})).await?;
+    let result = ctx.call_tool("get_system_status", json!({})).await?;
 
     let text = result["content"][0]["text"].as_str().unwrap();
     assert!(text.contains("SyncThing Version"));
