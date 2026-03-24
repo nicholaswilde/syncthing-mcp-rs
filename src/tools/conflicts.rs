@@ -23,6 +23,14 @@ pub struct ConflictInfo {
     pub timestamp: String,
     /// The device ID from the conflict filename.
     pub device_id: String,
+    /// Size of the conflict file in bytes.
+    pub conflict_size: u64,
+    /// Size of the original file in bytes (if it exists).
+    pub original_size: Option<u64>,
+    /// Modification time of the conflict file.
+    pub conflict_modified: String,
+    /// Modification time of the original file (if it exists).
+    pub original_modified: Option<String>,
 }
 
 /// Scans a directory for SyncThing conflict files.
@@ -41,12 +49,34 @@ pub async fn scan_conflicts(path: &Path) -> Result<Vec<ConflictInfo>> {
     })? {
         let file_name = entry.file_name();
         let file_name_str = file_name.to_string_lossy();
-        if let Some(info) = parse_conflict_filename(&file_name_str, path) {
+        if let Some(mut info) = parse_conflict_filename(&file_name_str, path) {
+            // Fetch metadata
+            if let Ok(metadata) = entry.metadata().await {
+                info.conflict_size = metadata.len();
+                info.conflict_modified = format_system_time(metadata.modified().ok());
+            }
+
+            let original_path = Path::new(&info.original_path);
+            if original_path.exists() {
+                if let Ok(metadata) = tokio::fs::metadata(original_path).await {
+                    info.original_size = Some(metadata.len());
+                    info.original_modified = Some(format_system_time(metadata.modified().ok()));
+                }
+            }
+
             conflicts.push(info);
         }
     }
 
     Ok(conflicts)
+}
+
+fn format_system_time(time: Option<std::time::SystemTime>) -> String {
+    time.map(|t| {
+        let datetime: chrono::DateTime<chrono::Utc> = t.into();
+        datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+    })
+    .unwrap_or_else(|| "Unknown".to_string())
 }
 
 fn parse_conflict_filename(filename: &str, parent: &Path) -> Option<ConflictInfo> {
@@ -70,6 +100,10 @@ fn parse_conflict_filename(filename: &str, parent: &Path) -> Option<ConflictInfo
         original_path: original_path.to_string_lossy().to_string(),
         timestamp: timestamp.to_string(),
         device_id: device_id.to_string(),
+        conflict_size: 0,
+        original_size: None,
+        conflict_modified: "Unknown".to_string(),
+        original_modified: None,
     })
 }
 
@@ -107,9 +141,30 @@ pub async fn list_conflicts(
             .file_name()
             .unwrap_or_default()
             .to_string_lossy();
+
         text.push_str(&format!(
-            "- {} (Original: {}, Device: {}, Time: {})\n",
-            conflict_file, original_file, conflict.device_id, conflict.timestamp
+            "- {}\n",
+            conflict_file
+        ));
+        text.push_str(&format!(
+            "  - Conflict: Size: {} bytes, Modified: {}\n",
+            conflict.conflict_size, conflict.conflict_modified
+        ));
+        
+        if let Some(size) = conflict.original_size {
+            text.push_str(&format!(
+                "  - Original: {} (Size: {} bytes, Modified: {})\n",
+                original_file, size, conflict.original_modified.unwrap_or_else(|| "Unknown".to_string())
+            ));
+        } else {
+            text.push_str(&format!(
+                "  - Original: {} (NOT FOUND)\n",
+                original_file
+            ));
+        }
+        text.push_str(&format!(
+            "  - Details: Device: {}, Conflict Time: {}\n",
+            conflict.device_id, conflict.timestamp
         ));
     }
 

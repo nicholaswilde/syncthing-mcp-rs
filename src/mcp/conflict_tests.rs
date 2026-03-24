@@ -62,6 +62,8 @@ mod tests {
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Conflicts in folder default:"));
         assert!(text.contains("notes.sync-conflict-20230101-120000-ABCDEFG.txt"));
+        assert!(text.contains("Size:"));
+        assert!(text.contains("Modified:"));
     }
 
     #[tokio::test]
