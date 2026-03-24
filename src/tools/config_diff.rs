@@ -26,26 +26,68 @@ impl ConfigDiff {
         let empty_vec = Vec::new();
 
         // Extract folder IDs
-        let source_folders = source.get("folders").and_then(|f| f.as_array()).unwrap_or(&empty_vec);
-        let dest_folders = dest.get("folders").and_then(|f| f.as_array()).unwrap_or(&empty_vec);
+        let source_folders = source
+            .get("folders")
+            .and_then(|f| f.as_array())
+            .unwrap_or(&empty_vec);
+        let dest_folders = dest
+            .get("folders")
+            .and_then(|f| f.as_array())
+            .unwrap_or(&empty_vec);
 
-        let source_folder_ids: HashSet<_> = source_folders.iter().filter_map(|f| f.get("id").and_then(|id| id.as_str())).collect();
-        let dest_folder_ids: HashSet<_> = dest_folders.iter().filter_map(|f| f.get("id").and_then(|id| id.as_str())).collect();
+        let source_folder_ids: HashSet<_> = source_folders
+            .iter()
+            .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
+            .collect();
+        let dest_folder_ids: HashSet<_> = dest_folders
+            .iter()
+            .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
+            .collect();
 
         // Extract device IDs
-        let source_devices = source.get("devices").and_then(|d| d.as_array()).unwrap_or(&empty_vec);
-        let dest_devices = dest.get("devices").and_then(|d| d.as_array()).unwrap_or(&empty_vec);
+        let source_devices = source
+            .get("devices")
+            .and_then(|d| d.as_array())
+            .unwrap_or(&empty_vec);
+        let dest_devices = dest
+            .get("devices")
+            .and_then(|d| d.as_array())
+            .unwrap_or(&empty_vec);
 
-        let source_device_ids: HashSet<_> = source_devices.iter().filter_map(|d| d.get("deviceID").and_then(|id| id.as_str())).collect();
-        let dest_device_ids: HashSet<_> = dest_devices.iter().filter_map(|d| d.get("deviceID").and_then(|id| id.as_str())).collect();
+        let source_device_ids: HashSet<_> = source_devices
+            .iter()
+            .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
+            .collect();
+        let dest_device_ids: HashSet<_> = dest_devices
+            .iter()
+            .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
+            .collect();
 
         Self {
-            folders_added: source_folder_ids.difference(&dest_folder_ids).map(|s| s.to_string()).collect(),
-            folders_removed: dest_folder_ids.difference(&source_folder_ids).map(|s| s.to_string()).collect(),
-            folders_updated: source_folder_ids.intersection(&dest_folder_ids).map(|s| s.to_string()).collect(),
-            devices_added: source_device_ids.difference(&dest_device_ids).map(|s| s.to_string()).collect(),
-            devices_removed: dest_device_ids.difference(&source_device_ids).map(|s| s.to_string()).collect(),
-            devices_updated: source_device_ids.intersection(&dest_device_ids).map(|s| s.to_string()).collect(),
+            folders_added: source_folder_ids
+                .difference(&dest_folder_ids)
+                .map(|s| s.to_string())
+                .collect(),
+            folders_removed: dest_folder_ids
+                .difference(&source_folder_ids)
+                .map(|s| s.to_string())
+                .collect(),
+            folders_updated: source_folder_ids
+                .intersection(&dest_folder_ids)
+                .map(|s| s.to_string())
+                .collect(),
+            devices_added: source_device_ids
+                .difference(&dest_device_ids)
+                .map(|s| s.to_string())
+                .collect(),
+            devices_removed: dest_device_ids
+                .difference(&source_device_ids)
+                .map(|s| s.to_string())
+                .collect(),
+            devices_updated: source_device_ids
+                .intersection(&dest_device_ids)
+                .map(|s| s.to_string())
+                .collect(),
         }
     }
 

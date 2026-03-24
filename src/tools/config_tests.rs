@@ -3,7 +3,7 @@ mod tests {
     use crate::api::SyncThingClient;
     use crate::config::AppConfig;
     use crate::tools::config::replicate_config;
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
     use wiremock::http::Method;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -77,7 +77,11 @@ mod tests {
             .into_iter()
             .filter(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
             .collect();
-        assert_eq!(put_requests.len(), 0, "PUT /rest/config should not have been called in dry-run mode");
+        assert_eq!(
+            put_requests.len(),
+            0,
+            "PUT /rest/config should not have been called in dry-run mode"
+        );
     }
 
     #[tokio::test]
@@ -99,7 +103,10 @@ mod tests {
             "folders": "not-an-array"
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(_))));
+        assert!(matches!(
+            result,
+            Err(crate::error::Error::ValidationError(_))
+        ));
 
         // 2. devices not an array
         let args = json!({
@@ -107,7 +114,10 @@ mod tests {
             "devices": 123
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(_))));
+        assert!(matches!(
+            result,
+            Err(crate::error::Error::ValidationError(_))
+        ));
     }
 
     #[tokio::test]
@@ -182,7 +192,9 @@ mod tests {
             "folders": [123]
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings"))
+        );
 
         // Device ID not string
         let args = json!({
@@ -191,7 +203,9 @@ mod tests {
             "devices": [true]
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings"))
+        );
     }
 
     #[tokio::test]
@@ -263,14 +277,14 @@ mod tests {
             .iter()
             .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
             .unwrap();
-        
+
         let body: Value = serde_json::from_slice(&put_request.body).unwrap();
         let folders = body["folders"].as_array().unwrap();
         let devices = body["devices"].as_array().unwrap();
 
         assert_eq!(folders.len(), 1);
         assert_eq!(folders[0]["id"], "folder1");
-        
+
         // Should also include device1 since folder1 uses it
         assert_eq!(devices.len(), 1);
         assert_eq!(devices[0]["deviceID"], "device1");
@@ -335,7 +349,7 @@ mod tests {
             .iter()
             .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
             .unwrap();
-        
+
         let body: Value = serde_json::from_slice(&put_request.body).unwrap();
         assert_eq!(body["folders"].as_array().unwrap().len(), 1);
         assert_eq!(body["devices"].as_array().unwrap().len(), 0);
@@ -397,7 +411,7 @@ mod tests {
             .iter()
             .find(|r| r.method == Method::PUT && r.url.path() == "/rest/config")
             .unwrap();
-        
+
         let body: Value = serde_json::from_slice(&put_request.body).unwrap();
         assert_eq!(body["devices"].as_array().unwrap().len(), 1);
         assert_eq!(body["devices"][0]["deviceID"], "d1");
@@ -407,13 +421,11 @@ mod tests {
     async fn test_replicate_config_selective_folders_dest_not_found() {
         let source_mock = MockServer::start().await;
         let config = AppConfig {
-            instances: vec![
-                crate::config::InstanceConfig {
-                    name: Some("source".to_string()),
-                    url: source_mock.uri(),
-                    ..Default::default()
-                },
-            ],
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("source".to_string()),
+                url: source_mock.uri(),
+                ..Default::default()
+            }],
             ..Default::default()
         };
         let client = SyncThingClient::new(config.instances[0].clone());
@@ -425,20 +437,20 @@ mod tests {
         });
 
         let result = replicate_config(client, config, args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found"))
+        );
     }
 
     #[tokio::test]
     async fn test_replicate_config_selective_folders_source_not_found() {
         let dest_mock = MockServer::start().await;
         let config = AppConfig {
-            instances: vec![
-                crate::config::InstanceConfig {
-                    name: Some("dest".to_string()),
-                    url: dest_mock.uri(),
-                    ..Default::default()
-                },
-            ],
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("dest".to_string()),
+                url: dest_mock.uri(),
+                ..Default::default()
+            }],
             ..Default::default()
         };
         let client = SyncThingClient::new(config.instances[0].clone());
@@ -450,7 +462,9 @@ mod tests {
         });
 
         let result = replicate_config(client, config, args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found"))
+        );
     }
 
     #[tokio::test]
@@ -608,7 +622,9 @@ mod tests {
         });
 
         let result = replicate_config(client, config, args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Folder not found in source: folder1")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Folder not found in source: folder1"))
+        );
     }
 
     #[tokio::test]
@@ -638,7 +654,9 @@ mod tests {
             "devices": [123]
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings"))
+        );
     }
 
     #[tokio::test]
@@ -720,7 +738,9 @@ mod tests {
             "folders": [123]
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("folder IDs must be strings"))
+        );
     }
 
     #[tokio::test]
@@ -740,7 +760,9 @@ mod tests {
             "destination": "exists"
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Source instance not found"))
+        );
 
         // Destination not found
         let args = json!({
@@ -748,7 +770,9 @@ mod tests {
             "destination": "non-existent"
         });
         let result = replicate_config(client.clone(), config.clone(), args).await;
-        assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found")));
+        assert!(
+            matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("Destination instance not found"))
+        );
     }
 
     #[tokio::test]

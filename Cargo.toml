@@ -37,6 +37,10 @@ async-recursion = "1.1.1"
 name = "run_new_tools"
 path = "scripts/run_new_tools.rs"
 
+[[example]]
+name = "run_live_new_tools"
+path = "scripts/run_live_new_tools.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"

@@ -75,6 +75,14 @@ tasks:
     cmds:
       - cargo run
 
+  run:new-tools:
+    desc: Run new tools against a live SyncThing instance (requires .env)
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doesn't exist"
+    cmds:
+      - cargo run --example run_live_new_tools
+
   check:
     desc: Check code for errors without generating binary
     cmds:
