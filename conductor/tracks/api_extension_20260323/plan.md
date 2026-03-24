@@ -12,7 +12,7 @@ Focus on endpoints that enhance the monitoring and troubleshooting capabilities 
   - Define `LogEntry` model.
   - Implement `get_system_log` in `SyncThingClient`.
   - Add `get_system_log` tool to `system.rs`.
-- [ ] Implement `GET /rest/stats/device` and `GET /rest/stats/folder`
+- [x] Implement `GET /rest/stats/device` and `GET /rest/stats/folder` (94c1300)
   - Define relevant models.
   - Implement client methods.
   - Add tools to `devices.rs` and `folders.rs`.
