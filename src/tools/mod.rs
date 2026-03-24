@@ -352,6 +352,11 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "string",
                     "enum": ["keep_original", "keep_conflict"],
                     "description": "The resolution action: 'keep_original' (deletes conflict) or 'keep_conflict' (replaces original with conflict)."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, preview the action without performing any file operations.",
+                    "default": false
                 }
             },
             "required": ["conflict_path", "action"]
@@ -368,6 +373,11 @@ pub fn create_registry() -> ToolRegistry {
                 "conflict_path": {
                     "type": "string",
                     "description": "The full path to the conflict file."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, preview the deletion without performing any file operations.",
+                    "default": false
                 }
             },
             "required": ["conflict_path"]

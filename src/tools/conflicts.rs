@@ -149,8 +149,18 @@ pub async fn resolve_conflict(
         crate::error::Error::Internal(format!("Not a valid SyncThing conflict file: {}", filename))
     })?;
 
+    let dry_run = args["dry_run"].as_bool().unwrap_or(false);
+
     match action {
         "keep_original" => {
+            if dry_run {
+                return Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("[DRY RUN] Would resolve conflict by keeping original version (delete {})", filename)
+                    }]
+                }));
+            }
             tokio::fs::remove_file(&info.conflict_path)
                 .await
                 .map_err(|e| {
@@ -164,6 +174,14 @@ pub async fn resolve_conflict(
             }))
         }
         "keep_conflict" => {
+            if dry_run {
+                return Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("[DRY RUN] Would resolve conflict by keeping conflict version (replace original with {})", filename)
+                    }]
+                }));
+            }
             tokio::fs::rename(&info.conflict_path, &info.original_path)
                 .await
                 .map_err(|e| {
@@ -213,6 +231,16 @@ pub async fn delete_conflict(
             "Not a valid SyncThing conflict file: {}",
             filename
         )));
+    }
+
+    let dry_run = args["dry_run"].as_bool().unwrap_or(false);
+    if dry_run {
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": format!("[DRY RUN] Would delete conflict file: {}", filename)
+            }]
+        }));
     }
 
     tokio::fs::remove_file(conflict_path).await.map_err(|e| {

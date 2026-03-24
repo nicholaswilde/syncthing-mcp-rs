@@ -242,4 +242,88 @@ mod tests {
 
         assert!(!conflict_file.exists());
     }
+
+    #[tokio::test]
+    async fn test_tool_call_resolve_conflict_dry_run() {
+        let temp_dir = tempdir().unwrap();
+        let folder_path = temp_dir.path();
+        
+        let original_file = folder_path.join("notes.txt");
+        let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
+        fs::write(&original_file, "original content").unwrap();
+        fs::write(&conflict_file, "conflict content").unwrap();
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "resolve_conflict",
+                "arguments": {
+                    "conflict_path": conflict_file.to_str().unwrap(),
+                    "action": "keep_conflict",
+                    "dry_run": true
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("[DRY RUN] Would resolve conflict by keeping conflict version"));
+        
+        // Files should still exist as they were
+        assert!(original_file.exists());
+        assert!(conflict_file.exists());
+        assert_eq!(fs::read_to_string(&original_file).unwrap(), "original content");
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_delete_conflict_dry_run() {
+        let temp_dir = tempdir().unwrap();
+        let folder_path = temp_dir.path();
+        
+        let conflict_file = folder_path.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
+        fs::write(&conflict_file, "conflict content").unwrap();
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: "http://localhost".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "delete_conflict",
+                "arguments": {
+                    "conflict_path": conflict_file.to_str().unwrap(),
+                    "dry_run": true
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("[DRY RUN] Would delete conflict file:"));
+        
+        assert!(conflict_file.exists());
+    }
 }
