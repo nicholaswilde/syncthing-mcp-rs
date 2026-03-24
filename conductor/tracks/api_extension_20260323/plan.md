@@ -31,7 +31,7 @@ Focus on providing more granular management capabilities.
 - [x] Implement `POST /rest/system/shutdown` (0f6c144)
   - Implement `shutdown` in `SyncThingClient`.
   - Add to `system.rs`.
-- [ ] Implement `GET /rest/svc/deviceid`
+- [x] Implement `GET /rest/svc/deviceid` (8418cb4)
   - Implement `validate_device_id` in `SyncThingClient`.
   - Add to `devices.rs`.
 
