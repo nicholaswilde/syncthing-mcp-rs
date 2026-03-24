@@ -1,6 +1,6 @@
 # Implementation Plan - API Extension and Review
 
-## Phase 1: High-Priority Endpoints
+## Phase 1: High-Priority Endpoints [checkpoint: 39f1903]
 Focus on endpoints that enhance the monitoring and troubleshooting capabilities of the MCP server.
 
 ### Tasks
