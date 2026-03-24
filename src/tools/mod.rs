@@ -153,6 +153,16 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "get_system_log",
+        "Get recent SyncThing system log entries.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::get_system_log,
+    );
+
+    registry.register(
         "get_sync_status",
         "Get detailed synchronization status, state, and completion percentage for a specific folder or device.",
         serde_json::json!({

@@ -281,3 +281,19 @@ pub struct ConnectionStatus {
     #[serde(rename = "isPaused", default)]
     pub is_paused: bool,
 }
+
+/// A single log entry from Syncthing.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LogEntry {
+    /// The timestamp of the log entry.
+    pub when: String,
+    /// The log message.
+    pub message: String,
+}
+
+/// Response from /rest/system/log.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SystemLog {
+    /// The list of log entries.
+    pub messages: Vec<LogEntry>,
+}

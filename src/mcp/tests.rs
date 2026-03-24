@@ -1347,4 +1347,51 @@ mod tests {
         assert!(text.contains("Connected: true"));
         assert!(text.contains("In Bytes: 1000"));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_get_system_log() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/log"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "messages": [
+                    {
+                        "when": "2023-10-27T10:00:00Z",
+                        "message": "test log message"
+                    }
+                ]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_log",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("SyncThing System Log:"));
+        assert!(text.contains("[2023-10-27T10:00:00Z] test log message"));
+    }
 }

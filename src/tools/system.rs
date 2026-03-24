@@ -162,3 +162,24 @@ pub async fn get_system_connections(
         }]
     }))
 }
+
+/// Retrieves the recent system log entries from SyncThing.
+pub async fn get_system_log(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let log = client.get_system_log().await?;
+
+    let mut text = String::from("SyncThing System Log:\n\n");
+    for entry in log.messages {
+        text.push_str(&format!("[{}] {}\n", entry.when, entry.message));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end()
+        }]
+    }))
+}

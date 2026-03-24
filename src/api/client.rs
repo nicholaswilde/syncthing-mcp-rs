@@ -348,4 +348,13 @@ impl SyncThingClient {
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<HashMap<String, ConnectionStatus>>().await?)
     }
+
+    /// Returns the system log.
+    pub async fn get_system_log(&self) -> Result<SystemLog> {
+        tracing::debug!("Fetching SyncThing system log");
+        let url = format!("{}/rest/system/log", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<SystemLog>().await?)
+    }
 }
