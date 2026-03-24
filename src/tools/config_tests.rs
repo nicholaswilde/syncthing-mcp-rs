@@ -810,4 +810,21 @@ mod tests {
         assert!(summary.contains("- Folder: folder3"));
         assert!(summary.contains("~ Folder: folder1"));
     }
+
+    #[tokio::test]
+    async fn test_config_diff_summary_warnings() {
+        use crate::tools::config_diff::ConfigDiff;
+
+        let diff = ConfigDiff {
+            folders_added: vec!["f1".to_string()],
+            folders_removed: vec!["f2".to_string()],
+            folders_updated: vec![],
+            devices_added: vec![],
+            devices_removed: vec!["d1".to_string()],
+            devices_updated: vec![],
+        };
+
+        let summary = diff.summary();
+        assert!(summary.contains("⚠️ WARNING: This action will REMOVE 1 folder(s) and 1 device(s) from the destination instance."));
+    }
 }

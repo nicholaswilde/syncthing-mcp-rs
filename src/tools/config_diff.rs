@@ -53,6 +53,15 @@ impl ConfigDiff {
     pub fn summary(&self) -> String {
         let mut lines = Vec::new();
 
+        if !self.folders_removed.is_empty() || !self.devices_removed.is_empty() {
+            lines.push(format!(
+                "⚠️ WARNING: This action will REMOVE {} folder(s) and {} device(s) from the destination instance.",
+                self.folders_removed.len(),
+                self.devices_removed.len()
+            ));
+            lines.push("".to_string());
+        }
+
         if !self.folders_added.is_empty()
             || !self.folders_removed.is_empty()
             || !self.folders_updated.is_empty()

@@ -108,7 +108,7 @@ pub async fn replicate_config(
     }
 
     // Filter folders if requested
-    let mut source_folders = if let Some(filter) = folder_filter {
+    let source_folders = if let Some(filter) = folder_filter {
         let folder_ids: HashSet<_> = filter.iter().filter_map(|id| id.as_str()).collect();
         source_folders_all
             .iter()
