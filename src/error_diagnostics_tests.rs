@@ -74,4 +74,17 @@ mod tests {
         let diagnostic = err.diagnose_with_language(Language::French);
         assert!(diagnostic.advice.contains("espace disque"));
     }
+
+    #[test]
+    fn test_diagnose_contextual_not_found() {
+        let err = Error::NotFound("not found".to_string());
+        let contextual_err = Error::Context(Box::new(err), "manage_folders".to_string());
+        let diagnostic = contextual_err.diagnose();
+        assert!(diagnostic.advice.contains("Confirm the folder ID exists"));
+
+        let err = Error::NotFound("not found".to_string());
+        let contextual_err = Error::Context(Box::new(err), "manage_devices".to_string());
+        let diagnostic = contextual_err.diagnose();
+        assert!(diagnostic.advice.contains("Confirm the device ID exists"));
+    }
 }

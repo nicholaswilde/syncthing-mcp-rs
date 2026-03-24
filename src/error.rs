@@ -46,6 +46,10 @@ pub enum Error {
     /// A validation error occurred.
     #[error("Validation error: {0}")]
     ValidationError(String),
+
+    /// An error with additional context (e.g., the tool name).
+    #[error("{0} (context: {1})")]
+    Context(Box<Error>, String),
 }
 
 impl From<reqwest::Error> for Error {
@@ -111,13 +115,25 @@ impl Error {
 
     /// Diagnoses the error and returns a structured diagnostic in the specified language.
     pub fn diagnose_with_language(&self, lang: Language) -> Diagnostic {
-        match lang {
-            Language::English => self.diagnose_en(),
-            Language::French => self.diagnose_fr(),
+        self.diagnose_internal(lang, None)
+    }
+
+    /// Diagnoses the error with additional context.
+    pub fn diagnose_with_context(&self, lang: Language, context: Option<&str>) -> Diagnostic {
+        self.diagnose_internal(lang, context)
+    }
+
+    fn diagnose_internal(&self, lang: Language, context: Option<&str>) -> Diagnostic {
+        match self {
+            Error::Context(err, ctx) => err.diagnose_internal(lang, Some(ctx)),
+            _ => match lang {
+                Language::English => self.diagnose_en(context),
+                Language::French => self.diagnose_fr(context),
+            },
         }
     }
 
-    fn diagnose_en(&self) -> Diagnostic {
+    fn diagnose_en(&self, context: Option<&str>) -> Diagnostic {
         match self {
             Error::Unauthorized(_) => Diagnostic {
                 category: "Permission".to_string(),
@@ -137,12 +153,18 @@ impl Error {
                     advice,
                 }
             }
-            Error::NotFound(_) => Diagnostic {
-                category: "Configuration".to_string(),
-                explanation: "The requested resource or endpoint was not found.".to_string(),
-                advice: "Verify the ID and endpoint. List folders/devices to see valid IDs."
-                    .to_string(),
-            },
+            Error::NotFound(_) => {
+                let advice = match context {
+                    Some("manage_folders") => "Confirm the folder ID exists by listing folders.",
+                    Some("manage_devices") => "Confirm the device ID exists by listing devices.",
+                    _ => "Verify the ID and endpoint. List folders/devices to see valid IDs.",
+                };
+                Diagnostic {
+                    category: "Configuration".to_string(),
+                    explanation: "The requested resource or endpoint was not found.".to_string(),
+                    advice: advice.to_string(),
+                }
+            }
             Error::Network(msg) => {
                 let advice = if msg.contains("refused") {
                     "SyncThing instance is not running or is listening on a different port."
@@ -197,7 +219,7 @@ impl Error {
         }
     }
 
-    fn diagnose_fr(&self) -> Diagnostic {
+    fn diagnose_fr(&self, context: Option<&str>) -> Diagnostic {
         match self {
             Error::Unauthorized(_) => Diagnostic {
                 category: "Permission".to_string(),
@@ -216,11 +238,18 @@ impl Error {
                     advice,
                 }
             }
-            Error::NotFound(_) => Diagnostic {
-                category: "Configuration".to_string(),
-                explanation: "La ressource ou le point de terminaison demandé n'a pas été trouvé.".to_string(),
-                advice: "Vérifiez l'ID et le point de terminaison. Listez les dossiers/périphériques pour voir les IDs valides.".to_string(),
-            },
+            Error::NotFound(_) => {
+                let advice = match context {
+                    Some("manage_folders") => "Confirmez que l'ID du dossier existe en listant les dossiers.",
+                    Some("manage_devices") => "Confirmez que l'ID du périphérique existe en listant les périphériques.",
+                    _ => "Vérifiez l'ID et le point de terminaison. Listez les dossiers/périphériques pour voir les IDs valides.",
+                };
+                Diagnostic {
+                    category: "Configuration".to_string(),
+                    explanation: "La ressource ou le point de terminaison demandé n'a pas été trouvé.".to_string(),
+                    advice: advice.to_string(),
+                }
+            }
             Error::Network(msg) => {
                 let advice = if msg.contains("refused") {
                     "L'instance SyncThing ne fonctionne pas ou écoute sur un port différent.".to_string()

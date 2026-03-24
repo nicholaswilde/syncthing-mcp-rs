@@ -2,7 +2,7 @@
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
-use crate::error::{Error, Result};
+use crate::error::{Error, Language, Result};
 use serde_json::{Value, json};
 
 /// Retrieves system stats and version information from SyncThing.
@@ -300,31 +300,39 @@ pub async fn analyze_error(
         .and_then(|v| v.as_str())
         .ok_or_else(|| Error::ValidationError("Missing error_message argument".to_string()))?;
 
+    let tool_name = args.get("tool_name").and_then(|v| v.as_str());
+
     // Try to map simple error strings to Error variants for diagnosis.
-    let diagnostic = if error_message.to_lowercase().contains("401")
+    let error = if error_message.to_lowercase().contains("401")
         || error_message.to_lowercase().contains("unauthorized")
     {
-        Error::Unauthorized(error_message.to_string()).diagnose()
+        Error::Unauthorized(error_message.to_string())
     } else if error_message.to_lowercase().contains("403")
         || error_message.to_lowercase().contains("forbidden")
     {
-        Error::Forbidden(error_message.to_string()).diagnose()
+        Error::Forbidden(error_message.to_string())
     } else if error_message.to_lowercase().contains("404")
         || error_message.to_lowercase().contains("not found")
     {
         if error_message.to_lowercase().contains("folder")
             || error_message.to_lowercase().contains("device")
         {
-            Error::SyncThing(error_message.to_string()).diagnose()
+            Error::SyncThing(error_message.to_string())
         } else {
-            Error::NotFound(error_message.to_string()).diagnose()
+            Error::NotFound(error_message.to_string())
         }
     } else if error_message.to_lowercase().contains("refused")
         || error_message.to_lowercase().contains("timeout")
     {
-        Error::Network(error_message.to_string()).diagnose()
+        Error::Network(error_message.to_string())
     } else {
-        Error::SyncThing(error_message.to_string()).diagnose()
+        Error::SyncThing(error_message.to_string())
+    };
+
+    let diagnostic = if let Some(ctx) = tool_name {
+        error.diagnose_with_context(Language::English, Some(ctx))
+    } else {
+        error.diagnose()
     };
 
     let text = format!(

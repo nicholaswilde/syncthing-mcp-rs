@@ -32,4 +32,19 @@ mod tests {
         assert!(text.contains("Configuration"));
         assert!(text.contains("folder ID is incorrect"));
     }
+
+    #[tokio::test]
+    async fn test_analyze_error_tool_contextual() {
+        let config = AppConfig::default();
+        let client = SyncThingClient::new(crate::config::InstanceConfig::default());
+        let args = json!({
+            "error_message": "404 Not Found",
+            "tool_name": "manage_folders"
+        });
+
+        let result = analyze_error(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Configuration"));
+        assert!(text.contains("Confirm the folder ID exists"));
+    }
 }

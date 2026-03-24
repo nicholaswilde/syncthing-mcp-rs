@@ -169,6 +169,10 @@ pub fn create_registry() -> ToolRegistry {
                 "error_message": {
                     "type": "string",
                     "description": "The technical error message to analyze."
+                },
+                "tool_name": {
+                    "type": "string",
+                    "description": "The name of the tool that failed (optional)."
                 }
             },
             "required": ["error_message"]
