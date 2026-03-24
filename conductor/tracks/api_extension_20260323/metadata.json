@@ -1,0 +1,7 @@
+{
+  "id": "api_extension_20260323",
+  "title": "API Extension and Review",
+  "description": "Review the Syncthing REST API and identify endpoints that can be included in this MCP server.",
+  "status": "in_progress",
+  "date": "2026-03-23"
+}

@@ -17,3 +17,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [ ] Track: Enhanced Error Handling & Diagnostics
 *Link: [./tracks/error_diagnostics_20260322/](./tracks/error_diagnostics_20260322/)*
 
+---
+
+## [~] Track: API Extension and Review
+*Link: [./tracks/api_extension_20260323/](./tracks/api_extension_20260323/)*
+

@@ -57,12 +57,12 @@ impl SyncThingContainer {
         };
         let client = SyncThingClient::new(config);
         let mut ready = false;
-        for _ in 0..30 {
+        for _ in 0..60 {
             if client.get_system_status().await.is_ok() {
                 ready = true;
                 break;
             }
-            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
         }
         if !ready {
             return Err(anyhow::anyhow!("SyncThing web server timed out"));

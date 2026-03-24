@@ -42,7 +42,7 @@ impl SyncThingClient {
             .map(jitter)
             .take(max_attempts);
 
-        Retry::spawn(retry_strategy, || {
+        let response = Retry::spawn(retry_strategy, || {
             let rb = request_builder.try_clone().ok_or_else(|| {
                 Error::Internal("Failed to clone request builder for retry".to_string())
             });
@@ -54,10 +54,12 @@ impl SyncThingClient {
                     return Err(Error::Api(response.error_for_status().unwrap_err()));
                 }
 
-                response.error_for_status().map_err(Error::from)
+                Ok(response)
             }
         })
-        .await
+        .await?;
+
+        response.error_for_status().map_err(Error::from)
     }
 
     /// Returns the system status.
