@@ -9,12 +9,12 @@
 - [x] Task: Develop the `resolve_conflict` tool with basic "keep original" or "keep conflict" actions. (eae6a5c)
 - [x] Task: Implement a `delete_conflict` tool for simple cleanup of unwanted conflict files. (a739e6d)
 
-## Phase 3: Safety & UI Enhancements
+## Phase 3: Safety & UI Enhancements [checkpoint: 98bc6f3]
 - [x] Task: Add "dry-run" mode to resolution tools to preview changes. (50975f5)
 - [x] Task: Implement backup logic (e.g., move to trash) before overwriting files. (6532f01)
 - [x] Task: Provide more detailed file comparisons in `list_conflicts` output. (37458c2)
 
-## Phase 4: Validation
+## Phase 4: Validation [checkpoint: 98bc6f3]
 - [x] Task: Unit tests for conflict filename regex and parsing. (069b082)
 - [x] Task: Integration tests with temporary test files and directories. (71a365c)
 - [x] Task: Verify tool behavior when files are locked or inaccessible. (3cf62c4)
