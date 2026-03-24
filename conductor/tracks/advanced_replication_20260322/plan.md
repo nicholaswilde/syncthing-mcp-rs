@@ -9,7 +9,7 @@
 ## Phase 2: Tool Enhancements
 - [x] Task: Update the `replicate_config` MCP tool with new optional parameters. 4bd2534
 - [x] Task: Implement the folder-level replication logic. 5c0a74c
-- [~] Task: Implement the device-level replication logic.
+- [x] Task: Implement the device-level replication logic. 5c0a74c
 
 ## Phase 3: Reporting & Safety
 - [ ] Task: Format the "dry-run" output to be clear and readable.
