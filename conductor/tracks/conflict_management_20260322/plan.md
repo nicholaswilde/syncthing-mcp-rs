@@ -12,7 +12,7 @@
 ## Phase 3: Safety & UI Enhancements
 - [x] Task: Add "dry-run" mode to resolution tools to preview changes. (50975f5)
 - [x] Task: Implement backup logic (e.g., move to trash) before overwriting files. (6532f01)
-- [ ] Task: Provide more detailed file comparisons in `list_conflicts` output.
+- [x] Task: Provide more detailed file comparisons in `list_conflicts` output. (37458c2)
 
 ## Phase 4: Validation
 - [ ] Task: Unit tests for conflict filename regex and parsing.
