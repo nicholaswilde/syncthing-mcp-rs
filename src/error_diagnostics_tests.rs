@@ -95,4 +95,44 @@ mod tests {
         assert_eq!(diagnostic.category, "Resource");
         assert!(diagnostic.advice.contains("Windows MAX_PATH"));
     }
+
+    #[test]
+    fn test_diagnose_network_timeout() {
+        let err = Error::Network("deadline exceeded".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Network");
+        assert!(diagnostic.advice.contains("heavy load"));
+    }
+
+    #[test]
+    fn test_diagnose_syncthing_device_not_found() {
+        let err = Error::SyncThing("device \"XYZ\" not found".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Configuration");
+        assert!(diagnostic.advice.contains("device ID is incorrect"));
+    }
+
+    #[test]
+    fn test_diagnose_syncthing_disk_space() {
+        let err = Error::SyncThing("no space left on device".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Resource");
+        assert!(diagnostic.advice.contains("Check disk space"));
+    }
+
+    #[test]
+    fn test_diagnose_generic_syncthing_error() {
+        let err = Error::SyncThing("a generic error".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Internal");
+        assert!(diagnostic.advice.contains("Inspect the SyncThing logs"));
+    }
+
+    #[test]
+    fn test_diagnose_internal_error() {
+        let err = Error::Internal("internal error".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Internal");
+        assert!(diagnostic.advice.contains("Inspect the logs"));
+    }
 }
