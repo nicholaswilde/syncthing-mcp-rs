@@ -23,6 +23,7 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 ## Key Features (MVP)
 - **Folder Management**: List configured folders with status; share/unshare folders with devices.
 - **File Browsing**: Browse files and subdirectories within synced folders with prefix and depth control.
+- **Real-time Notifications**: Background polling of SyncThing events with real-time push notifications to MCP clients (Folder changes, Device connections, etc.).
 - **Device Management**: Manage devices (list, add, remove, pause, resume) and approve pending requests.
 - **System Monitoring**: Access detailed system statistics, version information, and device IDs.
 - **Sync Status**: Query detailed synchronization status and completion for folders and devices.

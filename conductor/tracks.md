@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Event Notifications
-*Link: [./tracks/event_notifications_20260322/](./tracks/event_notifications_20260322/)*
-
----
-
 ## [ ] Track: Sync Conflict Management
 *Link: [./tracks/conflict_management_20260322/](./tracks/conflict_management_20260322/)*
 
