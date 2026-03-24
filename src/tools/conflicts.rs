@@ -41,7 +41,11 @@ pub async fn scan_conflicts(path: &Path) -> Result<Vec<ConflictInfo>> {
 }
 
 #[async_recursion::async_recursion]
-async fn scan_recursive(root: &Path, current: &Path, conflicts: &mut Vec<ConflictInfo>) -> Result<()> {
+async fn scan_recursive(
+    root: &Path,
+    current: &Path,
+    conflicts: &mut Vec<ConflictInfo>,
+) -> Result<()> {
     if !current.is_dir() {
         return Ok(());
     }
@@ -156,25 +160,23 @@ pub async fn list_conflicts(
             .unwrap_or_default()
             .to_string_lossy();
 
-        text.push_str(&format!(
-            "- {}\n",
-            conflict_file
-        ));
+        text.push_str(&format!("- {}\n", conflict_file));
         text.push_str(&format!(
             "  - Conflict: Size: {} bytes, Modified: {}\n",
             conflict.conflict_size, conflict.conflict_modified
         ));
-        
+
         if let Some(size) = conflict.original_size {
             text.push_str(&format!(
                 "  - Original: {} (Size: {} bytes, Modified: {})\n",
-                original_file, size, conflict.original_modified.unwrap_or_else(|| "Unknown".to_string())
+                original_file,
+                size,
+                conflict
+                    .original_modified
+                    .unwrap_or_else(|| "Unknown".to_string())
             ));
         } else {
-            text.push_str(&format!(
-                "  - Original: {} (NOT FOUND)\n",
-                original_file
-            ));
+            text.push_str(&format!("  - Original: {} (NOT FOUND)\n", original_file));
         }
         text.push_str(&format!(
             "  - Details: Device: {}, Conflict Time: {}\n",
@@ -233,7 +235,10 @@ pub async fn resolve_conflict(
             }
             if backup {
                 trash::delete(&info.conflict_path).map_err(|e| {
-                    crate::error::Error::Internal(format!("Failed to move conflict file to trash: {}", e))
+                    crate::error::Error::Internal(format!(
+                        "Failed to move conflict file to trash: {}",
+                        e
+                    ))
                 })?;
                 Ok(json!({
                     "content": [{
@@ -245,7 +250,10 @@ pub async fn resolve_conflict(
                 tokio::fs::remove_file(&info.conflict_path)
                     .await
                     .map_err(|e| {
-                        crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+                        crate::error::Error::Internal(format!(
+                            "Failed to delete conflict file: {}",
+                            e
+                        ))
                     })?;
                 Ok(json!({
                     "content": [{
@@ -268,7 +276,10 @@ pub async fn resolve_conflict(
                 // If original file doesn't exist, we don't need to trash it
                 if Path::new(&info.original_path).exists() {
                     trash::delete(&info.original_path).map_err(|e| {
-                        crate::error::Error::Internal(format!("Failed to move original file to trash: {}", e))
+                        crate::error::Error::Internal(format!(
+                            "Failed to move original file to trash: {}",
+                            e
+                        ))
                     })?;
                 }
             }
@@ -346,9 +357,9 @@ pub async fn delete_conflict(
             }]
         }))
     } else {
-        tokio::fs::remove_file(conflict_path)
-            .await
-            .map_err(|e| crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e)))?;
+        tokio::fs::remove_file(conflict_path).await.map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+        })?;
         Ok(json!({
             "content": [{
                 "type": "text",

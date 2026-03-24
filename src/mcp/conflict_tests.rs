@@ -385,10 +385,10 @@ mod tests {
         let mock_server = MockServer::start().await;
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         let sub_dir = folder_path.join("subdir");
         fs::create_dir(&sub_dir).unwrap();
-        
+
         let conflict_file = sub_dir.join("notes.sync-conflict-20230101-120000-ABCDEFG.txt");
         fs::write(&conflict_file, "conflict content").unwrap();
 
@@ -440,14 +440,14 @@ mod tests {
         let mock_server = MockServer::start().await;
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
-        
+
         let sub_dir = folder_path.join("inaccessible");
         fs::create_dir(&sub_dir).unwrap();
-        
+
         // Make it inaccessible
         let mut perms = fs::metadata(&sub_dir).unwrap().permissions();
         perms.set_readonly(true); // This doesn't necessarily make it unreadable on Linux, but let's try
-        
+
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -494,7 +494,7 @@ mod tests {
         };
 
         let resp = server.handle_request(req).await;
-        
+
         // Cleanup permissions so temp_dir can be deleted
         #[cfg(unix)]
         {
@@ -505,6 +505,10 @@ mod tests {
         }
 
         assert!(resp.is_err());
-        assert!(resp.unwrap_err().to_string().contains("Failed to read directory"));
+        assert!(
+            resp.unwrap_err()
+                .to_string()
+                .contains("Failed to read directory")
+        );
     }
 }
