@@ -69,6 +69,7 @@ pub struct ResponseError {
 impl From<crate::error::Error> for ResponseError {
     fn from(err: crate::error::Error) -> Self {
         use crate::error::Error;
+        let diagnostic = err.diagnose();
         let (code, message) = match err {
             Error::Unauthorized(m) => (-32001, format!("Unauthorized: {}", m)),
             Error::Forbidden(m) => (-32002, format!("Forbidden: {}", m)),
@@ -82,7 +83,7 @@ impl From<crate::error::Error> for ResponseError {
         ResponseError {
             code,
             message,
-            data: None,
+            data: Some(serde_json::to_value(diagnostic).unwrap_or_default()),
         }
     }
 }

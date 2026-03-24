@@ -29,5 +29,7 @@ mod tests {
         let err = Error::Unauthorized("test".to_string());
         let resp_err = ResponseError::from(err);
         assert_eq!(resp_err.code, -32001);
+        let data = resp_err.data.expect("Diagnostic data should be present");
+        assert_eq!(data["category"], "Permission");
     }
 }
