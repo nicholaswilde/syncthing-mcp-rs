@@ -8,7 +8,7 @@
 ## Phase 2: Diagnostic Tool Development
 - [x] Task: Develop the `analyze_error` MCP tool. `9594339`
 - [x] Task: Integrate the diagnostic engine into the standard `SyncThingError` type. `f98a605`
-- [ ] Task: Support for multiple languages in diagnostic messages (optional, basic framework).
+- [x] Task: Support for multiple languages in diagnostic messages (optional, basic framework). `95adfd7`
 
 ## Phase 3: System-Wide Integration
 - [ ] Task: Update all existing MCP tools to use the enhanced error reporting.
