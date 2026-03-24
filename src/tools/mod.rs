@@ -1,5 +1,7 @@
 /// Browser tool for exploring synced folders.
 pub mod browser;
+/// Sync conflict management tools.
+pub mod conflicts;
 /// Configuration replication tool.
 pub mod config;
 /// Device management tools.
