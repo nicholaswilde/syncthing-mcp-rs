@@ -1,7 +1,7 @@
 # Implementation Plan: Advanced Config Replication (advanced_replication_20260322)
 
 ## Phase 1: Logic & Validation
-- [ ] Task: Refactor the replication logic to support a "dry-run" mode.
+- [x] Task: Refactor the replication logic to support a "dry-run" mode. 7ae15d6
 - [ ] Task: Implement input validation for selective folder/device filters.
 - [ ] Task: Create a diff generator for SyncThing configuration changes.
 
