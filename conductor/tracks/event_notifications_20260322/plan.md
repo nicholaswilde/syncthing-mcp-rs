@@ -16,6 +16,6 @@
 - [x] Task: Ensure notification delivery works correctly for multiple instances. 6b6029b
 
 ## Phase 4: Validation
-- [ ] Task: Create unit tests for event parsing and filtering.
-- [ ] Task: Implement integration tests with mock event sequences.
-- [ ] Task: Verify real-time notification delivery using the `mcp-inspector`.
+- [x] Task: Create unit tests for event parsing and filtering. 41eda66
+- [x] Task: Implement integration tests with mock event sequences. f5df6ba
+- [x] Task: Verify real-time notification delivery using the `mcp-inspector`. 8d623b8

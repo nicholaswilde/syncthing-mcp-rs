@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Event Notifications
+## [x] Track: Event Notifications
 *Link: [./tracks/event_notifications_20260322/](./tracks/event_notifications_20260322/)*
 
 ---

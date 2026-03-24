@@ -141,7 +141,7 @@ mod tests {
         });
 
         // Run server in memory
-        let (mut client_writer, server_reader) = tokio::io::duplex(1024);
+        let (client_writer, server_reader) = tokio::io::duplex(1024);
         let (server_writer, mut client_reader) = tokio::io::duplex(1024);
         
         tokio::spawn(async move {
@@ -151,7 +151,10 @@ mod tests {
         // Read notification from client side
         let mut buffer = [0u8; 1024];
         let n = client_reader.read(&mut buffer).await.unwrap();
-        let msg: crate::mcp::Message = serde_json::from_slice(&buffer[..n]).unwrap();
+        
+        // Use a Deserializer to handle potentially multiple messages (trailing characters error fix)
+        let mut de = serde_json::Deserializer::from_slice(&buffer[..n]);
+        let msg: crate::mcp::Message = serde::Deserialize::deserialize(&mut de).unwrap();
         
         if let crate::mcp::Message::Notification(notification) = msg {
             assert_eq!(notification.method, "notifications/message");
@@ -207,5 +210,71 @@ mod tests {
         
         assert!(instances.contains(&"inst1".to_string()));
         assert!(instances.contains(&"inst2".to_string()));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_event_manager_sequence() {
+        let mock_server = MockServer::start().await;
+        
+        let event_resp1 = serde_json::json!([
+            {
+                "id": 1,
+                "type": "FolderStateChanged",
+                "time": "2023-01-01T00:00:00Z",
+                "data": {"folder": "f1", "from": "idle", "to": "syncing"}
+            }
+        ]);
+
+        let event_resp2 = serde_json::json!([
+            {
+                "id": 2,
+                "type": "FolderStateChanged",
+                "time": "2023-01-01T00:00:05Z",
+                "data": {"folder": "f1", "from": "syncing", "to": "idle"}
+            }
+        ]);
+
+        Mock::given(method("GET"))
+            .and(path("/rest/events"))
+            .and(wiremock::matchers::query_param_is_missing("since"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(&event_resp1))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/events"))
+            .and(query_param("since", "1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(&event_resp2))
+            .mount(&mock_server)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![InstanceConfig {
+                name: Some("test".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let (tx, mut rx) = mpsc::channel(100);
+        let event_manager = EventManager::new(config, tx);
+        
+        // We need to run it in a loop but we want to control it
+        let em_clone = event_manager.clone();
+        tokio::spawn(async move {
+            let _ = em_clone.run().await;
+        });
+
+        // First notification
+        let n1 = rx.recv().await.unwrap();
+        assert!(n1.params.unwrap()["summary"].as_str().unwrap().contains("idle to syncing"));
+
+        // Advance time to trigger next poll
+        tokio::time::advance(std::time::Duration::from_secs(6)).await;
+
+        // Second notification
+        let n2 = rx.recv().await.unwrap();
+        assert!(n2.params.unwrap()["summary"].as_str().unwrap().contains("syncing to idle"));
     }
 }
