@@ -2,7 +2,7 @@
 
 ## Phase 1: Error Mapping & Taxonomy
 - [x] Task: Research and document a set of common SyncThing REST API error messages and behaviors. `7ba9b57`
-- [ ] Task: Create a structured error taxonomy (Network, Permission, Configuration, Resource).
+- [x] Task: Create a structured error taxonomy (Network, Permission, Configuration, Resource). `6cf3ba7`
 - [ ] Task: Implement the core mapping engine in `src/error.rs`.
 
 ## Phase 2: Diagnostic Tool Development
