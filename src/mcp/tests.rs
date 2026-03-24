@@ -1490,4 +1490,58 @@ mod tests {
         assert!(text.contains("Last Scan: 2023-10-27T14:20:01Z"));
         assert!(text.contains("Filename: test.txt"));
     }
+
+    #[tokio::test]
+    async fn test_tool_call_manage_folders_pending() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/cluster/pending/folders"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folder1": {
+                    "offeredBy": {
+                        "DEVICE1": {
+                            "time": "2023-10-27T10:00:00Z",
+                            "label": "Test Folder",
+                            "receiveEncrypted": false,
+                            "remoteEncrypted": false
+                        }
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "manage_folders",
+                "arguments": {
+                    "action": "pending"
+                }
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Pending Folder Requests:"));
+        assert!(text.contains("- folder1 (folder1)"));
+        assert!(text.contains("Offered by: DEVICE1 (label: Test Folder, time: 2023-10-27T10:00:00Z)"));
+    }
 }

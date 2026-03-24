@@ -30,6 +30,41 @@ pub async fn manage_folders(
                 }]
             }))
         }
+        "pending" => {
+            let pending = client.get_pending_folders().await?;
+            let mut text = String::from("Pending Folder Requests:\n");
+            if pending.is_empty() {
+                text.push_str("No pending folder requests.\n");
+            } else {
+                for (folder_id, folder) in pending {
+                    text.push_str(&format!("- {} ({}):\n", folder_id, folder_id));
+                    for (device_id, offered) in folder.offered_by {
+                        text.push_str(&format!(
+                            "  Offered by: {} (label: {}, time: {})\n",
+                            device_id, offered.label, offered.time
+                        ));
+                    }
+                }
+            }
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": text
+                }]
+            }))
+        }
+        "reject_pending" => {
+            let folder_id = args["folder_id"].as_str().ok_or_else(|| {
+                crate::error::Error::Internal("folder_id is required for reject_pending".to_string())
+            })?;
+            client.remove_pending_folder(folder_id).await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": format!("Pending folder {} rejected successfully", folder_id)
+                }]
+            }))
+        }
         _ => Err(crate::error::Error::Internal(format!(
             "Unsupported action: {}",
             action

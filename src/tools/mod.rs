@@ -191,8 +191,12 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["list"],
+                    "enum": ["list", "pending", "reject_pending"],
                     "description": "The folder management action to perform."
+                },
+                "folder_id": {
+                    "type": "string",
+                    "description": "The unique Folder ID (required for 'reject_pending')."
                 }
             }
         }),

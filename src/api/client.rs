@@ -340,6 +340,26 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Returns pending folders.
+    pub async fn get_pending_folders(&self) -> Result<HashMap<String, PendingFolder>> {
+        tracing::debug!("Fetching pending SyncThing folders");
+        let url = format!("{}/rest/cluster/pending/folders", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<HashMap<String, PendingFolder>>().await?)
+    }
+
+    /// Removes a pending folder.
+    pub async fn remove_pending_folder(&self, folder_id: &str) -> Result<()> {
+        tracing::debug!("Removing pending SyncThing folder: {}", folder_id);
+        let url = format!("{}/rest/cluster/pending/folders", self.config.url);
+        let request = self
+            .add_auth(self.client.delete(&url))
+            .query(&[("folder", folder_id)]);
+        self.send_with_retry(request).await?;
+        Ok(())
+    }
+
     /// Returns the connection status for all devices.
     pub async fn get_connections(&self) -> Result<HashMap<String, ConnectionStatus>> {
         tracing::debug!("Fetching SyncThing connection status");

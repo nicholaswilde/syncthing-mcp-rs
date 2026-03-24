@@ -867,4 +867,64 @@ mod tests {
         assert_eq!(stats.len(), 1);
         assert_eq!(stats["folder1"].last_file.as_ref().unwrap().filename, "test.txt");
     }
+
+    #[tokio::test]
+    async fn test_get_pending_folders() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/cluster/pending/folders"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "folder1": {
+                    "offeredBy": {
+                        "DEVICE1": {
+                            "time": "2023-10-27T10:00:00Z",
+                            "label": "Test Folder",
+                            "receiveEncrypted": false,
+                            "remoteEncrypted": false
+                        }
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let pending = client.get_pending_folders().await.unwrap();
+
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending["folder1"].offered_by["DEVICE1"].label, "Test Folder");
+    }
+
+    #[tokio::test]
+    async fn test_remove_pending_folder() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("DELETE"))
+            .and(path("/rest/cluster/pending/folders"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.remove_pending_folder("folder1").await;
+
+        assert!(result.is_ok());
+    }
 }

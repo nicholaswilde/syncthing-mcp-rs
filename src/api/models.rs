@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// System status information.
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -327,4 +328,27 @@ pub struct LastFileStats {
     pub filename: String,
     /// The time the file was synced.
     pub at: String,
+}
+
+/// A folder that is pending acceptance.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PendingFolder {
+    /// Devices that have offered this folder.
+    #[serde(rename = "offeredBy")]
+    pub offered_by: HashMap<String, OfferedBy>,
+}
+
+/// Information about a device offering a pending folder.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OfferedBy {
+    /// The time the folder was offered.
+    pub time: String,
+    /// The suggested label for the folder.
+    pub label: String,
+    /// Whether the data is received encrypted.
+    #[serde(rename = "receiveEncrypted")]
+    pub receive_encrypted: bool,
+    /// Whether the remote device is encrypted.
+    #[serde(rename = "remoteEncrypted")]
+    pub remote_encrypted: bool,
 }
