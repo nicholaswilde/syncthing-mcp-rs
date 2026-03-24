@@ -2,8 +2,9 @@
 
 ## Phase 1: Logic & Validation
 - [x] Task: Refactor the replication logic to support a "dry-run" mode. 7ae15d6
-- [ ] Task: Implement input validation for selective folder/device filters.
-- [ ] Task: Create a diff generator for SyncThing configuration changes.
+- [x] Task: Implement input validation for selective folder/device filters. def63bb
+- [x] Task: Create a diff generator for SyncThing configuration changes. 1e7aacb
+
 
 ## Phase 2: Tool Enhancements
 - [ ] Task: Update the `replicate_config` MCP tool with new optional parameters.
