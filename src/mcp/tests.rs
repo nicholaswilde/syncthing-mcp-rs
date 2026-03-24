@@ -675,6 +675,29 @@ mod tests {
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Successfully triggered SyncThing restart"));
 
+        // Test shutdown
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(3),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "maintain_system",
+                "arguments": {
+                    "action": "shutdown"
+                }
+            })),
+        };
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/shutdown"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully triggered SyncThing shutdown"));
+
         // Test clear_errors
         let req = crate::mcp::Request {
             jsonrpc: "2.0".to_string(),

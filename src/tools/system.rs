@@ -113,6 +113,15 @@ pub async fn maintain_system(
                 }]
             }))
         }
+        "shutdown" => {
+            client.shutdown().await?;
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": "Successfully triggered SyncThing shutdown"
+                }]
+            }))
+        }
         "clear_errors" => {
             client.clear_errors().await?;
             Ok(json!({

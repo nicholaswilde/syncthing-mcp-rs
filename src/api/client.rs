@@ -268,6 +268,15 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Shuts down SyncThing.
+    pub async fn shutdown(&self) -> Result<()> {
+        tracing::debug!("Triggering SyncThing shutdown");
+        let url = format!("{}/rest/system/shutdown", self.config.url);
+        let request = self.add_auth(self.client.post(&url));
+        self.send_with_retry(request).await?;
+        Ok(())
+    }
+
     /// Clears SyncThing errors.
     pub async fn clear_errors(&self) -> Result<()> {
         tracing::debug!("Clearing SyncThing errors");

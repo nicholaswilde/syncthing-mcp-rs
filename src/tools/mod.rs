@@ -303,13 +303,13 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "maintain_system",
-        "Perform system maintenance: force a rescan of folders, restart the SyncThing service, or clear internal errors.",
+        "Perform system maintenance: force a rescan of folders, restart the SyncThing service, or shut down the service.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["force_rescan", "restart", "clear_errors"],
+                    "enum": ["force_rescan", "restart", "shutdown", "clear_errors"],
                     "description": "The maintenance action to perform."
                 },
                 "folder_id": {
