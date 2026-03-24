@@ -108,54 +108,8 @@ pub async fn replicate_config(
     }
 
     // 5. Build difference report
-    let mut diff_report = Vec::new();
-
-    // Folders diff
-    let empty_vec = Vec::new();
-    let dest_folders = dest_config
-        .get("folders")
-        .and_then(|f| f.as_array())
-        .unwrap_or(&empty_vec);
-    let dest_folder_ids: HashSet<_> = dest_folders
-        .iter()
-        .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
-        .collect();
-    let source_folder_ids: HashSet<_> = source_folders
-        .iter()
-        .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
-        .collect();
-
-    let new_folders = source_folder_ids.difference(&dest_folder_ids).count();
-    let removed_folders = dest_folder_ids.difference(&source_folder_ids).count();
-    let shared_folders = source_folder_ids.intersection(&dest_folder_ids).count();
-
-    diff_report.push(format!(
-        "Folders: {} added, {} removed, {} updated.",
-        new_folders, removed_folders, shared_folders
-    ));
-
-    // Devices diff
-    let dest_devices = dest_config
-        .get("devices")
-        .and_then(|d| d.as_array())
-        .unwrap_or(&empty_vec);
-    let dest_device_ids: HashSet<_> = dest_devices
-        .iter()
-        .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
-        .collect();
-    let source_device_ids: HashSet<_> = source_devices
-        .iter()
-        .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
-        .collect();
-
-    let new_devices = source_device_ids.difference(&dest_device_ids).count();
-    let removed_devices = dest_device_ids.difference(&source_device_ids).count();
-    let shared_devices = source_device_ids.intersection(&dest_device_ids).count();
-
-    diff_report.push(format!(
-        "Devices: {} added, {} removed, {} updated.",
-        new_devices, removed_devices, shared_devices
-    ));
+    let diff = crate::tools::config_diff::ConfigDiff::generate(&source_config, &dest_config);
+    let diff_summary = diff.summary();
 
     // 6. Update destination config
     if let Some(obj) = dest_config.as_object_mut() {
@@ -169,16 +123,16 @@ pub async fn replicate_config(
     }
 
     let status_prefix = if dry_run {
-        format!("[DRY RUN] Would replicate configuration to {}", destination_name)
+        format!(
+            "[DRY RUN] Would replicate configuration to {}",
+            destination_name
+        )
     } else {
         format!("Successfully replicated configuration to {}", destination_name)
     };
 
-    let summary = format!(
-        "{}.\n{}",
-        status_prefix,
-        diff_report.join("\n")
-    );
+    let summary = format!("{}.\n{}", status_prefix, diff_summary);
+
 
     Ok(json!({
         "content": [{

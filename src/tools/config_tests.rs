@@ -193,4 +193,47 @@ mod tests {
         let result = replicate_config(client.clone(), config.clone(), args).await;
         assert!(matches!(result, Err(crate::error::Error::ValidationError(msg)) if msg.contains("device IDs must be strings")));
     }
+
+    #[tokio::test]
+    async fn test_config_diff_generation() {
+        use crate::tools::config_diff::ConfigDiff;
+
+        let source = json!({
+            "folders": [
+                {"id": "folder1", "label": "Folder 1"},
+                {"id": "folder2", "label": "Folder 2"}
+            ],
+            "devices": [
+                {"deviceID": "device1", "name": "Device 1"},
+                {"deviceID": "device2", "name": "Device 2"}
+            ]
+        });
+
+        let dest = json!({
+            "folders": [
+                {"id": "folder1", "label": "Folder 1"},
+                {"id": "folder3", "label": "Folder 3"}
+            ],
+            "devices": [
+                {"deviceID": "device1", "name": "Device 1"},
+                {"deviceID": "device3", "name": "Device 3"}
+            ]
+        });
+
+        let diff = ConfigDiff::generate(&source, &dest);
+
+        assert_eq!(diff.folders_added, vec!["folder2"]);
+        assert_eq!(diff.folders_removed, vec!["folder3"]);
+        assert_eq!(diff.folders_updated, vec!["folder1"]);
+        assert_eq!(diff.devices_added, vec!["device2"]);
+        assert_eq!(diff.devices_removed, vec!["device3"]);
+        assert_eq!(diff.devices_updated, vec!["device1"]);
+
+        let summary = diff.summary();
+        assert!(summary.contains("Folders: 1 added, 1 removed, 1 updated."));
+        assert!(summary.contains("Devices: 1 added, 1 removed, 1 updated."));
+        assert!(summary.contains("+ Folder: folder2"));
+        assert!(summary.contains("- Folder: folder3"));
+        assert!(summary.contains("~ Folder: folder1"));
+    }
 }

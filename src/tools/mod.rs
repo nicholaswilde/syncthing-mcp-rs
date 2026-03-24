@@ -2,6 +2,8 @@
 pub mod browser;
 /// Configuration replication tool.
 pub mod config;
+/// Configuration diff generator.
+pub mod config_diff;
 /// Unit tests for configuration replication.
 #[cfg(test)]
 pub mod config_tests;
