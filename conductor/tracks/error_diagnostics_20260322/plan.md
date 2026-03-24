@@ -18,4 +18,4 @@
 ## Phase 4: Validation
 - [x] Task: Unit tests for the diagnostic engine with various error message patterns. `673da11`
 - [x] Task: Integration tests verifying improved error reporting in MCP tools. `83ba693`
-- [ ] Task: Manual verification with simulated common SyncThing failures.
+- [x] Task: Manual verification with simulated common SyncThing failures.
