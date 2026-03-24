@@ -436,25 +436,30 @@ impl SyncThingClient {
             self.config.url
         );
         let start = std::time::Instant::now();
-        match self.get_system_version().await {
-            Ok(version) => {
-                let latency = start.elapsed().as_millis();
-                Ok(HealthCheck {
-                    status: "Online".to_string(),
-                    latency_ms: latency,
-                    version: Some(version.version),
-                    error: None,
-                })
-            }
-            Err(e) => {
-                let latency = start.elapsed().as_millis();
-                Ok(HealthCheck {
-                    status: "Offline".to_string(),
-                    latency_ms: latency,
-                    version: None,
-                    error: Some(e.to_string()),
-                })
-            }
+        let version_res = self.get_system_version().await;
+        let status_res = self.get_system_status().await;
+
+        let latency = start.elapsed().as_millis();
+
+        match (version_res, status_res) {
+            (Ok(version), Ok(status)) => Ok(HealthCheck {
+                status: "Online".to_string(),
+                latency_ms: latency,
+                version: Some(version.version),
+                uptime: Some(status.uptime),
+                memory_alloc: Some(status.alloc),
+                memory_sys: Some(status.total_memory),
+                error: None,
+            }),
+            (Err(e), _) | (_, Err(e)) => Ok(HealthCheck {
+                status: "Offline".to_string(),
+                latency_ms: latency,
+                version: None,
+                uptime: None,
+                memory_alloc: None,
+                memory_sys: None,
+                error: Some(e.to_string()),
+            }),
         }
     }
 }

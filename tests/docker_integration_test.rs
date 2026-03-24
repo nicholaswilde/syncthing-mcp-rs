@@ -36,6 +36,41 @@ async fn test_get_system_status_tool() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_list_instances_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("list_instances", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("SyncThing Instances Status"));
+    assert!(text.contains("🟢 Online"));
+    assert!(text.contains("Version"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_instance_health_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_instance_health", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("SyncThing Health"));
+    assert!(text.contains("🟢 Online"));
+    assert!(text.contains("Uptime"));
+    assert!(text.contains("Memory Alloc"));
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_manage_folders_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());

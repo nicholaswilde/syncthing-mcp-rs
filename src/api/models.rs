@@ -378,6 +378,12 @@ pub struct HealthCheck {
     pub latency_ms: u128,
     /// The SyncThing version if available.
     pub version: Option<String>,
+    /// Uptime in seconds.
+    pub uptime: Option<u64>,
+    /// Memory allocated in bytes.
+    pub memory_alloc: Option<u64>,
+    /// Total system memory in bytes.
+    pub memory_sys: Option<u64>,
     /// Error message if any.
     pub error: Option<String>,
 }

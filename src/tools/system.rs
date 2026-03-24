@@ -192,3 +192,99 @@ pub async fn get_system_log(
         }]
     }))
 }
+
+/// Lists all configured SyncThing instances and their current health status.
+pub async fn list_instances(
+    _client: SyncThingClient,
+    config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let mut text = String::from("### SyncThing Instances Status\n\n");
+
+    for (i, instance_config) in config.instances.iter().enumerate() {
+        let name = instance_config
+            .name
+            .clone()
+            .unwrap_or_else(|| format!("Instance {}", i));
+        let client = SyncThingClient::new(instance_config.clone());
+        let health = client.health_check().await?;
+
+        let status_badge = match health.status.as_str() {
+            "Online" => "🟢 Online",
+            "Offline" => "🔴 Offline",
+            _ => "🟡 Warning",
+        };
+
+        text.push_str(&format!("**Instance: {}**\n", name));
+        text.push_str(&format!("- **URL**: {}\n", instance_config.url));
+        text.push_str(&format!("- **Status**: {}\n", status_badge));
+        if let Some(version) = health.version {
+            text.push_str(&format!("- **Version**: {}\n", version));
+        }
+        text.push_str(&format!("- **Latency**: {}ms\n", health.latency_ms));
+        if let Some(uptime) = health.uptime {
+            text.push_str(&format!("- **Uptime**: {}s\n", uptime));
+        }
+        if let Some(alloc) = health.memory_alloc {
+            text.push_str(&format!("- **Memory Alloc**: {} bytes\n", alloc));
+        }
+        if let Some(error) = health.error {
+            text.push_str(&format!("- **Error**: {}\n", error));
+        }
+        text.push_str("\n---\n\n");
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().trim_end_matches("---").trim_end().to_string()
+        }]
+    }))
+}
+
+/// Retrieves detailed health information for a specific SyncThing instance.
+pub async fn get_instance_health(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let health = client.health_check().await?;
+
+    let status_badge = match health.status.as_str() {
+        "Online" => "🟢 Online",
+        "Offline" => "🔴 Offline",
+        _ => "🟡 Warning",
+    };
+
+    let name = client
+        .config
+        .name
+        .clone()
+        .unwrap_or_else(|| client.config.url.clone());
+
+    let mut text = format!("SyncThing Health: {}\n", name);
+    text.push_str(&format!("Status: {}\n", status_badge));
+    if let Some(version) = health.version {
+        text.push_str(&format!("Version: {}\n", version));
+    }
+    text.push_str(&format!("Latency: {}ms\n", health.latency_ms));
+    if let Some(uptime) = health.uptime {
+        text.push_str(&format!("Uptime: {} seconds\n", uptime));
+    }
+    if let Some(alloc) = health.memory_alloc {
+        text.push_str(&format!("Memory Alloc: {} bytes\n", alloc));
+    }
+    if let Some(sys) = health.memory_sys {
+        text.push_str(&format!("Memory Total: {} bytes\n", sys));
+    }
+    if let Some(error) = health.error {
+        text.push_str(&format!("Error: {}\n", error));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }]
+    }))
+}

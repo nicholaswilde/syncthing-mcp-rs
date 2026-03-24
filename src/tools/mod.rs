@@ -133,6 +133,26 @@ pub fn create_registry() -> ToolRegistry {
     let mut registry = ToolRegistry::new();
 
     registry.register(
+        "list_instances",
+        "List all configured SyncThing instances and their current health status.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::list_instances,
+    );
+
+    registry.register(
+        "get_instance_health",
+        "Get detailed health information for a specific SyncThing instance, including connectivity, version, uptime, and resource usage.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::get_instance_health,
+    );
+
+    registry.register(
         "get_system_status",
         "Get comprehensive system status information, including version, uptime, memory usage, and the local device ID.",
         serde_json::json!({

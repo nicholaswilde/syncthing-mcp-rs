@@ -43,6 +43,231 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_tool_call_list_instances_multiple() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server1 = MockServer::start().await;
+        let mock_server2 = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v1.27.0",
+                "arch": "amd64",
+                "os": "linux",
+                "isRelease": true,
+                "isBeta": false,
+                "isCandidate": false
+            })))
+            .mount(&mock_server1)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "test-id-1",
+                "uptime": 100,
+                "alloc": 1000,
+                "sys": 2000,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server1)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v1.27.1",
+                "arch": "amd64",
+                "os": "linux",
+                "isRelease": true,
+                "isBeta": false,
+                "isCandidate": false
+            })))
+            .mount(&mock_server2)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "test-id-2",
+                "uptime": 200,
+                "alloc": 2000,
+                "sys": 4000,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server2)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("instance-1".to_string()),
+                    url: mock_server1.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("instance-2".to_string()),
+                    url: mock_server2.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "list_instances",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("instance-1"));
+        assert!(text.contains("v1.27.0"));
+        assert!(text.contains("instance-2"));
+        assert!(text.contains("v1.27.1"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_get_instance_health() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v1.27.0",
+                "arch": "amd64",
+                "os": "linux",
+                "isRelease": true,
+                "isBeta": false,
+                "isCandidate": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "test-id",
+                "uptime": 3600,
+                "alloc": 123456,
+                "sys": 234567,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("test-instance".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_instance_health",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("test-instance"));
+        assert!(text.contains("🟢 Online"));
+        assert!(text.contains("3600 seconds"));
+        assert!(text.contains("123456 bytes"));
+    }
+
+    #[tokio::test]
+    async fn test_tool_call_list_instances() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/version"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "version": "v1.27.0",
+                "arch": "amd64",
+                "os": "linux",
+                "isRelease": true,
+                "isBeta": false,
+                "isCandidate": false
+            })))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "test-id",
+                "uptime": 100,
+                "alloc": 1000,
+                "sys": 2000,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let registry = create_registry();
+        let config = AppConfig {
+            host: "localhost".to_string(),
+            port: 8384,
+            instances: vec![crate::config::InstanceConfig {
+                name: Some("test-instance".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let (server, _rx) = McpServer::new(registry, config);
+
+        let req = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(1),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "list_instances",
+                "arguments": {}
+            })),
+        };
+
+        let resp = server.handle_request(req).await.unwrap();
+        let text = resp["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("test-instance"));
+        assert!(text.contains("Online"));
+        assert!(text.contains("v1.27.0"));
+    }
+
+    #[tokio::test]
     async fn test_tool_call_get_system_status() {
         use wiremock::matchers::{method, path};
         use wiremock::{Mock, MockServer, ResponseTemplate};

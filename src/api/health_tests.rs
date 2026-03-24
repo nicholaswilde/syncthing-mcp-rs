@@ -22,6 +22,19 @@ mod tests {
             .mount(&mock_server)
             .await;
 
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "myID": "test-id",
+                "uptime": 100,
+                "alloc": 1000,
+                "sys": 2000,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
         let config = InstanceConfig {
             url: mock_server.uri(),
             api_key: Some("test-api-key".to_string()),
@@ -34,6 +47,9 @@ mod tests {
         assert_eq!(health.status, "Online");
         assert!(health.version.is_some());
         assert_eq!(health.version.unwrap(), "v1.0.0");
+        assert_eq!(health.uptime.unwrap(), 100);
+        assert_eq!(health.memory_alloc.unwrap(), 1000);
+        assert_eq!(health.memory_sys.unwrap(), 2000);
         assert!(health.error.is_none());
     }
 
