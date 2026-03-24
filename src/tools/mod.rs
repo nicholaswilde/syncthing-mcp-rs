@@ -359,5 +359,21 @@ pub fn create_registry() -> ToolRegistry {
         conflicts::resolve_conflict,
     );
 
+    registry.register(
+        "delete_conflict",
+        "Permanently delete a SyncThing conflict file.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "conflict_path": {
+                    "type": "string",
+                    "description": "The full path to the conflict file."
+                }
+            },
+            "required": ["conflict_path"]
+        }),
+        conflicts::delete_conflict,
+    );
+
     registry
 }

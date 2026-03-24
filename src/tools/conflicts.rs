@@ -182,6 +182,45 @@ pub async fn resolve_conflict(
     }
 }
 
+/// Deletes a SyncThing conflict file.
+pub async fn delete_conflict(
+    _client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let conflict_path_str = args["conflict_path"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::Internal("conflict_path is required".to_string()))?;
+
+    let conflict_path = Path::new(conflict_path_str);
+    let parent = conflict_path.parent().ok_or_else(|| {
+        crate::error::Error::Internal("Invalid conflict_path: no parent directory".to_string())
+    })?;
+    let filename = conflict_path
+        .file_name()
+        .ok_or_else(|| crate::error::Error::Internal("Invalid conflict_path: no filename".to_string()))?
+        .to_string_lossy();
+
+    // Validate that it is indeed a conflict file
+    if parse_conflict_filename(&filename, parent).is_none() {
+        return Err(crate::error::Error::Internal(format!(
+            "Not a valid SyncThing conflict file: {}",
+            filename
+        )));
+    }
+
+    tokio::fs::remove_file(conflict_path).await.map_err(|e| {
+        crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+    })?;
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": format!("Deleted conflict file: {}", filename)
+        }]
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
