@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Instance Management Tools
-*Link: [./tracks/instance_management_20260322/](./tracks/instance_management_20260322/)*
-
----
-
 ## [ ] Track: Advanced Config Replication
 *Link: [./tracks/advanced_replication_20260322/](./tracks/advanced_replication_20260322/)*
 
