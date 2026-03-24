@@ -392,12 +392,12 @@ impl SyncThingClient {
     }
 
     /// Returns the connection status for all devices.
-    pub async fn get_connections(&self) -> Result<HashMap<String, ConnectionStatus>> {
+    pub async fn get_connections(&self) -> Result<ConnectionsResponse> {
         tracing::debug!("Fetching SyncThing connection status");
         let url = format!("{}/rest/system/connections", self.config.url);
         let request = self.add_auth(self.client.get(&url));
         let response = self.send_with_retry(request).await?;
-        Ok(response.json::<HashMap<String, ConnectionStatus>>().await?)
+        Ok(response.json::<ConnectionsResponse>().await?)
     }
 
     /// Returns the system log.

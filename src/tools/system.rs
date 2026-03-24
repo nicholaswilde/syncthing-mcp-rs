@@ -144,10 +144,10 @@ pub async fn get_system_connections(
     _config: AppConfig,
     _args: Value,
 ) -> Result<Value> {
-    let connections = client.get_connections().await?;
+    let response = client.get_connections().await?;
 
     let mut text = String::from("SyncThing Connection Status:\n\n");
-    for (device_id, conn) in connections {
+    for (device_id, conn) in response.connections {
         text.push_str(&format!("Device: {}\n", device_id));
         text.push_str(&format!("  Connected: {}\n", conn.connected));
         if let Some(addr) = &conn.address {
@@ -161,7 +161,7 @@ pub async fn get_system_connections(
         }
         text.push_str(&format!("  In Bytes: {}\n", conn.in_bytes_total));
         text.push_str(&format!("  Out Bytes: {}\n", conn.out_bytes_total));
-        text.push_str(&format!("  Paused: {}\n\n", conn.is_paused));
+        text.push_str(&format!("  Paused: {}\n\n", conn.paused));
     }
 
     Ok(json!({

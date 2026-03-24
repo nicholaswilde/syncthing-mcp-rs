@@ -33,6 +33,10 @@ regex = "1.12.3"
 trash = "5.2.5"
 async-recursion = "1.1.1"
 
+[[example]]
+name = "run_new_tools"
+path = "scripts/run_new_tools.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"

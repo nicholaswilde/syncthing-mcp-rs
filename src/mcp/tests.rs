@@ -406,7 +406,7 @@ mod tests {
 
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("Device DEVICE-ID-1 removed successfully"));
+        assert!(text.contains("Device test-device-id removed successfully"));
     }
 
     #[tokio::test]
@@ -1401,15 +1401,17 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/rest/system/connections"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "DEVICE-ID-1": {
-                    "at": "2023-10-24T12:34:56Z",
-                    "inBytesTotal": 1000,
-                    "outBytesTotal": 2000,
-                    "address": "1.2.3.4:22000",
-                    "clientVersion": "v1.27.0",
-                    "connected": true,
-                    "type": "tcp-client",
-                    "isPaused": false
+                "connections": {
+                    "DEVICE-ID-1": {
+                        "at": "2023-10-24T12:34:56Z",
+                        "inBytesTotal": 1000,
+                        "outBytesTotal": 2000,
+                        "address": "1.2.3.4:22000",
+                        "clientVersion": "v1.27.0",
+                        "connected": true,
+                        "type": "tcp-client",
+                        "paused": false
+                    }
                 }
             })))
             .mount(&mock_server)

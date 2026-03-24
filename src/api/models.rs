@@ -279,8 +279,15 @@ pub struct ConnectionStatus {
     #[serde(rename = "type")]
     pub connection_type: Option<String>,
     /// Whether the connection is paused.
-    #[serde(rename = "isPaused", default)]
-    pub is_paused: bool,
+    #[serde(default)]
+    pub paused: bool,
+}
+
+/// Response from /rest/system/connections.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConnectionsResponse {
+    /// Map of device IDs to connection status.
+    pub connections: HashMap<String, ConnectionStatus>,
 }
 
 /// A single log entry from Syncthing.
