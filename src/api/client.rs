@@ -426,4 +426,30 @@ impl SyncThingClient {
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<HashMap<String, FolderStats>>().await?)
     }
+
+    /// Performs a health check on the SyncThing instance.
+    pub async fn health_check(&self) -> Result<HealthCheck> {
+        tracing::debug!("Performing health check for SyncThing instance: {}", self.config.url);
+        let start = std::time::Instant::now();
+        match self.get_system_version().await {
+            Ok(version) => {
+                let latency = start.elapsed().as_millis();
+                Ok(HealthCheck {
+                    status: "Online".to_string(),
+                    latency_ms: latency,
+                    version: Some(version.version),
+                    error: None,
+                })
+            }
+            Err(e) => {
+                let latency = start.elapsed().as_millis();
+                Ok(HealthCheck {
+                    status: "Offline".to_string(),
+                    latency_ms: latency,
+                    version: None,
+                    error: Some(e.to_string()),
+                })
+            }
+        }
+    }
 }

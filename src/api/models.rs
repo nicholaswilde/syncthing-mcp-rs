@@ -368,3 +368,16 @@ pub struct DeviceIdResponse {
     /// Error message if the ID is invalid.
     pub error: Option<String>,
 }
+
+/// Health check result for a SyncThing instance.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct HealthCheck {
+    /// The status of the instance (e.g., "Online", "Offline").
+    pub status: String,
+    /// Response latency in milliseconds.
+    pub latency_ms: u128,
+    /// The SyncThing version if available.
+    pub version: Option<String>,
+    /// Error message if any.
+    pub error: Option<String>,
+}
