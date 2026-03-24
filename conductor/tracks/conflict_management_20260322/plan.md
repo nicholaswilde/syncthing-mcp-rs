@@ -15,6 +15,6 @@
 - [x] Task: Provide more detailed file comparisons in `list_conflicts` output. (37458c2)
 
 ## Phase 4: Validation
-- [ ] Task: Unit tests for conflict filename regex and parsing.
+- [x] Task: Unit tests for conflict filename regex and parsing. (069b082)
 - [ ] Task: Integration tests with temporary test files and directories.
 - [ ] Task: Verify tool behavior when files are locked or inaccessible.
