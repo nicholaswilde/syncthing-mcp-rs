@@ -357,6 +357,11 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "boolean",
                     "description": "If true, preview the action without performing any file operations.",
                     "default": false
+                },
+                "backup": {
+                    "type": "boolean",
+                    "description": "If true, move the overwritten or deleted file to the system trash instead of permanent deletion.",
+                    "default": true
                 }
             },
             "required": ["conflict_path", "action"]
@@ -378,6 +383,11 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "boolean",
                     "description": "If true, preview the deletion without performing any file operations.",
                     "default": false
+                },
+                "backup": {
+                    "type": "boolean",
+                    "description": "If true, move the deleted file to the system trash instead of permanent deletion.",
+                    "default": true
                 }
             },
             "required": ["conflict_path"]

@@ -150,6 +150,7 @@ pub async fn resolve_conflict(
     })?;
 
     let dry_run = args["dry_run"].as_bool().unwrap_or(false);
+    let backup = args["backup"].as_bool().unwrap_or(true);
 
     match action {
         "keep_original" => {
@@ -161,17 +162,29 @@ pub async fn resolve_conflict(
                     }]
                 }));
             }
-            tokio::fs::remove_file(&info.conflict_path)
-                .await
-                .map_err(|e| {
-                    crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+            if backup {
+                trash::delete(&info.conflict_path).map_err(|e| {
+                    crate::error::Error::Internal(format!("Failed to move conflict file to trash: {}", e))
                 })?;
-            Ok(json!({
-                "content": [{
-                    "type": "text",
-                    "text": format!("Resolved conflict by keeping original version (deleted {})", filename)
-                }]
-            }))
+                Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("Resolved conflict by keeping original version (moved {} to trash)", filename)
+                    }]
+                }))
+            } else {
+                tokio::fs::remove_file(&info.conflict_path)
+                    .await
+                    .map_err(|e| {
+                        crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
+                    })?;
+                Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": format!("Resolved conflict by keeping original version (deleted {})", filename)
+                    }]
+                }))
+            }
         }
         "keep_conflict" => {
             if dry_run {
@@ -181,6 +194,14 @@ pub async fn resolve_conflict(
                         "text": format!("[DRY RUN] Would resolve conflict by keeping conflict version (replace original with {})", filename)
                     }]
                 }));
+            }
+            if backup {
+                // If original file doesn't exist, we don't need to trash it
+                if Path::new(&info.original_path).exists() {
+                    trash::delete(&info.original_path).map_err(|e| {
+                        crate::error::Error::Internal(format!("Failed to move original file to trash: {}", e))
+                    })?;
+                }
             }
             tokio::fs::rename(&info.conflict_path, &info.original_path)
                 .await
@@ -234,6 +255,8 @@ pub async fn delete_conflict(
     }
 
     let dry_run = args["dry_run"].as_bool().unwrap_or(false);
+    let backup = args["backup"].as_bool().unwrap_or(true);
+
     if dry_run {
         return Ok(json!({
             "content": [{
@@ -243,16 +266,27 @@ pub async fn delete_conflict(
         }));
     }
 
-    tokio::fs::remove_file(conflict_path).await.map_err(|e| {
-        crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e))
-    })?;
-
-    Ok(json!({
-        "content": [{
-            "type": "text",
-            "text": format!("Deleted conflict file: {}", filename)
-        }]
-    }))
+    if backup {
+        trash::delete(conflict_path).map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to move conflict file to trash: {}", e))
+        })?;
+        Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": format!("Moved conflict file to trash: {}", filename)
+            }]
+        }))
+    } else {
+        tokio::fs::remove_file(conflict_path)
+            .await
+            .map_err(|e| crate::error::Error::Internal(format!("Failed to delete conflict file: {}", e)))?;
+        Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": format!("Deleted conflict file: {}", filename)
+            }]
+        }))
+    }
 }
 
 #[cfg(test)]

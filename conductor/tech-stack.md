@@ -50,3 +50,4 @@
 - **testcontainers-modules**: Ready-to-use Docker images for testcontainers.
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.
+- **trash**: Cross-platform file deletion to trash.
