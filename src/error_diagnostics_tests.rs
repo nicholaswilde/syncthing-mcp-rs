@@ -87,4 +87,12 @@ mod tests {
         let diagnostic = contextual_err.diagnose();
         assert!(diagnostic.advice.contains("Confirm the device ID exists"));
     }
+
+    #[test]
+    fn test_diagnose_path_too_long() {
+        let err = Error::SyncThing("filename too long".to_string());
+        let diagnostic = err.diagnose();
+        assert_eq!(diagnostic.category, "Resource");
+        assert!(diagnostic.advice.contains("Windows MAX_PATH"));
+    }
 }

@@ -203,6 +203,12 @@ impl Error {
                             "SyncThing cannot write data. Check disk space on the target machine."
                                 .to_string(),
                     }
+                } else if msg.contains("path too long") || msg.contains("filename too long") {
+                    Diagnostic {
+                        category: "Resource".to_string(),
+                        explanation: format!("SyncThing error: {}", msg),
+                        advice: "This is likely due to Windows MAX_PATH limits. Consider enabling long paths in Windows or shortening the folder structure.".to_string(),
+                    }
                 } else {
                     Diagnostic {
                         category: "Internal".to_string(),

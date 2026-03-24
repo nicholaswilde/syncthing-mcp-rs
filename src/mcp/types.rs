@@ -77,12 +77,24 @@ impl From<crate::error::Error> for ResponseError {
             Error::Network(m) => (-32004, format!("Network Error: {}", m)),
             Error::SyncThing(m) => (-32005, format!("SyncThing Error: {}", m)),
             Error::ValidationError(m) => (-32602, format!("Validation Error: {}", m)),
+            Error::Context(e, ctx) => {
+                let inner = ResponseError::from(*e);
+                (inner.code, format!("{}: {}", ctx, inner.message))
+            }
             _ => (-32000, err.to_string()),
+        };
+
+        // Truncate very long technical messages for better AI readability,
+        // but keep the important parts.
+        let concise_message = if message.len() > 500 {
+            format!("{}... (truncated)", &message[..490])
+        } else {
+            message
         };
 
         ResponseError {
             code,
-            message,
+            message: concise_message,
             data: Some(serde_json::to_value(diagnostic).unwrap_or_default()),
         }
     }
