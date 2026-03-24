@@ -21,14 +21,14 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **AI Enthusiasts**: Building autonomous agents that require access to local or remote file synchronization states.
 
 ## Key Features (MVP)
-- **Folder Management**: List configured folders with status; share/unshare folders with devices.
+- **Folder Management**: List configured folders with status; share/unshare folders with devices; view and reject pending folder requests; revert local changes in Receive Only folders.
 - **File Browsing**: Browse files and subdirectories within synced folders with prefix and depth control.
 - **Real-time Notifications**: Background polling of SyncThing events with real-time push notifications to MCP clients (Folder changes, Device connections, etc.).
-- **Device Management**: Manage devices (list, add, remove, pause, resume) and approve pending requests.
-- **System Monitoring**: Access detailed system statistics, version information, and device IDs.
-- **Sync Status**: Query detailed synchronization status and completion for folders and devices.
+- **Device Management**: Manage devices (list, add, remove, pause, resume), approve pending requests, and validate/format device IDs.
+- **System Monitoring**: Access comprehensive system status, version information, real-time connection monitoring with transfer stats, and system logs for troubleshooting.
+- **Sync Status**: Query detailed synchronization status, completion percentage, and granular statistics (last seen, last scan, last synced file) for folders and devices.
 - **Manage Ignores**: View and modify SyncThing ignore patterns (.stignore).
-- **System Maintenance**: Trigger rescans, restart SyncThing, and clear system errors.
+- **System Maintenance**: Trigger rescans, restart or shut down SyncThing, and clear system errors.
 - **Instance Replication**: Sync configurations across multiple SyncThing instances.
 - **Conflict Management**: Identify, resolve, and clean up SyncThing conflict files with metadata-driven decision support and safe deletion (trash).
 - **Security & Secrets**: Secure credential handling with OS Keyring and authenticated encryption.
