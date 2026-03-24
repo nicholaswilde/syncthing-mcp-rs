@@ -218,7 +218,9 @@ impl SyncThingClient {
     pub async fn validate_device_id(&self, device_id: &str) -> Result<DeviceIdResponse> {
         tracing::debug!("Validating SyncThing device ID: {}", device_id);
         let url = format!("{}/rest/svc/deviceid", self.config.url);
-        let request = self.add_auth(self.client.get(&url)).query(&[("id", device_id)]);
+        let request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("id", device_id)]);
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<DeviceIdResponse>().await?)
     }
@@ -429,7 +431,10 @@ impl SyncThingClient {
 
     /// Performs a health check on the SyncThing instance.
     pub async fn health_check(&self) -> Result<HealthCheck> {
-        tracing::debug!("Performing health check for SyncThing instance: {}", self.config.url);
+        tracing::debug!(
+            "Performing health check for SyncThing instance: {}",
+            self.config.url
+        );
         let start = std::time::Instant::now();
         match self.get_system_version().await {
             Ok(version) => {

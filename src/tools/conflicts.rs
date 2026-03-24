@@ -42,7 +42,7 @@ pub async fn scan_conflicts(path: &Path) -> Result<Vec<ConflictInfo>> {
 
 #[async_recursion::async_recursion]
 async fn scan_recursive(
-    root: &Path,
+    _root: &Path,
     current: &Path,
     conflicts: &mut Vec<ConflictInfo>,
 ) -> Result<()> {
@@ -62,7 +62,7 @@ async fn scan_recursive(
         })?;
 
         if file_type.is_dir() {
-            scan_recursive(root, &entry.path(), conflicts).await?;
+            scan_recursive(_root, &entry.path(), conflicts).await?;
         } else {
             let file_name = entry.file_name();
             let file_name_str = file_name.to_string_lossy();
@@ -74,11 +74,9 @@ async fn scan_recursive(
                 }
 
                 let original_path = Path::new(&info.original_path);
-                if original_path.exists() {
-                    if let Ok(metadata) = tokio::fs::metadata(original_path).await {
-                        info.original_size = Some(metadata.len());
-                        info.original_modified = Some(format_system_time(metadata.modified().ok()));
-                    }
+                if let Ok(metadata) = tokio::fs::metadata(original_path).await {
+                    info.original_size = Some(metadata.len());
+                    info.original_modified = Some(format_system_time(metadata.modified().ok()));
                 }
 
                 conflicts.push(info);

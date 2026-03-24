@@ -1640,7 +1640,9 @@ mod tests {
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Pending Folder Requests:"));
         assert!(text.contains("- folder1 (folder1)"));
-        assert!(text.contains("Offered by: DEVICE1 (label: Test Folder, time: 2023-10-27T10:00:00Z)"));
+        assert!(
+            text.contains("Offered by: DEVICE1 (label: Test Folder, time: 2023-10-27T10:00:00Z)")
+        );
     }
 
     #[tokio::test]

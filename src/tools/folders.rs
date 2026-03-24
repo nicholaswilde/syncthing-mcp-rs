@@ -55,7 +55,9 @@ pub async fn manage_folders(
         }
         "reject_pending" => {
             let folder_id = args["folder_id"].as_str().ok_or_else(|| {
-                crate::error::Error::Internal("folder_id is required for reject_pending".to_string())
+                crate::error::Error::Internal(
+                    "folder_id is required for reject_pending".to_string(),
+                )
             })?;
             client.remove_pending_folder(folder_id).await?;
             Ok(json!({

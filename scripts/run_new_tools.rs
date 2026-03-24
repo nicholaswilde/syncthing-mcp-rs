@@ -1,17 +1,19 @@
+use serde_json::json;
+use std::env;
 use syncthing_mcp_rs::api::SyncThingClient;
 use syncthing_mcp_rs::config::AppConfig;
 use syncthing_mcp_rs::tools::create_registry;
-use serde_json::json;
-use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load .env file manually if possible, or just expect vars to be set
     // For this script, we'll assume they are set via command line or exported
-    
+
     let api_key = env::var("SYNCTHING_API_KEY").expect("SYNCTHING_API_KEY must be set");
     let host = env::var("SYNCTHING_HOST").unwrap_or_else(|_| "localhost".to_string());
-    let port = env::var("SYNCTHING_PORT").unwrap_or_else(|_| "8384".to_string()).parse::<u16>()?;
+    let port = env::var("SYNCTHING_PORT")
+        .unwrap_or_else(|_| "8384".to_string())
+        .parse::<u16>()?;
 
     let mut app_config = AppConfig {
         host: host.clone(),
@@ -53,7 +55,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let status = client.get_system_status().await?;
     let my_id = status.my_id;
     let tool = registry.get_tool("manage_devices").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({"action": "validate", "device_id": my_id}))).await?;
+    let result = (tool.handler)(
+        &client,
+        &app_config,
+        Some(json!({"action": "validate", "device_id": my_id})),
+    )
+    .await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     Ok(())

@@ -911,7 +911,10 @@ mod tests {
         let stats = client.get_folder_stats().await.unwrap();
 
         assert_eq!(stats.len(), 1);
-        assert_eq!(stats["folder1"].last_file.as_ref().unwrap().filename, "test.txt");
+        assert_eq!(
+            stats["folder1"].last_file.as_ref().unwrap().filename,
+            "test.txt"
+        );
     }
 
     #[tokio::test]
@@ -947,7 +950,10 @@ mod tests {
         let pending = client.get_pending_folders().await.unwrap();
 
         assert_eq!(pending.len(), 1);
-        assert_eq!(pending["folder1"].offered_by["DEVICE1"].label, "Test Folder");
+        assert_eq!(
+            pending["folder1"].offered_by["DEVICE1"].label,
+            "Test Folder"
+        );
     }
 
     #[tokio::test]
@@ -995,9 +1001,15 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let resp = client.validate_device_id("p56ioi7mzjnu2iqgdreydm2mgtmgl3bxnpq6w5btbbz4tjxzwicq").await.unwrap();
+        let resp = client
+            .validate_device_id("p56ioi7mzjnu2iqgdreydm2mgtmgl3bxnpq6w5btbbz4tjxzwicq")
+            .await
+            .unwrap();
 
-        assert_eq!(resp.id.unwrap(), "P56IOI7-MZJNU2Y-IQGDREY-DM2MGTI-MGL3BXN-PQ6W5BM-TBBZ4TJ-XZWICQ2");
+        assert_eq!(
+            resp.id.unwrap(),
+            "P56IOI7-MZJNU2Y-IQGDREY-DM2MGTI-MGL3BXN-PQ6W5BM-TBBZ4TJ-XZWICQ2"
+        );
     }
 
     #[tokio::test]
