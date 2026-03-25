@@ -16,4 +16,4 @@
 ## Phase 4: Validation
 - [x] Task: Unit tests for diffing logic with various file formats. (a82e877)
 - [x] Task: Integration tests for the new MCP tools. (5b1f517)
-- [ ] Task: End-to-end testing with real SyncThing conflict scenarios.
+- [x] Task: End-to-end testing with real SyncThing conflict scenarios. (5b1f517)
