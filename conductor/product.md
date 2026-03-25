@@ -30,6 +30,6 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Manage Ignores**: View and modify SyncThing ignore patterns (.stignore).
 - **Error Diagnostics**: Analyze and diagnose common SyncThing errors, providing actionable advice.
 - **System Maintenance**: Trigger rescans, restart or shut down SyncThing, and clear system errors.
-- **Instance Replication**: Synchronize configurations across multiple SyncThing instances with granular control (selective folders/devices) and safety previews (dry-run).
+- **Instance Configuration Management**: Generate detailed difference reports between instances; perform additive merges of folders and devices from a source to a target; synchronize configurations with granular control and safety previews.
 - **Conflict Management**: Identify, resolve, and clean up SyncThing conflict files with metadata-driven decision support and safe deletion (trash).
 - **Security & Secrets**: Secure credential handling with OS Keyring and authenticated encryption.
