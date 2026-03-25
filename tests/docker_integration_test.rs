@@ -71,6 +71,23 @@ async fn test_get_instance_health_tool() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_get_global_dashboard_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_global_dashboard", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Global SyncThing Dashboard"));
+    assert!(text.contains("instances online"));
+    assert!(text.contains("🟢"));
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_manage_folders_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// System status information.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct SystemStatus {
     /// The unique identifier for this SyncThing instance.
     #[serde(rename = "myID")]
@@ -22,7 +22,7 @@ pub struct SystemStatus {
 }
 
 /// System version information.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct SystemVersion {
     /// The version string.
     pub version: String,
@@ -42,7 +42,7 @@ pub struct SystemVersion {
 }
 
 /// Folder configuration.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct FolderConfig {
     /// The folder identifier.
     pub id: String,
@@ -67,7 +67,7 @@ pub struct FolderConfig {
 }
 
 /// Configuration for a device associated with a folder.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct FolderDeviceConfiguration {
     /// The device identifier.
     #[serde(rename = "deviceID")]
@@ -75,7 +75,7 @@ pub struct FolderDeviceConfiguration {
 }
 
 /// Device configuration.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct DeviceConfig {
     /// The device identifier.
     #[serde(rename = "deviceID")]
@@ -99,7 +99,7 @@ pub struct DeviceConfig {
 }
 
 /// Ignore patterns for a folder.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct IgnoreConfig {
     /// The list of ignore patterns.
     pub ignore: Option<Vec<String>>,
@@ -108,7 +108,7 @@ pub struct IgnoreConfig {
 }
 
 /// Folder status information.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct FolderStatus {
     /// The current state of the folder.
     pub state: String,
@@ -139,7 +139,7 @@ pub struct FolderStatus {
 }
 
 /// Device completion status.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct DeviceCompletion {
     /// Completion percentage (0.0 to 100.0).
     #[serde(default)]
@@ -156,7 +156,7 @@ pub struct DeviceCompletion {
 }
 
 /// An event from the SyncThing event API.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct Event {
     /// The event ID.
     pub id: u64,
@@ -247,7 +247,7 @@ pub enum EventData {
 }
 
 /// A device that is pending acceptance.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct PendingDevice {
     /// The time the device was last seen.
     pub time: String,
@@ -258,7 +258,7 @@ pub struct PendingDevice {
 }
 
 /// Connection status for a device.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct ConnectionStatus {
     /// The time the status was recorded.
     pub at: Option<String>,
@@ -284,14 +284,14 @@ pub struct ConnectionStatus {
 }
 
 /// Response from /rest/system/connections.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct ConnectionsResponse {
     /// Map of device IDs to connection status.
     pub connections: HashMap<String, ConnectionStatus>,
 }
 
 /// A single log entry from Syncthing.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct LogEntry {
     /// The timestamp of the log entry.
     pub when: String,
@@ -300,14 +300,14 @@ pub struct LogEntry {
 }
 
 /// Response from /rest/system/log.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct SystemLog {
     /// The list of log entries.
     pub messages: Vec<LogEntry>,
 }
 
 /// Statistics for a device.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct DeviceStats {
     /// The time the device was last seen.
     #[serde(rename = "lastSeen")]
@@ -318,7 +318,7 @@ pub struct DeviceStats {
 }
 
 /// Statistics for a folder.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct FolderStats {
     /// The time of the last scan.
     #[serde(rename = "lastScan")]
@@ -329,7 +329,7 @@ pub struct FolderStats {
 }
 
 /// Information about the last file synced in a folder.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct LastFileStats {
     /// The name of the file.
     pub filename: String,
@@ -338,7 +338,7 @@ pub struct LastFileStats {
 }
 
 /// A folder that is pending acceptance.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct PendingFolder {
     /// Devices that have offered this folder.
     #[serde(rename = "offeredBy")]
@@ -346,7 +346,7 @@ pub struct PendingFolder {
 }
 
 /// Information about a device offering a pending folder.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct OfferedBy {
     /// The time the folder was offered.
     pub time: String,
@@ -361,7 +361,7 @@ pub struct OfferedBy {
 }
 
 /// Response from /rest/svc/deviceid.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct DeviceIdResponse {
     /// The formatted device ID.
     pub id: Option<String>,
@@ -370,7 +370,7 @@ pub struct DeviceIdResponse {
 }
 
 /// The root configuration structure.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct Config {
     /// Configuration version.
     pub version: u32,
@@ -392,7 +392,7 @@ pub struct Config {
 }
 
 /// Health check result for a SyncThing instance.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct HealthCheck {
     /// The status of the instance (e.g., "Online", "Offline").
     pub status: String,

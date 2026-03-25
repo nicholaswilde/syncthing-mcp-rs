@@ -1,0 +1,20 @@
+# Implementation Plan: Automated Self-Healing Monitor (self_healing_20260324)
+
+## Phase 1: Stuck Folder Detection
+- [ ] Task: Define metrics for "stuck" folders (e.g., progress, scan time).
+- [ ] Task: Implement a monitor that tracks folder status over time.
+- [ ] Task: Trigger alerts when a folder is deemed stuck.
+
+## Phase 2: Connectivity Watchdog
+- [ ] Task: Monitor device connectivity status.
+- [ ] Task: Implement a retry mechanism with exponential backoff for reconnection.
+- [ ] Task: Alert when a device remains offline beyond a threshold.
+
+## Phase 3: Automated Strategies
+- [ ] Task: Implement automatic rescan for folders stuck in scanning or syncing.
+- [ ] Task: Develop more advanced reconnection strategies (e.g., checking network connectivity).
+
+## Phase 4: Integration & Validation
+- [ ] Task: Unit tests for detection and resolution logic.
+- [ ] Task: Integration tests verifying automatic actions.
+- [ ] Task: End-to-end testing with real SyncThing instances.

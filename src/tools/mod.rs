@@ -12,6 +12,11 @@ mod config_diff_tests;
 pub mod config_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
+/// Global dashboard tool.
+pub mod dashboard;
+/// Unit tests for the dashboard tool.
+#[cfg(test)]
+mod dashboard_tests;
 /// Device management tools.
 pub mod devices;
 /// Folder management tools.
@@ -549,6 +554,16 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["conflict_path"]
         }),
         conflicts::delete_conflict,
+    );
+
+    registry.register(
+        "get_global_dashboard",
+        "Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        dashboard::get_global_dashboard,
     );
 
     registry

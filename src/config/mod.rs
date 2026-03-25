@@ -29,6 +29,9 @@ pub struct AppConfig {
     /// Initial backoff for retries in milliseconds.
     #[serde(default = "default_retry_initial_backoff_ms")]
     pub retry_initial_backoff_ms: u64,
+    /// Timeout for API requests in seconds.
+    #[serde(default = "default_timeout_s")]
+    pub timeout_s: u64,
     /// A list of SyncThing instances to manage.
     #[serde(default, deserialize_with = "deserialize_instances")]
     pub instances: Vec<InstanceConfig>,
@@ -71,6 +74,8 @@ pub struct InstanceConfig {
     pub retry_max_attempts: Option<u32>,
     /// Initial backoff for retries for this instance in milliseconds.
     pub retry_initial_backoff_ms: Option<u64>,
+    /// Timeout for this instance in seconds.
+    pub timeout_s: Option<u64>,
 }
 
 fn default_transport() -> String {
@@ -91,6 +96,10 @@ fn default_retry_max_attempts() -> u32 {
 
 fn default_retry_initial_backoff_ms() -> u64 {
     100
+}
+
+fn default_timeout_s() -> u64 {
+    30
 }
 
 fn default_http_server_enabled() -> bool {
@@ -136,6 +145,7 @@ impl Default for AppConfig {
             no_verify_ssl: true,
             retry_max_attempts: 3,
             retry_initial_backoff_ms: 100,
+            timeout_s: 30,
             instances: Vec::new(),
             http_server: HttpServerConfig::default(),
             mcp_events: default_mcp_events(),
@@ -234,6 +244,7 @@ impl AppConfig {
             .set_default("port", 8384)?
             .set_default("retry_max_attempts", 3)?
             .set_default("retry_initial_backoff_ms", 100)?
+            .set_default("timeout_s", 30)?
             .set_default("http_server.enabled", false)?
             .set_default("http_server.host", "0.0.0.0")?
             .set_default("http_server.port", 3000)?
@@ -315,6 +326,7 @@ impl AppConfig {
                 no_verify_ssl: Some(self.no_verify_ssl),
                 retry_max_attempts: Some(self.retry_max_attempts),
                 retry_initial_backoff_ms: Some(self.retry_initial_backoff_ms),
+                timeout_s: Some(self.timeout_s),
             });
         }
 
@@ -335,6 +347,9 @@ impl AppConfig {
             }
             if inst.retry_initial_backoff_ms.is_none() {
                 inst.retry_initial_backoff_ms = Some(self.retry_initial_backoff_ms);
+            }
+            if inst.timeout_s.is_none() {
+                inst.timeout_s = Some(self.timeout_s);
             }
         }
 

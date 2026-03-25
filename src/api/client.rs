@@ -2,6 +2,7 @@ use crate::api::models::*;
 use crate::config::InstanceConfig;
 use crate::error::{Error, Result};
 use std::collections::HashMap;
+use std::time::Duration;
 use tokio_retry::Retry;
 use tokio_retry::strategy::{ExponentialBackoff, jitter};
 
@@ -17,8 +18,10 @@ pub struct SyncThingClient {
 impl SyncThingClient {
     /// Creates a new SyncThing client with the given configuration.
     pub fn new(config: InstanceConfig) -> Self {
+        let timeout = Duration::from_secs(config.timeout_s.unwrap_or(30));
         let client = reqwest::Client::builder()
             .danger_accept_invalid_certs(config.no_verify_ssl.unwrap_or(true))
+            .timeout(timeout)
             .build()
             .unwrap_or_else(|_| reqwest::Client::new());
         Self { client, config }
