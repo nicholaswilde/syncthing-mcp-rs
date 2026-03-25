@@ -10,6 +10,8 @@ pub struct StuckFolderThresholds {
     pub max_scanning_duration: Duration,
     /// Maximum total duration for a sync operation.
     pub max_sync_duration: Duration,
+    /// Minimum interval between automatic rescans.
+    pub min_rescan_interval: Duration,
 }
 
 /// A snapshot of a folder's status at a specific time.
@@ -19,6 +21,8 @@ pub struct FolderStatusSnapshot {
     pub status: FolderStatus,
     /// The time the snapshot was taken.
     pub timestamp: Instant,
+    /// The time of the last automatic rescan.
+    pub last_rescan: Option<Instant>,
 }
 
 use std::collections::HashMap;
@@ -64,10 +68,19 @@ impl StuckFolderMonitor {
 
     /// Updates the history with the latest folder status.
     pub fn update(&mut self, folder_id: &str, status: FolderStatus, now: Instant) {
-        self.history.insert(
-            folder_id.to_string(),
-            FolderStatusSnapshot { status, timestamp: now },
-        );
+        if let Some(snapshot) = self.history.get_mut(folder_id) {
+            snapshot.status = status;
+            snapshot.timestamp = now;
+        } else {
+            self.history.insert(
+                folder_id.to_string(),
+                FolderStatusSnapshot {
+                    status,
+                    timestamp: now,
+                    last_rescan: None,
+                },
+            );
+        }
     }
 
     /// Checks if a folder is stuck based on current status and its history in the monitor.
@@ -99,7 +112,32 @@ impl StuckFolderMonitor {
             self.alerts.retain(|a| a.folder_id != folder_id);
         }
         
+        // Always update history with latest status
+        self.update(folder_id, current, now);
+        
         result
+    }
+
+    /// Checks if an automatic rescan should be triggered for a folder.
+    pub fn should_rescan(&self, folder_id: &str, now: Instant) -> bool {
+        if let Some(snapshot) = self.history.get(folder_id) {
+            // Check if folder is currently in an alert state
+            if self.alerts.iter().any(|a| a.folder_id == folder_id) {
+                if let Some(last_rescan) = snapshot.last_rescan {
+                    return now.duration_since(last_rescan) >= self.thresholds.min_rescan_interval;
+                } else {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Records that an automatic rescan was triggered for a folder.
+    pub fn record_rescan(&mut self, folder_id: &str, now: Instant) {
+        if let Some(snapshot) = self.history.get_mut(folder_id) {
+            snapshot.last_rescan = Some(now);
+        }
     }
 
     /// Gets a list of alerts for all folders currently deemed stuck.

@@ -8,6 +8,7 @@ fn test_monitor_detects_stuck_folder() {
         max_sync_duration: Duration::from_secs(3600),
         max_stalled_duration: Duration::from_secs(300),
         max_scanning_duration: Duration::from_secs(600),
+        min_rescan_interval: Duration::from_secs(300),
     };
 
     let mut monitor = StuckFolderMonitor::new(thresholds);
@@ -53,6 +54,7 @@ fn test_stuck_folder_detection_progress_stalled() {
         max_sync_duration: Duration::from_secs(3600),
         max_stalled_duration: Duration::from_secs(300),
         max_scanning_duration: Duration::from_secs(600),
+        min_rescan_interval: Duration::from_secs(300),
     };
 
     let now = Instant::now();
@@ -68,6 +70,7 @@ fn test_stuck_folder_detection_progress_stalled() {
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
         timestamp: now - Duration::from_secs(301),
+        last_rescan: None,
     };
 
     // Current status: same as 301 seconds ago
@@ -84,6 +87,7 @@ fn test_stuck_folder_detection_scanning_too_long() {
         max_sync_duration: Duration::from_secs(3600),
         max_stalled_duration: Duration::from_secs(300),
         max_scanning_duration: Duration::from_secs(600),
+        min_rescan_interval: Duration::from_secs(300),
     };
 
     let now = Instant::now();
@@ -97,6 +101,7 @@ fn test_stuck_folder_detection_scanning_too_long() {
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
         timestamp: now - Duration::from_secs(601),
+        last_rescan: None,
     };
 
     // Current status: still scanning
@@ -113,6 +118,7 @@ fn test_not_stuck_if_progress_made() {
         max_sync_duration: Duration::from_secs(3600),
         max_stalled_duration: Duration::from_secs(300),
         max_scanning_duration: Duration::from_secs(600),
+        min_rescan_interval: Duration::from_secs(300),
     };
 
     let now = Instant::now();
@@ -128,6 +134,7 @@ fn test_not_stuck_if_progress_made() {
     let snapshot = FolderStatusSnapshot {
         status: initial_status,
         timestamp: now - Duration::from_secs(301),
+        last_rescan: None,
     };
 
     // Current status: syncing at 60%
@@ -140,4 +147,37 @@ fn test_not_stuck_if_progress_made() {
     
     let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
     assert!(!result.is_stuck, "Folder should NOT be detected as stuck because progress was made");
+}
+
+#[test]
+fn test_should_suggest_rescan_for_stuck_folder() {
+    let thresholds = StuckFolderThresholds {
+        max_sync_duration: Duration::from_secs(3600),
+        max_stalled_duration: Duration::from_secs(300),
+        max_scanning_duration: Duration::from_secs(600),
+        min_rescan_interval: Duration::from_secs(300),
+    };
+
+    let mut monitor = StuckFolderMonitor::new(thresholds);
+    let now = Instant::now();
+    
+    // Initial status: syncing at 50%
+    let status_t0 = FolderStatus {
+        state: "syncing".to_string(),
+        in_sync_bytes: 500,
+        ..Default::default()
+    };
+    monitor.update("folder1", status_t0.clone(), now);
+    
+    // Check after 301 seconds, same status
+    monitor.check("folder1", status_t0.clone(), now + Duration::from_secs(301));
+    
+    // Should suggest rescan
+    assert!(monitor.should_rescan("folder1", now + Duration::from_secs(301)));
+    
+    // Record rescan at t=301
+    monitor.record_rescan("folder1", now + Duration::from_secs(301));
+    
+    // Next rescan should NOT be immediate
+    assert!(!monitor.should_rescan("folder1", now + Duration::from_secs(302)));
 }
