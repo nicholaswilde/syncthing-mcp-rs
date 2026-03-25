@@ -1,14 +1,14 @@
 # Implementation Plan - Implement Configuration Diffing and Merging Tool
 
 ## Phase 1: Core Diffing Logic
-- [ ] Task: Define `ConfigDiff` and `ConfigPatch` structures
-    - [ ] Create data models for representing differences and patches in `src/tools/config_diff.rs`
-- [ ] Task: Implement diffing function
-    - [ ] Write tests for diffing two `Config` objects
-    - [ ] Implement `calculate_diff(base: &Config, head: &Config) -> ConfigDiff`
-- [ ] Task: Implement patching function
-    - [ ] Write tests for applying a `ConfigPatch` to a `Config`
-    - [ ] Implement `apply_patch(config: &mut Config, patch: &ConfigPatch) -> Result<()>`
+- [x] Task: Define ConfigDiff and ConfigPatch structures (6ead759)
+    - [x] Create data models for representing differences and patches in `src/tools/config_diff.rs`
+- [x] Task: Implement diffing function (6ead759)
+    - [x] Write tests for diffing two `Config` objects
+    - [x] Implement `calculate_diff(base: &Config, head: &Config) -> ConfigDiff`
+- [x] Task: Implement patching function (6ead759)
+    - [x] Write tests for applying a `ConfigPatch` to a `Config`
+    - [x] Implement `apply_patch(config: &mut Config, patch: &ConfigPatch) -> Result<()>`
 - [ ] Task: Conductor - User Manual Verification 'Core Diffing Logic' (Protocol in workflow.md)
 
 ## Phase 2: MCP Tool Integration
