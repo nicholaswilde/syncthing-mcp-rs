@@ -15,6 +15,6 @@
 - [x] Task: Develop more advanced reconnection strategies (e.g., checking network connectivity). bcf5c8e
 
 ## Phase 4: Integration & Validation
-- [ ] Task: Unit tests for detection and resolution logic.
-- [ ] Task: Integration tests verifying automatic actions.
+- [x] Task: Unit tests for detection and resolution logic. 75e88eb
+- [x] Task: Integration tests verifying automatic actions. a744e10
 - [ ] Task: End-to-end testing with real SyncThing instances.
