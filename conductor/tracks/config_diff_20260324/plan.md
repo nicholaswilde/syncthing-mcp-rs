@@ -12,14 +12,14 @@
 - [x] Task: Conductor - User Manual Verification 'Core Diffing Logic' (Protocol in workflow.md) (a8a0f3c)
 
 ## Phase 2: MCP Tool Integration
-- [ ] Task: Implement `diff_instance_configs` tool handler
-    - [ ] Write tests for the tool handler in `src/tools/config_tests.rs`
-    - [ ] Implement the `diff_instance_configs` function that fetches configs from two instances and returns a diff
-- [ ] Task: Register the tool in `ToolRegistry`
-    - [ ] Add the new tool to `src/tools/mod.rs`
-- [ ] Task: Implement configuration merging tool
-    - [ ] Write tests for merging configurations
-    - [ ] Create `merge_instance_configs` tool to apply a diff/patch
+- [x] Task: Implement `diff_instance_configs` tool handler (e8a017d)
+    - [x] Write tests for the tool handler in `src/tools/config_tests.rs`
+    - [x] Implement the `diff_instance_configs` function that fetches configs from two instances and returns a diff
+- [x] Task: Register the tool in `ToolRegistry` (e8a017d)
+    - [x] Add the new tool to `src/tools/mod.rs`
+- [x] Task: Implement configuration merging tool (e8a017d)
+    - [x] Write tests for merging configurations
+    - [x] Create `merge_instance_configs` tool to apply a diff/patch
 - [ ] Task: Conductor - User Manual Verification 'MCP Tool Integration' (Protocol in workflow.md)
 
 ## Phase 3: Validation and Refinement
