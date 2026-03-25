@@ -57,6 +57,15 @@ pub fn get_yaml_diff(original: &str, conflict: &str) -> Result<String> {
     }
 }
 
+/// Generates a preview of the conflict resolution.
+pub fn get_resolution_preview(original: &str, conflict: &str, action: &str) -> String {
+    match action {
+        "keep_original" => original.to_string(),
+        "keep_conflict" => conflict.to_string(),
+        _ => "Unsupported action".to_string(),
+    }
+}
+
 /// Generates a diff between the original and conflict versions in the specified format.
 pub fn get_diff(original: &str, conflict: &str, format: DiffFormat) -> Result<String> {
     match format {

@@ -39,4 +39,20 @@ mod tests {
         assert!(diff.contains("b"));
         assert!(diff.contains("c"));
     }
+
+    #[test]
+    fn test_get_resolution_preview_keep_original() {
+        let original = "original content";
+        let conflict = "conflict content";
+        let preview = crate::tools::diff::get_resolution_preview(original, conflict, "keep_original");
+        assert_eq!(preview, original);
+    }
+
+    #[test]
+    fn test_get_resolution_preview_keep_conflict() {
+        let original = "original content";
+        let conflict = "conflict content";
+        let preview = crate::tools::diff::get_resolution_preview(original, conflict, "keep_conflict");
+        assert_eq!(preview, conflict);
+    }
 }
