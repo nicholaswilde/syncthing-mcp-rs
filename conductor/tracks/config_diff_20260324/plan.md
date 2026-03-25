@@ -25,7 +25,7 @@
 ## Phase 3: Validation and Refinement
 - [x] Task: Docker integration tests (614f4a9)
     - [x] Add new tests to `tests/docker_integration_test.rs` to verify cross-instance diffing and merging
-- [ ] Task: Documentation and Quality Gates
-    - [ ] Update `README.md` with the new tools
-    - [ ] Finalize code documentation and verify coverage (>90%)
+- [x] Task: Documentation and Quality Gates (8a3b936)
+    - [x] Update `README.md` with the new tools
+    - [x] Finalize code documentation and verify coverage (>90%)
 - [ ] Task: Conductor - User Manual Verification 'Validation and Refinement' (Protocol in workflow.md)
