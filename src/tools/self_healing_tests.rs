@@ -25,8 +25,25 @@ fn test_monitor_detects_stuck_folder() {
     monitor.update("folder1", status_t0.clone(), now);
     
     // Check after 301 seconds, same status
-    let result = monitor.check("folder1", status_t0, now + Duration::from_secs(301));
+    let result = monitor.check("folder1", status_t0.clone(), now + Duration::from_secs(301));
     assert!(result.is_stuck, "Monitor should detect stuck folder after stalled period");
+
+    // Task 3: Verify alerts
+    let alerts = monitor.get_alerts(now + Duration::from_secs(301));
+    assert_eq!(alerts.len(), 1, "Should have one alert for stuck folder");
+    assert_eq!(alerts[0].folder_id, "folder1");
+    assert_eq!(alerts[0].reason, "Progress stalled for 301s");
+
+    // Clear alert by making progress
+    let status_t2 = FolderStatus {
+        state: "syncing".to_string(),
+        need_bytes: 1000,
+        in_sync_bytes: 600,
+        ..Default::default()
+    };
+    monitor.check("folder1", status_t2, now + Duration::from_secs(302));
+    let alerts = monitor.get_alerts(now + Duration::from_secs(302));
+    assert_eq!(alerts.len(), 0, "Alert should be cleared after progress is made");
 }
 
 

@@ -31,12 +31,25 @@ pub struct StuckCheckResult {
     pub reason: Option<String>,
 }
 
+/// Alert for a folder that is stuck.
+#[derive(Debug, Clone)]
+pub struct FolderAlert {
+    /// The folder ID.
+    pub folder_id: String,
+    /// The reason for the alert.
+    pub reason: String,
+    /// The time the alert was generated.
+    pub timestamp: Instant,
+}
+
 /// Monitor that tracks folder status over time to detect stuck operations.
 pub struct StuckFolderMonitor {
     /// Thresholds for determining if a folder is stuck.
     pub thresholds: StuckFolderThresholds,
     /// Map of folder IDs to their last known status and timestamp.
     pub history: HashMap<String, FolderStatusSnapshot>,
+    /// List of current alerts.
+    pub alerts: Vec<FolderAlert>,
 }
 
 impl StuckFolderMonitor {
@@ -45,6 +58,7 @@ impl StuckFolderMonitor {
         Self {
             thresholds,
             history: HashMap::new(),
+            alerts: Vec::new(),
         }
     }
 
@@ -58,13 +72,39 @@ impl StuckFolderMonitor {
 
     /// Checks if a folder is stuck based on current status and its history in the monitor.
     pub fn check(
-        &self,
+        &mut self,
         folder_id: &str,
         current: FolderStatus,
         now: Instant,
     ) -> StuckCheckResult {
         let previous = self.history.get(folder_id);
-        check_stuck_folder(&current, previous, &self.thresholds, now)
+        let result = check_stuck_folder(&current, previous, &self.thresholds, now);
+        
+        if result.is_stuck {
+            if let Some(reason) = &result.reason {
+                // Update alert or add new one
+                if let Some(alert) = self.alerts.iter_mut().find(|a| a.folder_id == folder_id) {
+                    alert.reason = reason.clone();
+                    alert.timestamp = now;
+                } else {
+                    self.alerts.push(FolderAlert {
+                        folder_id: folder_id.to_string(),
+                        reason: reason.clone(),
+                        timestamp: now,
+                    });
+                }
+            }
+        } else {
+            // Remove alert if it was cleared
+            self.alerts.retain(|a| a.folder_id != folder_id);
+        }
+        
+        result
+    }
+
+    /// Gets a list of alerts for all folders currently deemed stuck.
+    pub fn get_alerts(&self, _now: Instant) -> Vec<FolderAlert> {
+        self.alerts.clone()
     }
 }
 
