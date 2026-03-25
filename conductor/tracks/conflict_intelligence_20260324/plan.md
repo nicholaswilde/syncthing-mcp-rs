@@ -13,7 +13,7 @@
 - [x] Task: Create new MCP tools for conflict diffing and previewing. (4af0613)
 - [x] Task: Update `resolve_conflict` to support a preview step. (e3b18aa)
 
-## Phase 4: Validation
+## Phase 4: Validation [checkpoint: 6577d05]
 - [x] Task: Unit tests for diffing logic with various file formats. (a82e877)
 - [x] Task: Integration tests for the new MCP tools. (5b1f517)
 - [x] Task: End-to-end testing with real SyncThing conflict scenarios. (5b1f517)
