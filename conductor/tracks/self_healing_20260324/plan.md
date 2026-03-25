@@ -12,7 +12,7 @@
 
 ## Phase 3: Automated Strategies
 - [x] Task: Implement automatic rescan for folders stuck in scanning or syncing. 0565ef5
-- [ ] Task: Develop more advanced reconnection strategies (e.g., checking network connectivity).
+- [x] Task: Develop more advanced reconnection strategies (e.g., checking network connectivity). bcf5c8e
 
 ## Phase 4: Integration & Validation
 - [ ] Task: Unit tests for detection and resolution logic.
