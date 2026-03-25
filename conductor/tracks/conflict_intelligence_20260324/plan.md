@@ -3,7 +3,7 @@
 ## Phase 1: Core Diffing Engine
 - [x] Task: Research and select appropriate diffing libraries for Rust. (0f1fab5)
 - [x] Task: Implement basic textual diff extraction for text files. (d3e964d)
-- [ ] Task: Implement semantic diffing for JSON/YAML files.
+- [x] Task: Implement semantic diffing for JSON/YAML files. (709e516)
 
 ## Phase 2: Preview Generation
 - [ ] Task: Create a preview generator that shows the result of a conflict resolution.
