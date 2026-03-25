@@ -45,10 +45,16 @@ impl ConfigDiff {
         let source_folder_ids: HashSet<_> = source_folders.keys().cloned().collect();
         let dest_folder_ids: HashSet<_> = dest_folders.keys().cloned().collect();
 
-        let source_devices: std::collections::HashMap<_, _> =
-            source.devices.iter().map(|d| (d.device_id.as_str(), d)).collect();
-        let dest_devices: std::collections::HashMap<_, _> =
-            dest.devices.iter().map(|d| (d.device_id.as_str(), d)).collect();
+        let source_devices: std::collections::HashMap<_, _> = source
+            .devices
+            .iter()
+            .map(|d| (d.device_id.as_str(), d))
+            .collect();
+        let dest_devices: std::collections::HashMap<_, _> = dest
+            .devices
+            .iter()
+            .map(|d| (d.device_id.as_str(), d))
+            .collect();
 
         let source_device_ids: HashSet<_> = source_devices.keys().cloned().collect();
         let dest_device_ids: HashSet<_> = dest_devices.keys().cloned().collect();
@@ -196,10 +202,14 @@ pub fn calculate_diff(base: &Config, head: &Config) -> ConfigDiff {
 /// Applies a patch to a configuration.
 pub fn apply_patch(config: &mut Config, patch: &ConfigPatch) -> crate::error::Result<()> {
     // 1. Remove folders
-    config.folders.retain(|f| !patch.folders_to_remove.contains(&f.id));
+    config
+        .folders
+        .retain(|f| !patch.folders_to_remove.contains(&f.id));
 
     // 2. Remove devices
-    config.devices.retain(|d| !patch.devices_to_remove.contains(&d.device_id));
+    config
+        .devices
+        .retain(|d| !patch.devices_to_remove.contains(&d.device_id));
 
     // 3. Add or update folders
     for new_folder in &patch.folders {
@@ -212,7 +222,11 @@ pub fn apply_patch(config: &mut Config, patch: &ConfigPatch) -> crate::error::Re
 
     // 4. Add or update devices
     for new_device in &patch.devices {
-        if let Some(existing) = config.devices.iter_mut().find(|d| d.device_id == new_device.device_id) {
+        if let Some(existing) = config
+            .devices
+            .iter_mut()
+            .find(|d| d.device_id == new_device.device_id)
+        {
             *existing = new_device.clone();
         } else {
             config.devices.push(new_device.clone());

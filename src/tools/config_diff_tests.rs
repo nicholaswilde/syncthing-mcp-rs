@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::api::models::{Config, FolderConfig, DeviceConfig};
-    use crate::tools::config_diff::{calculate_diff, ConfigDiff};
+    use crate::api::models::{Config, FolderConfig};
+    use crate::tools::config_diff::calculate_diff;
     use serde_json::json;
 
     fn mock_config() -> Config {
@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_apply_patch() {
-        use crate::tools::config_diff::{apply_patch, ConfigPatch};
+        use crate::tools::config_diff::{ConfigPatch, apply_patch};
 
         let mut config = mock_config();
         config.folders.push(FolderConfig {
@@ -114,18 +114,16 @@ mod tests {
         });
 
         let patch = ConfigPatch {
-            folders: vec![
-                FolderConfig {
-                    id: "f2".to_string(),
-                    label: "Folder 2".to_string(),
-                    path: "/path/2".to_string(),
-                    folder_type: "sendreceive".to_string(),
-                    devices: vec![],
-                    rescan_interval_s: 3600,
-                    fs_watcher_enabled: true,
-                    paused: false,
-                }
-            ],
+            folders: vec![FolderConfig {
+                id: "f2".to_string(),
+                label: "Folder 2".to_string(),
+                path: "/path/2".to_string(),
+                folder_type: "sendreceive".to_string(),
+                devices: vec![],
+                rescan_interval_s: 3600,
+                fs_watcher_enabled: true,
+                paused: false,
+            }],
             folders_to_remove: vec!["f1".to_string()],
             ..Default::default()
         };

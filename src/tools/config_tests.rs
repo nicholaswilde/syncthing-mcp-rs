@@ -22,7 +22,8 @@ mod tests {
     }
 
     fn mock_folder_with_devices(id: &str, device_ids: Vec<&str>) -> Value {
-        let devices: Vec<Value> = device_ids.into_iter()
+        let devices: Vec<Value> = device_ids
+            .into_iter()
             .map(|d_id| json!({"deviceID": d_id}))
             .collect();
         let mut folder = mock_folder(id);
@@ -65,7 +66,7 @@ mod tests {
             .and(path("/rest/config"))
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
                 vec![mock_folder("folder1")],
-                vec![mock_device("device1")]
+                vec![mock_device("device1")],
             )))
             .mount(&source_mock)
             .await;
@@ -171,7 +172,7 @@ mod tests {
             .and(path("/rest/config"))
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
                 vec![mock_folder("exists")],
-                vec![mock_device("exists")]
+                vec![mock_device("exists")],
             )))
             .mount(&source_mock)
             .await;
@@ -261,12 +262,9 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
                 vec![
                     mock_folder_with_devices("folder1", vec!["device1"]),
-                    mock_folder_with_devices("folder2", vec!["device2"])
+                    mock_folder_with_devices("folder2", vec!["device2"]),
                 ],
-                vec![
-                    mock_device("device1"),
-                    mock_device("device2")
-                ]
+                vec![mock_device("device1"), mock_device("device2")],
             )))
             .mount(&source_mock)
             .await;
@@ -336,10 +334,10 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![mock_folder("folder1")],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![mock_folder("folder1")], vec![])),
+            )
             .mount(&source_mock)
             .await;
 
@@ -400,7 +398,7 @@ mod tests {
             .and(path("/rest/config"))
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
                 vec![],
-                vec![mock_device("d1"), mock_device("d2")]
+                vec![mock_device("d1"), mock_device("d2")],
             )))
             .mount(&source_mock)
             .await;
@@ -512,10 +510,9 @@ mod tests {
         source_folder["label"] = json!("Source Label");
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![source_folder],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(mock_config(vec![source_folder], vec![])),
+            )
             .mount(&source_mock)
             .await;
 
@@ -523,10 +520,9 @@ mod tests {
         dest_folder["label"] = json!("Dest Label");
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![dest_folder],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(mock_config(vec![dest_folder], vec![])),
+            )
             .mount(&dest_mock)
             .await;
 
@@ -573,7 +569,7 @@ mod tests {
             .and(path("/rest/config"))
             .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
                 vec![mock_folder("f1")],
-                vec![mock_device("d1")]
+                vec![mock_device("d1")],
             )))
             .mount(&source_mock)
             .await;
@@ -679,10 +675,10 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![],
-                vec![mock_device("device1")]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![], vec![mock_device("device1")])),
+            )
             .mount(&mock_server)
             .await;
 
@@ -722,10 +718,9 @@ mod tests {
         folder["devices"] = json!([{"deviceID": "123"}]);
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![folder],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(mock_config(vec![folder], vec![])),
+            )
             .mount(&source_mock)
             .await;
 
@@ -767,10 +762,10 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![mock_folder("folder1")],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![mock_folder("folder1")], vec![])),
+            )
             .mount(&mock_server)
             .await;
 
@@ -836,18 +831,52 @@ mod tests {
 
     #[tokio::test]
     async fn test_config_diff_generation() {
+        use crate::api::models::{Config, DeviceConfig, FolderConfig};
         use crate::tools::config_diff::ConfigDiff;
-        use crate::api::models::{Config, FolderConfig, DeviceConfig};
 
         let source = Config {
             version: 1,
             folders: vec![
-                FolderConfig { id: "folder1".to_string(), label: "Folder 1".to_string(), path: "/p1".to_string(), folder_type: "sendreceive".to_string(), devices: vec![], rescan_interval_s: 3600, fs_watcher_enabled: true, paused: false },
-                FolderConfig { id: "folder2".to_string(), label: "Folder 2".to_string(), path: "/p2".to_string(), folder_type: "sendreceive".to_string(), devices: vec![], rescan_interval_s: 3600, fs_watcher_enabled: true, paused: false },
+                FolderConfig {
+                    id: "folder1".to_string(),
+                    label: "Folder 1".to_string(),
+                    path: "/p1".to_string(),
+                    folder_type: "sendreceive".to_string(),
+                    devices: vec![],
+                    rescan_interval_s: 3600,
+                    fs_watcher_enabled: true,
+                    paused: false,
+                },
+                FolderConfig {
+                    id: "folder2".to_string(),
+                    label: "Folder 2".to_string(),
+                    path: "/p2".to_string(),
+                    folder_type: "sendreceive".to_string(),
+                    devices: vec![],
+                    rescan_interval_s: 3600,
+                    fs_watcher_enabled: true,
+                    paused: false,
+                },
             ],
             devices: vec![
-                DeviceConfig { device_id: "device1".to_string(), name: Some("Device 1".to_string()), addresses: vec!["dynamic".to_string()], compression: "metadata".to_string(), introducer: false, paused: false, untrusted: false },
-                DeviceConfig { device_id: "device2".to_string(), name: Some("Device 2".to_string()), addresses: vec!["dynamic".to_string()], compression: "metadata".to_string(), introducer: false, paused: false, untrusted: false },
+                DeviceConfig {
+                    device_id: "device1".to_string(),
+                    name: Some("Device 1".to_string()),
+                    addresses: vec!["dynamic".to_string()],
+                    compression: "metadata".to_string(),
+                    introducer: false,
+                    paused: false,
+                    untrusted: false,
+                },
+                DeviceConfig {
+                    device_id: "device2".to_string(),
+                    name: Some("Device 2".to_string()),
+                    addresses: vec!["dynamic".to_string()],
+                    compression: "metadata".to_string(),
+                    introducer: false,
+                    paused: false,
+                    untrusted: false,
+                },
             ],
             gui: json!({}),
             ldap: json!({}),
@@ -859,12 +888,46 @@ mod tests {
         let dest = Config {
             version: 1,
             folders: vec![
-                FolderConfig { id: "folder1".to_string(), label: "Folder 1".to_string(), path: "/p1".to_string(), folder_type: "sendreceive".to_string(), devices: vec![], rescan_interval_s: 3600, fs_watcher_enabled: true, paused: false },
-                FolderConfig { id: "folder3".to_string(), label: "Folder 3".to_string(), path: "/p3".to_string(), folder_type: "sendreceive".to_string(), devices: vec![], rescan_interval_s: 3600, fs_watcher_enabled: true, paused: false },
+                FolderConfig {
+                    id: "folder1".to_string(),
+                    label: "Folder 1".to_string(),
+                    path: "/p1".to_string(),
+                    folder_type: "sendreceive".to_string(),
+                    devices: vec![],
+                    rescan_interval_s: 3600,
+                    fs_watcher_enabled: true,
+                    paused: false,
+                },
+                FolderConfig {
+                    id: "folder3".to_string(),
+                    label: "Folder 3".to_string(),
+                    path: "/p3".to_string(),
+                    folder_type: "sendreceive".to_string(),
+                    devices: vec![],
+                    rescan_interval_s: 3600,
+                    fs_watcher_enabled: true,
+                    paused: false,
+                },
             ],
             devices: vec![
-                DeviceConfig { device_id: "device1".to_string(), name: Some("Device 1".to_string()), addresses: vec!["dynamic".to_string()], compression: "metadata".to_string(), introducer: false, paused: false, untrusted: false },
-                DeviceConfig { device_id: "device3".to_string(), name: Some("Device 3".to_string()), addresses: vec!["dynamic".to_string()], compression: "metadata".to_string(), introducer: false, paused: false, untrusted: false },
+                DeviceConfig {
+                    device_id: "device1".to_string(),
+                    name: Some("Device 1".to_string()),
+                    addresses: vec!["dynamic".to_string()],
+                    compression: "metadata".to_string(),
+                    introducer: false,
+                    paused: false,
+                    untrusted: false,
+                },
+                DeviceConfig {
+                    device_id: "device3".to_string(),
+                    name: Some("Device 3".to_string()),
+                    addresses: vec!["dynamic".to_string()],
+                    compression: "metadata".to_string(),
+                    introducer: false,
+                    paused: false,
+                    untrusted: false,
+                },
             ],
             gui: json!({}),
             ldap: json!({}),
@@ -893,13 +956,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_config_diff_summary_warnings() {
+        use crate::api::models::FolderConfig;
         use crate::tools::config_diff::ConfigDiff;
-        use crate::api::models::{FolderConfig};
 
         let diff = ConfigDiff {
-            folders_added: vec![
-                FolderConfig { id: "f1".to_string(), label: "F1".to_string(), path: "/p1".to_string(), folder_type: "sendreceive".to_string(), devices: vec![], rescan_interval_s: 3600, fs_watcher_enabled: true, paused: false }
-            ],
+            folders_added: vec![FolderConfig {
+                id: "f1".to_string(),
+                label: "F1".to_string(),
+                path: "/p1".to_string(),
+                folder_type: "sendreceive".to_string(),
+                devices: vec![],
+                rescan_interval_s: 3600,
+                fs_watcher_enabled: true,
+                paused: false,
+            }],
             folders_removed: vec!["f2".to_string()],
             folders_updated: vec![],
             devices_added: vec![],
@@ -940,19 +1010,16 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![mock_folder("f1")],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![mock_folder("f1")], vec![])),
+            )
             .mount(&source_mock)
             .await;
 
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![],
-                vec![]
-            )))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(vec![], vec![])))
             .mount(&dest_mock)
             .await;
 
@@ -997,20 +1064,20 @@ mod tests {
         // Source has f1
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![mock_folder("f1")],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![mock_folder("f1")], vec![])),
+            )
             .mount(&source_mock)
             .await;
 
         // Dest has f2
         Mock::given(method("GET"))
             .and(path("/rest/config"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
-                vec![mock_folder("f2")],
-                vec![]
-            )))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(mock_config(vec![mock_folder("f2")], vec![])),
+            )
             .mount(&dest_mock)
             .await;
 
