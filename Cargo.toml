@@ -44,6 +44,14 @@ path = "scripts/run_new_tools.rs"
 name = "run_live_new_tools"
 path = "scripts/run_live_new_tools.rs"
 
+[[example]]
+name = "test_live_conflict_tools"
+path = "scripts/test_live_conflict_tools.rs"
+
+[[example]]
+name = "verify_health_check"
+path = "scripts/verify_health_check.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"
