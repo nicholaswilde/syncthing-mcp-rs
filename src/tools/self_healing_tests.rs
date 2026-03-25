@@ -1,6 +1,34 @@
 use crate::api::models::FolderStatus;
-use crate::tools::self_healing::{check_stuck_folder, StuckFolderThresholds, FolderStatusSnapshot};
+use crate::tools::self_healing::{check_stuck_folder, StuckFolderThresholds, FolderStatusSnapshot, StuckFolderMonitor};
 use std::time::{Duration, Instant};
+
+#[test]
+fn test_monitor_detects_stuck_folder() {
+    let thresholds = StuckFolderThresholds {
+        max_sync_duration: Duration::from_secs(3600),
+        max_stalled_duration: Duration::from_secs(300),
+        max_scanning_duration: Duration::from_secs(600),
+    };
+
+    let mut monitor = StuckFolderMonitor::new(thresholds);
+    let now = Instant::now();
+    
+    // Initial status: syncing at 50%
+    let status_t0 = FolderStatus {
+        state: "syncing".to_string(),
+        need_bytes: 1000,
+        in_sync_bytes: 500,
+        ..Default::default()
+    };
+    
+    // Update monitor at t0
+    monitor.update("folder1", status_t0.clone(), now);
+    
+    // Check after 301 seconds, same status
+    let result = monitor.check("folder1", status_t0, now + Duration::from_secs(301));
+    assert!(result.is_stuck, "Monitor should detect stuck folder after stalled period");
+}
+
 
 #[test]
 fn test_stuck_folder_detection_progress_stalled() {
