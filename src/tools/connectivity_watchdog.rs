@@ -150,6 +150,12 @@ impl ConnectivityMonitor {
 
     /// Checks if a retry attempt should be made for a device.
     pub fn should_retry(&self, device_id: &str, now: Instant) -> bool {
+        // Advanced Strategy: Check if all known devices are offline. 
+        // If they are, it's likely a local network issue, so don't bother retrying individual devices.
+        if self.is_all_offline() && self.history.len() > 1 {
+            return false;
+        }
+
         if let Some(snapshot) = self.history.get(device_id) {
             if !snapshot.connected {
                 let offline_duration = now.duration_since(snapshot.timestamp);
@@ -182,6 +188,14 @@ impl ConnectivityMonitor {
         let exponent = (retry_count - 1).min(10); // Cap exponent to avoid overflow
         let delay = self.thresholds.initial_retry_delay.as_secs() * (2u64.pow(exponent));
         Duration::from_secs(delay.min(self.thresholds.max_retry_delay.as_secs()))
+    }
+
+    /// Checks if all devices in history are currently offline.
+    pub fn is_all_offline(&self) -> bool {
+        if self.history.is_empty() {
+            return false;
+        }
+        self.history.values().all(|s| !s.connected)
     }
 
     /// Gets a list of alerts for all devices currently offline too long.

@@ -76,3 +76,33 @@ fn test_exponential_backoff_retries() {
     assert!(!monitor.should_retry("device1", now + Duration::from_secs(363 + 119)));
     assert!(monitor.should_retry("device1", now + Duration::from_secs(363 + 121)));
 }
+
+#[test]
+fn test_no_retry_if_all_devices_down() {
+    let thresholds = ConnectivityThresholds {
+        max_offline_duration: Duration::from_secs(300),
+        initial_retry_delay: Duration::from_secs(60),
+        max_retry_delay: Duration::from_secs(3600),
+    };
+
+    let mut monitor = ConnectivityMonitor::new(thresholds);
+    let now = Instant::now();
+    
+    // Multiple devices in history
+    monitor.update("device1", true, now);
+    monitor.update("device2", true, now);
+    
+    // Both go down
+    monitor.check("device1", false, now + Duration::from_secs(1));
+    monitor.check("device2", false, now + Duration::from_secs(1));
+    
+    // Check at t=302 (offline for 301s)
+    monitor.check("device1", false, now + Duration::from_secs(302));
+    monitor.check("device2", false, now + Duration::from_secs(302));
+    
+    // is_all_offline should be true
+    assert!(monitor.is_all_offline());
+    
+    // Should NOT retry because all devices are down (likely network issue)
+    assert!(!monitor.should_retry("device1", now + Duration::from_secs(302)));
+}
