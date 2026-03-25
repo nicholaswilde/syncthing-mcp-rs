@@ -23,6 +23,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
   - **Authenticated Encryption:** Support for encrypted configuration fields using ChaCha20-Poly1305.
 - **Authentication:** Connects to Syncthing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
 - **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
+- **Advanced Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
     - `analyze_error`: Analyze a technical error message and provide a diagnostic summary with actionable advice.
@@ -44,8 +45,9 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `manage_folders`: Manage Syncthing folders: list configured folders, get a specific folder, view pending folder requests, reject pending requests, or revert local changes in Receive Only folders.
     - `manage_ignores`: Manage folder ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
     - `merge_instance_configs`: Merges configuration from one SyncThing instance into another. This appends/updates folders and devices instead of replacing the entire configuration.
+    - `preview_conflict_resolution`: Show what the file will look like after a proposed resolution.
     - `replicate_config`: Replicate configuration (folders and devices) from one Syncthing instance to another. Optionally perform a dry run or select specific folders/devices.
-    - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version.
+    - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version. Supports a preview mode.
 
 ## :package: Installation
 
