@@ -910,4 +910,126 @@ mod tests {
         let summary = diff.summary();
         assert!(summary.contains("⚠️ WARNING: This action will REMOVE 1 folder(s) and 1 device(s) from the destination instance."));
     }
+
+    #[tokio::test]
+    async fn test_diff_instance_configs_tool() {
+        use crate::tools::config::diff_instance_configs;
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig {
+            url: source_mock.uri(),
+            ..Default::default()
+        });
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
+                vec![mock_folder("f1")],
+                vec![]
+            )))
+            .mount(&source_mock)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
+                vec![],
+                vec![]
+            )))
+            .mount(&dest_mock)
+            .await;
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest"
+        });
+
+        let result = diff_instance_configs(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folders: 1 added, 0 removed, 0 updated."));
+        assert!(text.contains("+ Folder: f1"));
+    }
+
+    #[tokio::test]
+    async fn test_merge_instance_configs_tool() {
+        use crate::tools::config::merge_instance_configs;
+        let source_mock = MockServer::start().await;
+        let dest_mock = MockServer::start().await;
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig {
+            url: source_mock.uri(),
+            ..Default::default()
+        });
+
+        let config = AppConfig {
+            instances: vec![
+                crate::config::InstanceConfig {
+                    name: Some("source".to_string()),
+                    url: source_mock.uri(),
+                    ..Default::default()
+                },
+                crate::config::InstanceConfig {
+                    name: Some("dest".to_string()),
+                    url: dest_mock.uri(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        // Source has f1
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
+                vec![mock_folder("f1")],
+                vec![]
+            )))
+            .mount(&source_mock)
+            .await;
+
+        // Dest has f2
+        Mock::given(method("GET"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_config(
+                vec![mock_folder("f2")],
+                vec![]
+            )))
+            .mount(&dest_mock)
+            .await;
+
+        Mock::given(method("PUT"))
+            .and(path("/rest/config"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&dest_mock)
+            .await;
+
+        let args = json!({
+            "source": "source",
+            "destination": "dest"
+        });
+
+        let result = merge_instance_configs(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Successfully merged configuration"));
+        assert!(text.contains("+ Folder: f1"));
+        // We should also check that f2 is still there in the applied config,
+        // but that's hard to verify with wiremock without inspecting the PUT body.
+    }
 }

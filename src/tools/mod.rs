@@ -410,6 +410,51 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "diff_instance_configs",
+        "Returns a detailed difference report between two SyncThing instance configurations.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "Name or index of the source SyncThing instance (defaults to the first instance)."
+                },
+                "destination": {
+                    "type": "string",
+                    "description": "Name or index of the destination SyncThing instance."
+                }
+            },
+            "required": ["destination"]
+        }),
+        config::diff_instance_configs,
+    );
+
+    registry.register(
+        "merge_instance_configs",
+        "Merges configuration from one SyncThing instance into another. This appends/updates folders and devices instead of replacing the entire configuration.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "Name or index of the source SyncThing instance (defaults to the first instance)."
+                },
+                "destination": {
+                    "type": "string",
+                    "description": "Name or index of the destination SyncThing instance."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, preview changes without applying them.",
+                    "default": false
+                }
+            },
+            "required": ["destination"]
+        }),
+        config::merge_instance_configs,
+    );
+
+    registry.register(
         "browse_folder",
         "Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.",
         serde_json::json!({

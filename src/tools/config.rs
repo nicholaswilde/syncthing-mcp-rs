@@ -177,3 +177,119 @@ pub async fn replicate_config(
         }]
     }))
 }
+
+/// Merges configuration from one SyncThing instance into another.
+pub async fn merge_instance_configs(
+    client: SyncThingClient,
+    config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let source_name = args.get("source").and_then(|v| v.as_str());
+    let destination_name = args
+        .get("destination")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::ValidationError("destination is required".to_string()))?;
+    let dry_run = args
+        .get("dry_run")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    // 1. Get source client
+    let source_client = if let Some(name) = source_name {
+        let inst_config = config
+            .get_instance(Some(name))
+            .map_err(|e| Error::ValidationError(format!("Source instance not found: {}", e)))?;
+        SyncThingClient::new(inst_config.clone())
+    } else {
+        client.clone()
+    };
+
+    // 2. Get destination client
+    let dest_inst_config = config
+        .get_instance(Some(destination_name))
+        .map_err(|e| Error::ValidationError(format!("Destination instance not found: {}", e)))?;
+    let dest_client = SyncThingClient::new(dest_inst_config.clone());
+
+    // 3. Fetch configs
+    let source_config = source_client.get_config().await?;
+    let mut dest_config = dest_client.get_config().await?;
+
+    // 4. Generate diff and patch
+    // We want source -> dest, so what's in source that is NOT in dest.
+    let diff = crate::tools::config_diff::calculate_diff(&dest_config, &source_config);
+    let patch = diff.to_patch();
+    let summary = diff.summary();
+
+    // 5. Apply patch
+    if !dry_run {
+        crate::tools::config_diff::apply_patch(&mut dest_config, &patch)?;
+        dest_client.set_config(dest_config).await?;
+    }
+
+    let status_prefix = if dry_run {
+        format!(
+            "[DRY RUN] Would merge configuration from {} to {}",
+            source_name.unwrap_or("default"),
+            destination_name
+        )
+    } else {
+        format!(
+            "Successfully merged configuration from {} to {}",
+            source_name.unwrap_or("default"),
+            destination_name
+        )
+    };
+
+    let summary = format!("{}.\n{}", status_prefix, summary);
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": summary
+        }]
+    }))
+}
+
+/// Returns a diff between two SyncThing instance configurations.
+pub async fn diff_instance_configs(
+    client: SyncThingClient,
+    config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let source_name = args.get("source").and_then(|v| v.as_str());
+    let destination_name = args
+        .get("destination")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::ValidationError("destination is required".to_string()))?;
+
+    // 1. Get source client
+    let source_client = if let Some(name) = source_name {
+        let inst_config = config
+            .get_instance(Some(name))
+            .map_err(|e| Error::ValidationError(format!("Source instance not found: {}", e)))?;
+        SyncThingClient::new(inst_config.clone())
+    } else {
+        client.clone()
+    };
+
+    // 2. Get destination client
+    let dest_inst_config = config
+        .get_instance(Some(destination_name))
+        .map_err(|e| Error::ValidationError(format!("Destination instance not found: {}", e)))?;
+    let dest_client = SyncThingClient::new(dest_inst_config.clone());
+
+    // 3. Fetch configs
+    let source_config = source_client.get_config().await?;
+    let dest_config = dest_client.get_config().await?;
+
+    // 4. Generate diff
+    let diff = crate::tools::config_diff::calculate_diff(&dest_config, &source_config);
+    let summary = diff.summary();
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": summary
+        }]
+    }))
+}
