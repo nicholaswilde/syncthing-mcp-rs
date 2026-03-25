@@ -9,7 +9,7 @@
 - [x] Task: Implement patching function (6ead759)
     - [x] Write tests for applying a `ConfigPatch` to a `Config`
     - [x] Implement `apply_patch(config: &mut Config, patch: &ConfigPatch) -> Result<()>`
-- [ ] Task: Conductor - User Manual Verification 'Core Diffing Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Core Diffing Logic' (Protocol in workflow.md) (a8a0f3c)
 
 ## Phase 2: MCP Tool Integration
 - [ ] Task: Implement `diff_instance_configs` tool handler
