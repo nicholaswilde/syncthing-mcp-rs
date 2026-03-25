@@ -95,7 +95,7 @@ fn format_system_time(time: Option<std::time::SystemTime>) -> String {
     .unwrap_or_else(|| "Unknown".to_string())
 }
 
-fn parse_conflict_filename(filename: &str, parent: &Path) -> Option<ConflictInfo> {
+pub(crate) fn parse_conflict_filename(filename: &str, parent: &Path) -> Option<ConflictInfo> {
     let caps = CONFLICT_REGEX.captures(filename)?;
     let base = caps.name("base")?.as_str();
     let timestamp = caps.name("timestamp")?.as_str();

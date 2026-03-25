@@ -562,6 +562,49 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "diff_conflicts",
+        "Compare the original and conflict versions of a file.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "conflict_path": {
+                    "type": "string",
+                    "description": "The full path to the conflict file."
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["auto", "text", "json", "yaml"],
+                    "description": "The format of the files (default: auto).",
+                    "default": "auto"
+                }
+            },
+            "required": ["conflict_path"]
+        }),
+        diff::diff_conflicts,
+    );
+
+    registry.register(
+        "preview_conflict_resolution",
+        "Show what the file will look like after a proposed resolution.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "conflict_path": {
+                    "type": "string",
+                    "description": "The full path to the conflict file."
+                },
+                "action": {
+                    "type": "string",
+                    "enum": ["keep_original", "keep_conflict"],
+                    "description": "The resolution action to preview."
+                }
+            },
+            "required": ["conflict_path", "action"]
+        }),
+        diff::preview_conflict_resolution,
+    );
+
+    registry.register(
         "get_global_dashboard",
         "Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.",
         serde_json::json!({

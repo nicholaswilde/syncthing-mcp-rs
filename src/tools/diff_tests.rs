@@ -55,4 +55,76 @@ mod tests {
         let preview = crate::tools::diff::get_resolution_preview(original, conflict, "keep_conflict");
         assert_eq!(preview, conflict);
     }
+
+    #[tokio::test]
+    async fn test_diff_conflicts_tool() {
+        use tempfile::tempdir;
+        use crate::api::SyncThingClient;
+        use crate::config::{AppConfig, InstanceConfig};
+        use serde_json::json;
+
+        let dir = tempdir().unwrap();
+        let original_path = dir.path().join("test.txt");
+        let conflict_path = dir.path().join("test.sync-conflict-20230101-120000-DEVICE.txt");
+
+        std::fs::write(&original_path, "original content").unwrap();
+        std::fs::write(&conflict_path, "conflict content").unwrap();
+
+        let client = SyncThingClient::new(InstanceConfig {
+            name: Some("test".to_string()),
+            url: "http://localhost:8384".to_string(),
+            api_key: Some("api-key".to_string()),
+            ..Default::default()
+        });
+        let config = AppConfig::default();
+        let args = json!({
+            "conflict_path": conflict_path.to_str().unwrap()
+        });
+
+        let result = crate::tools::diff::diff_conflicts(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("-original content"));
+        assert!(text.contains("+conflict content"));
+    }
+
+    #[tokio::test]
+    async fn test_preview_conflict_resolution_tool() {
+        use tempfile::tempdir;
+        use crate::api::SyncThingClient;
+        use crate::config::{AppConfig, InstanceConfig};
+        use serde_json::json;
+
+        let dir = tempdir().unwrap();
+        let original_path = dir.path().join("test.txt");
+        let conflict_path = dir.path().join("test.sync-conflict-20230101-120000-DEVICE.txt");
+
+        std::fs::write(&original_path, "original content").unwrap();
+        std::fs::write(&conflict_path, "conflict content").unwrap();
+
+        let client = SyncThingClient::new(InstanceConfig {
+            name: Some("test".to_string()),
+            url: "http://localhost:8384".to_string(),
+            api_key: Some("api-key".to_string()),
+            ..Default::default()
+        });
+        let config = AppConfig::default();
+        
+        // Test keep_original
+        let args = json!({
+            "conflict_path": conflict_path.to_str().unwrap(),
+            "action": "keep_original"
+        });
+        let result = crate::tools::diff::preview_conflict_resolution(client.clone(), config.clone(), args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert_eq!(text, "original content");
+
+        // Test keep_conflict
+        let args = json!({
+            "conflict_path": conflict_path.to_str().unwrap(),
+            "action": "keep_conflict"
+        });
+        let result = crate::tools::diff::preview_conflict_resolution(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert_eq!(text, "conflict content");
+    }
 }
