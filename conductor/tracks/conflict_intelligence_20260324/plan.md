@@ -9,7 +9,7 @@
 - [x] Task: Create a preview generator that shows the result of a conflict resolution. (4a2e81c)
 - [x] Task: Support "keep_original" and "keep_conflict" preview modes. (4a2e81c)
 
-## Phase 3: MCP Tool Integration
+## Phase 3: MCP Tool Integration [checkpoint: d7d4cd8]
 - [x] Task: Create new MCP tools for conflict diffing and previewing. (4af0613)
 - [x] Task: Update `resolve_conflict` to support a preview step. (e3b18aa)
 
