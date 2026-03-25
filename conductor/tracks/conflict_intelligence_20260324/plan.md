@@ -7,7 +7,7 @@
 
 ## Phase 2: Preview Generation
 - [x] Task: Create a preview generator that shows the result of a conflict resolution. (4a2e81c)
-- [ ] Task: Support "keep_original" and "keep_conflict" preview modes.
+- [x] Task: Support "keep_original" and "keep_conflict" preview modes. (4a2e81c)
 
 ## Phase 3: MCP Tool Integration
 - [ ] Task: Create new MCP tools for conflict diffing and previewing.
