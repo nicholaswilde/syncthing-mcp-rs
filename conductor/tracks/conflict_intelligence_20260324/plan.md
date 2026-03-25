@@ -2,7 +2,7 @@
 
 ## Phase 1: Core Diffing Engine
 - [x] Task: Research and select appropriate diffing libraries for Rust. (0f1fab5)
-- [ ] Task: Implement basic textual diff extraction for text files.
+- [x] Task: Implement basic textual diff extraction for text files. (d3e964d)
 - [ ] Task: Implement semantic diffing for JSON/YAML files.
 
 ## Phase 2: Preview Generation
