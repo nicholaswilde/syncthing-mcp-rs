@@ -31,6 +31,11 @@ pub mod system;
 /// Unit tests for system tools.
 #[cfg(test)]
 pub mod system_tests;
+/// Self-healing monitor tools.
+pub mod self_healing;
+/// Unit tests for self-healing tools.
+#[cfg(test)]
+mod self_healing_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
