@@ -220,6 +220,24 @@ pub async fn resolve_conflict(
 
     let dry_run = args["dry_run"].as_bool().unwrap_or(false);
     let backup = args["backup"].as_bool().unwrap_or(true);
+    let preview = args["preview"].as_bool().unwrap_or(false);
+
+    if preview {
+        let original_content = tokio::fs::read_to_string(&info.original_path).await.map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to read original file: {}", e))
+        })?;
+        let conflict_content = tokio::fs::read_to_string(conflict_path).await.map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to read conflict file: {}", e))
+        })?;
+
+        let preview_text = crate::tools::diff::get_resolution_preview(&original_content, &conflict_content, action);
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": format!("PREVIEW of resolution: {}\n\nResulting content:\n{}", action, preview_text)
+            }]
+        }));
+    }
 
     match action {
         "keep_original" => {

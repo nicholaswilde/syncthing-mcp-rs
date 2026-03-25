@@ -528,6 +528,11 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "boolean",
                     "description": "If true, move the overwritten or deleted file to the system trash instead of permanent deletion.",
                     "default": true
+                },
+                "preview": {
+                    "type": "boolean",
+                    "description": "If true, return a preview of the resolution without performing any file operations.",
+                    "default": false
                 }
             },
             "required": ["conflict_path", "action"]
