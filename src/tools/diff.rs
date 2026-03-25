@@ -64,18 +64,27 @@ pub fn get_diff(original: &str, conflict: &str, format: DiffFormat) -> Result<St
         DiffFormat::Json => get_json_diff(original, conflict),
         DiffFormat::Yaml => get_yaml_diff(original, conflict),
         DiffFormat::Auto => {
-            // Try JSON first
-            if let Ok(diff) = get_json_diff(original, conflict) {
-                if diff != "No changes detected in JSON structure." {
-                    return Ok(diff);
+            // Check if it's likely JSON or YAML
+            let is_json = original.trim_start().starts_with('{') || original.trim_start().starts_with('[');
+            // YAML is harder to detect but we'll try it if it looks structured
+            let is_yaml = original.contains(": ");
+
+            if is_json {
+                if let Ok(diff) = get_json_diff(original, conflict) {
+                    if diff != "No changes detected in JSON structure." {
+                        return Ok(diff);
+                    }
                 }
             }
-            // Try YAML
-            if let Ok(diff) = get_yaml_diff(original, conflict) {
-                 if diff != "No changes detected in YAML structure." {
-                    return Ok(diff);
+
+            if is_yaml {
+                if let Ok(diff) = get_yaml_diff(original, conflict) {
+                     if diff != "No changes detected in YAML structure." {
+                        return Ok(diff);
+                    }
                 }
             }
+
             // Fallback to text
             Ok(get_text_diff(original, conflict))
         }

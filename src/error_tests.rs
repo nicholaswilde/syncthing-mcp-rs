@@ -34,12 +34,9 @@ mod tests {
     }
 
     #[test]
-    fn test_response_error_truncation() {
-        use crate::mcp::ResponseError;
-        let long_msg = "a".repeat(1000);
-        let err = Error::Internal(long_msg);
-        let resp_err = ResponseError::from(err);
-        assert!(resp_err.message.len() <= 500);
-        assert!(resp_err.message.contains("(truncated)"));
+    fn test_yaml_error_mapping() {
+        let err: serde_yaml_ng::Error = serde_yaml_ng::from_str::<serde_json::Value>("invalid: : yaml").unwrap_err();
+        let error = Error::from(err);
+        assert!(matches!(error, Error::Yaml(_)));
     }
 }

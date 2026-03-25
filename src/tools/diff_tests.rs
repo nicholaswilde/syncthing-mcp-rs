@@ -17,6 +17,7 @@ mod tests {
         let original = "line 1\nline 2";
         let conflict = "line 1\nline 2 mod";
         let diff = get_diff(original, conflict, DiffFormat::Auto).unwrap();
+        println!("Diff: {}", diff);
         assert!(diff.contains("-line 2"));
         assert!(diff.contains("+line 2 mod"));
     }
