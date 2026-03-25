@@ -52,3 +52,6 @@
 - **url**: URL parsing and manipulation.
 - **trash**: Cross-platform file deletion to trash.
 - **async-recursion**: Procedural macro for recursive async functions.
+- **similar**: Textual diffing engine.
+- **serde_json_diff**: Semantic JSON diffing.
+- **serde_yaml_ng**: YAML support for semantic diffing.
