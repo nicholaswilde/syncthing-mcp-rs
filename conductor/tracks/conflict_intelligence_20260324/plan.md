@@ -11,7 +11,7 @@
 
 ## Phase 3: MCP Tool Integration
 - [x] Task: Create new MCP tools for conflict diffing and previewing. (4af0613)
-- [ ] Task: Update `resolve_conflict` to support a preview step.
+- [x] Task: Update `resolve_conflict` to support a preview step. (e3b18aa)
 
 ## Phase 4: Validation
 - [ ] Task: Unit tests for diffing logic with various file formats.
