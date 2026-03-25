@@ -8,7 +8,7 @@
 ## Phase 2: Connectivity Watchdog
 - [x] Task: Monitor device connectivity status. 6e3051e
 - [x] Task: Implement a retry mechanism with exponential backoff for reconnection. 7c1a4ea
-- [ ] Task: Alert when a device remains offline beyond a threshold.
+- [x] Task: Alert when a device remains offline beyond a threshold. 7c1a4ea
 
 ## Phase 3: Automated Strategies
 - [ ] Task: Implement automatic rescan for folders stuck in scanning or syncing.
