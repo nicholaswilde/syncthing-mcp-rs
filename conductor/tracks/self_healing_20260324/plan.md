@@ -2,7 +2,7 @@
 
 ## Phase 1: Stuck Folder Detection
 - [x] Task: Define metrics for "stuck" folders (e.g., progress, scan time). 10ce15c
-- [ ] Task: Implement a monitor that tracks folder status over time.
+- [x] Task: Implement a monitor that tracks folder status over time. 8216534
 - [ ] Task: Trigger alerts when a folder is deemed stuck.
 
 ## Phase 2: Connectivity Watchdog
