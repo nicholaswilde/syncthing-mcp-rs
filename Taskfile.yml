@@ -114,6 +114,14 @@ tasks:
     cmds:
       - RUN_LIVE_TESTS=true cargo test --test live -- --nocapture
 
+  test:live:conflicts:
+    desc: Run conflict tools tests against a live SyncThing instance (requires .env)
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doesn't exist"
+    cmds:
+      - cargo run --example test_live_conflict_tools
+
   fmt:
     desc: Format code with rustfmt
     cmds:
