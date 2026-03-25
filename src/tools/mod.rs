@@ -629,5 +629,21 @@ pub fn create_registry() -> ToolRegistry {
         dashboard::get_global_dashboard,
     );
 
+    registry.register(
+        "monitor_self_healing",
+        "Monitor tool that checks for stuck folders and disconnected devices, and triggers self-healing actions.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, only report what actions would be taken without actually performing them.",
+                    "default": false
+                }
+            }
+        }),
+        self_healing::monitor_self_healing,
+    );
+
     registry
 }
