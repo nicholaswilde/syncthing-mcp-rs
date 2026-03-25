@@ -1,8 +1,8 @@
 # Implementation Plan: Bandwidth Orchestration (bandwidth_orchestration_20260324)
 
 ## Phase 1: Bandwidth Controller
-- [ ] Task: Implement a controller to update upload/download limits across instances.
-- [ ] Task: Support global limits for all instances or per-instance limits.
+- [x] Task: Implement a controller to update upload/download limits across instances. 07da1d6
+- [x] Task: Support global limits for all instances or per-instance limits. 07da1d6
 
 ## Phase 2: Performance Profiles
 - [ ] Task: Define a format for performance profiles.
