@@ -36,6 +36,11 @@ pub mod self_healing;
 /// Unit tests for self-healing tools.
 #[cfg(test)]
 mod self_healing_tests;
+/// Connectivity watchdog tools.
+pub mod connectivity_watchdog;
+/// Unit tests for connectivity watchdog tools.
+#[cfg(test)]
+mod connectivity_watchdog_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
