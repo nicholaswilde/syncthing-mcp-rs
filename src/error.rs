@@ -31,6 +31,10 @@ pub enum Error {
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 
+    /// An error occurred during YAML serialization or deserialization.
+    #[error("YAML error: {0}")]
+    Yaml(#[from] serde_yaml_ng::Error),
+
     /// An internal error occurred.
     #[error("Internal error: {0}")]
     Internal(String),

@@ -20,4 +20,22 @@ mod tests {
         assert!(diff.contains("-line 2"));
         assert!(diff.contains("+line 2 mod"));
     }
+
+    #[test]
+    fn test_get_json_diff() {
+        let original = r#"{"a": 1, "b": 2}"#;
+        let conflict = r#"{"a": 1, "b": 3, "c": 4}"#;
+        let diff = get_diff(original, conflict, DiffFormat::Json).unwrap();
+        assert!(diff.contains("\"b\""));
+        assert!(diff.contains("\"c\""));
+    }
+
+    #[test]
+    fn test_get_yaml_diff() {
+        let original = "a: 1\nb: 2";
+        let conflict = "a: 1\nb: 3\nc: 4";
+        let diff = get_diff(original, conflict, DiffFormat::Yaml).unwrap();
+        assert!(diff.contains("b"));
+        assert!(diff.contains("c"));
+    }
 }
