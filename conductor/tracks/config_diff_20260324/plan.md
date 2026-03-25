@@ -23,8 +23,8 @@
 - [x] Task: Conductor - User Manual Verification 'MCP Tool Integration' (Protocol in workflow.md) (e8a017d)
 
 ## Phase 3: Validation and Refinement
-- [ ] Task: Docker integration tests
-    - [ ] Add new tests to `tests/docker_integration_test.rs` to verify cross-instance diffing and merging
+- [x] Task: Docker integration tests (614f4a9)
+    - [x] Add new tests to `tests/docker_integration_test.rs` to verify cross-instance diffing and merging
 - [ ] Task: Documentation and Quality Gates
     - [ ] Update `README.md` with the new tools
     - [ ] Finalize code documentation and verify coverage (>90%)
