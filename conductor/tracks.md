@@ -2,7 +2,6 @@
 
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
-- [x] **Track: conflict_intelligence_20260324** - Advanced Conflict Intelligence: Semantic diffing, textual diff extraction, and conflict preview generation.
 - [ ] **Track: self_healing_20260324** - Automated 'Self-Healing' Monitor: Stuck folder detection, connectivity watchdog, and automatic rescan/reconnection strategies.
 
 - [ ] **Track: bandwidth_orchestration_20260324** - Bandwidth Orchestration: Dynamic rate limiting, performance profiles, and global upload/download limits.
