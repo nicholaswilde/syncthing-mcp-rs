@@ -7,7 +7,7 @@
 
 ## Phase 2: Connectivity Watchdog
 - [x] Task: Monitor device connectivity status. 6e3051e
-- [ ] Task: Implement a retry mechanism with exponential backoff for reconnection.
+- [x] Task: Implement a retry mechanism with exponential backoff for reconnection. 7c1a4ea
 - [ ] Task: Alert when a device remains offline beyond a threshold.
 
 ## Phase 3: Automated Strategies
