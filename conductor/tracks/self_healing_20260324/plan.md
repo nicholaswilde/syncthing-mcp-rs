@@ -1,7 +1,7 @@
 # Implementation Plan: Automated Self-Healing Monitor (self_healing_20260324)
 
 ## Phase 1: Stuck Folder Detection
-- [ ] Task: Define metrics for "stuck" folders (e.g., progress, scan time).
+- [x] Task: Define metrics for "stuck" folders (e.g., progress, scan time). 10ce15c
 - [ ] Task: Implement a monitor that tracks folder status over time.
 - [ ] Task: Trigger alerts when a folder is deemed stuck.
 
