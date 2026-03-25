@@ -6,7 +6,7 @@
 - [x] Task: Implement semantic diffing for JSON/YAML files. (709e516)
 
 ## Phase 2: Preview Generation
-- [ ] Task: Create a preview generator that shows the result of a conflict resolution.
+- [x] Task: Create a preview generator that shows the result of a conflict resolution. (4a2e81c)
 - [ ] Task: Support "keep_original" and "keep_conflict" preview modes.
 
 ## Phase 3: MCP Tool Integration
