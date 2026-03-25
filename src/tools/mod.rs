@@ -19,6 +19,11 @@ pub mod dashboard;
 mod dashboard_tests;
 /// Device management tools.
 pub mod devices;
+/// Advanced diffing tools for conflict resolution.
+pub mod diff;
+/// Unit tests for advanced diffing tools.
+#[cfg(test)]
+mod diff_tests;
 /// Folder management tools.
 pub mod folders;
 /// System status and maintenance tools.
