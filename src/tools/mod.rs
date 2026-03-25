@@ -1,5 +1,13 @@
+/// Bandwidth orchestration tools.
+pub mod bandwidth;
+/// Unit tests for bandwidth tools.
+#[cfg(test)]
+mod bandwidth_tests;
 /// Browser tool for exploring synced folders.
 pub mod browser;
+/// Unit tests for the browser tool.
+#[cfg(test)]
+mod browser_tests;
 /// Configuration replication tool.
 pub mod config;
 /// Configuration diff generator.
@@ -12,6 +20,11 @@ mod config_diff_tests;
 pub mod config_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
+/// Connectivity watchdog tools.
+pub mod connectivity_watchdog;
+/// Unit tests for connectivity watchdog tools.
+#[cfg(test)]
+mod connectivity_watchdog_tests;
 /// Global dashboard tool.
 pub mod dashboard;
 /// Unit tests for the dashboard tool.
@@ -19,6 +32,9 @@ pub mod dashboard;
 mod dashboard_tests;
 /// Device management tools.
 pub mod devices;
+/// Unit tests for the devices tool.
+#[cfg(test)]
+mod devices_tests;
 /// Advanced diffing tools for conflict resolution.
 pub mod diff;
 /// Unit tests for advanced diffing tools.
@@ -26,21 +42,16 @@ pub mod diff;
 mod diff_tests;
 /// Folder management tools.
 pub mod folders;
-/// System status and maintenance tools.
-pub mod system;
-/// Unit tests for system tools.
-#[cfg(test)]
-pub mod system_tests;
 /// Self-healing monitor tools.
 pub mod self_healing;
 /// Unit tests for self-healing tools.
 #[cfg(test)]
 mod self_healing_tests;
-/// Connectivity watchdog tools.
-pub mod connectivity_watchdog;
-/// Unit tests for connectivity watchdog tools.
+/// System status and maintenance tools.
+pub mod system;
+/// Unit tests for system tools.
 #[cfg(test)]
-mod connectivity_watchdog_tests;
+pub mod system_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
