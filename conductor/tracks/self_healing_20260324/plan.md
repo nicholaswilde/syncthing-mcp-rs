@@ -10,7 +10,7 @@
 - [x] Task: Implement a retry mechanism with exponential backoff for reconnection. 7c1a4ea
 - [x] Task: Alert when a device remains offline beyond a threshold. 7c1a4ea
 
-## Phase 3: Automated Strategies
+## Phase 3: Automated Strategies [checkpoint: 75e88eb]
 - [x] Task: Implement automatic rescan for folders stuck in scanning or syncing. 0565ef5
 - [x] Task: Develop more advanced reconnection strategies (e.g., checking network connectivity). bcf5c8e
 
