@@ -4,13 +4,14 @@ use std::sync::{Arc, Mutex};
 use syncthing_mcp_rs::api::SyncThingClient;
 use syncthing_mcp_rs::config::{AppConfig, InstanceConfig};
 use syncthing_mcp_rs::tools::ToolRegistry;
-use testcontainers::core::{ContainerPort, WaitFor};
+use testcontainers::core::{ContainerPort, WaitFor, ExecCommand};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
 use tokio::io::AsyncBufReadExt;
 
 pub struct SyncThingContainer {
-    _container: testcontainers::ContainerAsync<GenericImage>,
+    #[allow(dead_code)]
+    pub container: testcontainers::ContainerAsync<GenericImage>,
     pub host: String,
     pub port: u16,
     pub api_key: String,
@@ -18,13 +19,21 @@ pub struct SyncThingContainer {
 
 impl SyncThingContainer {
     pub async fn new() -> Result<Self> {
+        Self::with_mount(None).await
+    }
+
+    pub async fn with_mount(mount: Option<(String, String)>) -> Result<Self> {
         println!("🐳 Starting SyncThing container...");
         let api_key = "test-api-key".to_string();
 
-        let image = GenericImage::new("syncthing/syncthing", "latest")
+        let mut image = GenericImage::new("syncthing/syncthing", "latest")
             .with_wait_for(WaitFor::seconds(10))
             .with_exposed_port(ContainerPort::Tcp(8384))
             .with_env_var("STGUIAPIKEY", &api_key);
+
+        if let Some((host_path, container_path)) = mount {
+            image = image.with_mount(testcontainers::core::Mount::bind_mount(host_path, container_path));
+        }
 
         let container: testcontainers::ContainerAsync<GenericImage> = image.start().await?;
 
@@ -69,11 +78,17 @@ impl SyncThingContainer {
         }
 
         Ok(Self {
-            _container: container,
+            container,
             host,
             port,
             api_key,
         })
+    }
+
+    #[allow(dead_code)]
+    pub async fn exec(&self, cmd: Vec<String>) -> Result<()> {
+        self.container.exec(ExecCommand::new(cmd)).await?;
+        Ok(())
     }
 
     pub fn client(&self) -> SyncThingClient {

@@ -635,3 +635,49 @@ async fn test_tool_error_reporting() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_conflict_diff_and_preview_tools() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    use tempfile::tempdir;
+    let temp_dir = tempdir()?;
+    let host_path = temp_dir.path().to_str().unwrap().to_string();
+    let container_path = "/var/syncthing/test-mount".to_string();
+
+    let container = SyncThingContainer::with_mount(Some((host_path.clone(), container_path.clone()))).await?;
+    let ctx = TestContext::from_container(container);
+    
+    // Create original and conflict files on the host (accessible to both)
+    let original_filename = "test.txt";
+    let conflict_filename = "test.sync-conflict-20230101-120000-DEVICE.txt";
+    
+    let host_original_path = temp_dir.path().join(original_filename);
+    let host_conflict_path = temp_dir.path().join(conflict_filename);
+    
+    std::fs::write(&host_original_path, "original content")?;
+    std::fs::write(&host_conflict_path, "conflict content")?;
+
+    // The tool will be called with the path as seen by the MCP server (host path)
+    let mcp_conflict_path = host_conflict_path.to_str().unwrap();
+
+    // 1. Test diff_conflicts
+    let result = ctx.call_tool("diff_conflicts", json!({
+        "conflict_path": mcp_conflict_path
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("-original content"));
+    assert!(text.contains("+conflict content"));
+
+    // 2. Test preview_conflict_resolution
+    let result = ctx.call_tool("preview_conflict_resolution", json!({
+        "conflict_path": mcp_conflict_path,
+        "action": "keep_conflict"
+    })).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert_eq!(text, "conflict content");
+
+    Ok(())
+}
