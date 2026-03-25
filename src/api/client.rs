@@ -81,16 +81,16 @@ impl SyncThingClient {
     }
 
     /// Returns the full configuration.
-    pub async fn get_config(&self) -> Result<serde_json::Value> {
+    pub async fn get_config(&self) -> Result<Config> {
         tracing::debug!("Fetching full SyncThing configuration");
         let url = format!("{}/rest/config", self.config.url);
         let request = self.add_auth(self.client.get(&url));
         let response = self.send_with_retry(request).await?;
-        Ok(response.json::<serde_json::Value>().await?)
+        Ok(response.json::<Config>().await?)
     }
 
     /// Sets the full configuration.
-    pub async fn set_config(&self, config: serde_json::Value) -> Result<()> {
+    pub async fn set_config(&self, config: Config) -> Result<()> {
         tracing::debug!("Setting full SyncThing configuration");
         let url = format!("{}/rest/config", self.config.url);
         let request = self.add_auth(self.client.put(&url)).json(&config);

@@ -2,6 +2,7 @@
 #[allow(clippy::module_inception)]
 mod tests {
     use crate::api::client::SyncThingClient;
+    use crate::api::models::*;
     use crate::config::InstanceConfig;
     use wiremock::matchers::{header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -81,7 +82,12 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "version": 37,
                 "folders": [],
-                "devices": []
+                "devices": [],
+                "gui": {},
+                "ldap": {},
+                "options": {},
+                "remoteIgnoredDevices": [],
+                "defaults": {}
             })))
             .mount(&mock_server)
             .await;
@@ -95,7 +101,7 @@ mod tests {
         let client = SyncThingClient::new(config);
         let config_data = client.get_config().await.unwrap();
 
-        assert_eq!(config_data["version"], 37);
+        assert_eq!(config_data.version, 37);
     }
 
     #[tokio::test]
@@ -117,11 +123,16 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let new_config = serde_json::json!({
-            "version": 37,
-            "folders": [],
-            "devices": []
-        });
+        let new_config = Config {
+            version: 37,
+            folders: vec![],
+            devices: vec![],
+            gui: serde_json::json!({}),
+            ldap: serde_json::json!({}),
+            options: serde_json::json!({}),
+            remote_ignored_devices: serde_json::json!([]),
+            defaults: serde_json::json!({}),
+        };
 
         let result = client.set_config(new_config).await;
         assert!(result.is_ok());

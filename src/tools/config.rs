@@ -60,23 +60,12 @@ pub async fn replicate_config(
     let mut dest_config = dest_client.get_config().await?;
 
     // 4. Extract folders and devices from source
-    let source_folders_all = source_config
-        .get("folders")
-        .and_then(|f| f.as_array())
-        .cloned()
-        .unwrap_or_default();
-    let source_devices_all = source_config
-        .get("devices")
-        .and_then(|d| d.as_array())
-        .cloned()
-        .unwrap_or_default();
+    let source_folders_all = source_config.folders.clone();
+    let source_devices_all = source_config.devices.clone();
 
     // Validate that filtered IDs exist in source
     if let Some(filter) = folder_filter {
-        let source_ids: HashSet<_> = source_folders_all
-            .iter()
-            .filter_map(|f| f.get("id").and_then(|id| id.as_str()))
-            .collect();
+        let source_ids: HashSet<_> = source_folders_all.iter().map(|f| f.id.as_str()).collect();
         for id in filter {
             let id_str = id
                 .as_str()
@@ -90,10 +79,7 @@ pub async fn replicate_config(
         }
     }
     if let Some(filter) = device_filter {
-        let source_ids: HashSet<_> = source_devices_all
-            .iter()
-            .filter_map(|d| d.get("deviceID").and_then(|id| id.as_str()))
-            .collect();
+        let source_ids: HashSet<_> = source_devices_all.iter().map(|d| d.device_id.as_str()).collect();
         for id in filter {
             let id_str = id
                 .as_str()
@@ -112,12 +98,7 @@ pub async fn replicate_config(
         let folder_ids: HashSet<_> = filter.iter().filter_map(|id| id.as_str()).collect();
         source_folders_all
             .iter()
-            .filter(|f| {
-                f.get("id")
-                    .and_then(|id| id.as_str())
-                    .map(|id| folder_ids.contains(id))
-                    .unwrap_or(false)
-            })
+            .filter(|f| folder_ids.contains(f.id.as_str()))
             .cloned()
             .collect()
     } else {
@@ -128,78 +109,47 @@ pub async fn replicate_config(
         let device_ids: HashSet<_> = filter.iter().filter_map(|id| id.as_str()).collect();
         source_devices_all
             .iter()
-            .filter(|d| {
-                d.get("deviceID")
-                    .and_then(|id| id.as_str())
-                    .map(|id| device_ids.contains(id))
-                    .unwrap_or(false)
-            })
+            .filter(|d| device_ids.contains(d.device_id.as_str()))
             .cloned()
             .collect()
     } else {
-        // If no device filter is provided, we default to all devices (legacy behavior)
-        // OR we could default to only devices used by folders.
-        // Spec says: "Support selective replication of specific devices by their IDs"
-        // If omitted, all devices are replicated (standard behavior).
         source_devices_all.clone()
     };
 
     // Add devices that are used by the filtered folders
     let mut required_device_ids = HashSet::new();
     for folder in &source_folders {
-        if let Some(devices) = folder.get("devices").and_then(|d| d.as_array()) {
-            for device in devices {
-                if let Some(id) = device.get("deviceID").and_then(|id| id.as_str()) {
-                    required_device_ids.insert(id.to_string());
-                }
-            }
+        for device in &folder.devices {
+            required_device_ids.insert(device.device_id.clone());
         }
     }
 
     for device in &source_devices_all {
-        if let Some(id) = device.get("deviceID").and_then(|id| id.as_str())
-            && required_device_ids.contains(id)
+        if required_device_ids.contains(&device.device_id)
             && !source_devices
                 .iter()
-                .any(|d| d.get("deviceID").and_then(|id| id.as_str()) == Some(id))
+                .any(|d| d.device_id == device.device_id)
         {
             source_devices.push(device.clone());
         }
     }
 
-    // Special case: if folder filtering is used but NO device filtering is used,
-    // we might want to ONLY include devices used by those folders.
-    // However, the current standard is to replicate all devices unless filtered.
-    // Let's stick to the spec: "If omitted, all devices are replicated."
-    // But if we want to be "Advanced", maybe we should only replicate relevant devices.
-    // The test expects ONLY device1.
-    // So if folders are filtered, we should probably also filter devices to only those used.
-
     if folder_filter.is_some() && device_filter.is_none() {
-        source_devices.retain(|d| {
-            d.get("deviceID")
-                .and_then(|id| id.as_str())
-                .map(|id| required_device_ids.contains(id))
-                .unwrap_or(false)
-        });
+        source_devices.retain(|d| required_device_ids.contains(&d.device_id));
     }
 
     // 5. Build difference report
     let mut source_config_filtered = source_config.clone();
-    if let Some(obj) = source_config_filtered.as_object_mut() {
-        obj.insert("folders".to_string(), Value::Array(source_folders.clone()));
-        obj.insert("devices".to_string(), Value::Array(source_devices.clone()));
-    }
+    source_config_filtered.folders = source_folders.clone();
+    source_config_filtered.devices = source_devices.clone();
 
     let diff =
         crate::tools::config_diff::ConfigDiff::generate(&source_config_filtered, &dest_config);
     let diff_summary = diff.summary();
 
     // 6. Update destination config
-    if let Some(obj) = dest_config.as_object_mut() {
-        obj.insert("folders".to_string(), Value::Array(source_folders.clone()));
-        obj.insert("devices".to_string(), Value::Array(source_devices.clone()));
-    }
+    dest_config.folders = source_folders;
+    dest_config.devices = source_devices;
 
     // 7. Apply to destination
     if !dry_run {

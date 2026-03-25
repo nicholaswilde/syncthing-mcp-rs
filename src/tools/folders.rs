@@ -3,7 +3,7 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::{Error, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Manages SyncThing folders (list, add, remove, pause, resume).
 pub async fn manage_folders(

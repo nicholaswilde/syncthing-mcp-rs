@@ -196,7 +196,9 @@ impl Error {
                         advice: "Specified device ID is incorrect. List devices to see valid IDs."
                             .to_string(),
                     }
-                } else if msg_lower.contains("disk space") || msg_lower.contains("no space left on device") {
+                } else if msg_lower.contains("disk space")
+                    || msg_lower.contains("no space left on device")
+                {
                     Diagnostic {
                         category: "Resource".to_string(),
                         explanation: format!("SyncThing error: {}", msg),
@@ -204,7 +206,9 @@ impl Error {
                             "SyncThing cannot write data. Check disk space on the target machine."
                                 .to_string(),
                     }
-                } else if msg_lower.contains("path too long") || msg_lower.contains("filename too long") {
+                } else if msg_lower.contains("path too long")
+                    || msg_lower.contains("filename too long")
+                {
                     Diagnostic {
                         category: "Resource".to_string(),
                         explanation: format!("SyncThing error: {}", msg),
