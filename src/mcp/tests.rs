@@ -1554,8 +1554,30 @@ mod tests {
             .and(path("/rest/config"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "version": 37,
-                "folders": [{"id": "folder1"}],
-                "devices": [{"deviceID": "device1"}]
+                "folders": [{
+                    "id": "folder1",
+                    "label": "folder1",
+                    "path": "/tmp/folder1",
+                    "type": "sendreceive",
+                    "devices": [],
+                    "rescan_interval_s": 3600,
+                    "fs_watcher_enabled": true,
+                    "paused": false
+                }],
+                "devices": [{
+                    "deviceID": "device1",
+                    "name": "device1",
+                    "addresses": ["dynamic"],
+                    "compression": "metadata",
+                    "introducer": false,
+                    "paused": false,
+                    "untrusted": false
+                }],
+                "gui": {},
+                "ldap": {},
+                "options": {},
+                "remoteIgnoredDevices": [],
+                "defaults": {}
             })))
             .mount(&source_mock)
             .await;
@@ -1566,7 +1588,12 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "version": 37,
                 "folders": [],
-                "devices": []
+                "devices": [],
+                "gui": {},
+                "ldap": {},
+                "options": {},
+                "remoteIgnoredDevices": [],
+                "defaults": {}
             })))
             .mount(&dest_mock)
             .await;
