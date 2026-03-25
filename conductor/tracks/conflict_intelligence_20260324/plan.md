@@ -1,7 +1,7 @@
 # Implementation Plan: Advanced Conflict Intelligence (conflict_intelligence_20260324)
 
 ## Phase 1: Core Diffing Engine
-- [ ] Task: Research and select appropriate diffing libraries for Rust.
+- [x] Task: Research and select appropriate diffing libraries for Rust. (0f1fab5)
 - [ ] Task: Implement basic textual diff extraction for text files.
 - [ ] Task: Implement semantic diffing for JSON/YAML files.
 
