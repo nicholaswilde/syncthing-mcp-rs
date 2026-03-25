@@ -10,7 +10,7 @@
 - [x] Task: Support "keep_original" and "keep_conflict" preview modes. (4a2e81c)
 
 ## Phase 3: MCP Tool Integration
-- [ ] Task: Create new MCP tools for conflict diffing and previewing.
+- [x] Task: Create new MCP tools for conflict diffing and previewing. (4af0613)
 - [ ] Task: Update `resolve_conflict` to support a preview step.
 
 ## Phase 4: Validation
