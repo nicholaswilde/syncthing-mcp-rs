@@ -217,7 +217,12 @@ pub async fn merge_instance_configs(
     // 4. Generate diff and patch
     // We want source -> dest, so what's in source that is NOT in dest.
     let diff = crate::tools::config_diff::calculate_diff(&dest_config, &source_config);
-    let patch = diff.to_patch();
+    let mut patch = diff.to_patch();
+    
+    // For a merge, we don't want to remove existing configuration on the destination
+    patch.folders_to_remove.clear();
+    patch.devices_to_remove.clear();
+    
     let summary = diff.summary();
 
     // 5. Apply patch

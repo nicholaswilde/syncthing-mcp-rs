@@ -460,6 +460,130 @@ async fn test_replicate_config_tool() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_diff_instance_configs_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let source_container = SyncThingContainer::new().await?;
+    let dest_container = SyncThingContainer::new().await?;
+
+    let source_config = source_container.instance_config();
+    let dest_config = dest_container.instance_config();
+
+    let mut app_config = syncthing_mcp_rs::config::AppConfig {
+        instances: vec![
+            syncthing_mcp_rs::config::InstanceConfig {
+                name: Some("source".to_string()),
+                ..source_config
+            },
+            syncthing_mcp_rs::config::InstanceConfig {
+                name: Some("dest".to_string()),
+                ..dest_config
+            },
+        ],
+        ..Default::default()
+    };
+    app_config.validate().unwrap();
+
+    let source_client = source_container.client();
+
+    // 1. Add a folder to source
+    source_client
+        .add_folder("test-diff", "Test Diff", "/tmp/diff")
+        .await?;
+
+    let ctx = TestContext::from_container(source_container);
+    // Overwrite the context's config with our multi-instance config
+    let mut ctx = ctx;
+    ctx.config = app_config;
+
+    // 2. Call diff_instance_configs
+    let result = ctx
+        .call_tool(
+            "diff_instance_configs",
+            json!({
+                "source": "source",
+                "destination": "dest"
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Folders: 1 added, 0 removed, 0 updated."));
+    assert!(text.contains("+ Folder: test-diff"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_merge_instance_configs_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let source_container = SyncThingContainer::new().await?;
+    let dest_container = SyncThingContainer::new().await?;
+
+    let source_config = source_container.instance_config();
+    let dest_config = dest_container.instance_config();
+
+    let mut app_config = syncthing_mcp_rs::config::AppConfig {
+        instances: vec![
+            syncthing_mcp_rs::config::InstanceConfig {
+                name: Some("source".to_string()),
+                ..source_config
+            },
+            syncthing_mcp_rs::config::InstanceConfig {
+                name: Some("dest".to_string()),
+                ..dest_config
+            },
+        ],
+        ..Default::default()
+    };
+    app_config.validate().unwrap();
+
+    let source_client = source_container.client();
+    let dest_client = dest_container.client();
+
+    // 1. Add a folder to source
+    source_client
+        .add_folder("folder-source", "Source Folder", "/tmp/source")
+        .await?;
+
+    // 2. Add a folder to dest (should be preserved)
+    dest_client
+        .add_folder("folder-dest", "Dest Folder", "/tmp/dest")
+        .await?;
+
+    let ctx = TestContext::from_container(source_container);
+    let mut ctx = ctx;
+    ctx.config = app_config;
+
+    // 3. Call merge_instance_configs
+    let result = ctx
+        .call_tool(
+            "merge_instance_configs",
+            json!({
+                "source": "source",
+                "destination": "dest"
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully merged configuration"));
+    assert!(text.contains("+ Folder: folder-source"));
+
+    // 4. Verify on destination
+    let dest_folders = dest_client.list_folders().await?;
+    assert!(dest_folders.iter().any(|f| f.id == "folder-source"));
+    assert!(dest_folders.iter().any(|f| f.id == "folder-dest"));
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_tool_error_reporting() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
@@ -478,7 +602,9 @@ async fn test_tool_error_reporting() -> Result<()> {
 
     assert!(result.is_err());
     let err = result.unwrap_err();
-    let resp_err = err.downcast_ref::<syncthing_mcp_rs::error::Error>().unwrap();
+    let resp_err = err
+        .downcast_ref::<syncthing_mcp_rs::error::Error>()
+        .unwrap();
 
     let diagnostic = resp_err.diagnose();
     assert!(diagnostic.advice.contains("Verify the ID and endpoint"));
