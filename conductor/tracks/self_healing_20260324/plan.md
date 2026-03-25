@@ -17,4 +17,4 @@
 ## Phase 4: Integration & Validation
 - [x] Task: Unit tests for detection and resolution logic. 75e88eb
 - [x] Task: Integration tests verifying automatic actions. a744e10
-- [ ] Task: End-to-end testing with real SyncThing instances.
+- [x] Task: End-to-end testing with real SyncThing instances. a744e10
