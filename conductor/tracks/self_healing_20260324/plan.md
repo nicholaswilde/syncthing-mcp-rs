@@ -6,7 +6,7 @@
 - [x] Task: Trigger alerts when a folder is deemed stuck. c25ace4
 
 ## Phase 2: Connectivity Watchdog
-- [ ] Task: Monitor device connectivity status.
+- [x] Task: Monitor device connectivity status. 6e3051e
 - [ ] Task: Implement a retry mechanism with exponential backoff for reconnection.
 - [ ] Task: Alert when a device remains offline beyond a threshold.
 
