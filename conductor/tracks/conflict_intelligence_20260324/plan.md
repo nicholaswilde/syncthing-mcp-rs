@@ -5,7 +5,7 @@
 - [x] Task: Implement basic textual diff extraction for text files. (d3e964d)
 - [x] Task: Implement semantic diffing for JSON/YAML files. (709e516)
 
-## Phase 2: Preview Generation
+## Phase 2: Preview Generation [checkpoint: c90d4c1]
 - [x] Task: Create a preview generator that shows the result of a conflict resolution. (4a2e81c)
 - [x] Task: Support "keep_original" and "keep_conflict" preview modes. (4a2e81c)
 
