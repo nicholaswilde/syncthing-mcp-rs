@@ -65,6 +65,19 @@ impl ProfileManager {
         self.config.active_profile = Some(name.to_string());
         Some(profile.limits.clone())
     }
+
+    /// Gets the scheduled profile for a given time.
+    pub fn get_scheduled_profile_at(&self, now: chrono::NaiveDateTime) -> Option<String> {
+        let day = now.format("%A").to_string();
+        let time = now.format("%H:%M").to_string();
+
+        for schedule in &self.config.schedules {
+            if schedule.days.contains(&day) && time >= schedule.start_time && time <= schedule.end_time {
+                return Some(schedule.profile_name.clone());
+            }
+        }
+        None
+    }
 }
 
 /// Controller for managing bandwidth limits.
