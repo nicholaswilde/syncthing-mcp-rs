@@ -7,10 +7,10 @@
 ## Phase 2: Performance Profiles
 - [x] Task: Define a format for performance profiles. 604e630
 - [x] Task: Implement a profile manager that applies limits based on chosen profiles. a1b817a
-- [ ] Task: Support scheduled profile activation.
+- [x] Task: Support scheduled profile activation. 2f1d2b7
 
 ## Phase 3: MCP Tool Integration
-- [ ] Task: Create new MCP tools `set_bandwidth_limits` and `set_performance_profile`.
+- [~] Task: Create new MCP tools `set_bandwidth_limits` and `set_performance_profile`.
 - [ ] Task: Implement status reporting for current bandwidth limits and active profiles.
 
 ## Phase 4: Validation
