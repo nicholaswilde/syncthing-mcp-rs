@@ -6,7 +6,7 @@
 
 ## Phase 2: Performance Profiles
 - [x] Task: Define a format for performance profiles. 604e630
-- [ ] Task: Implement a profile manager that applies limits based on chosen profiles.
+- [x] Task: Implement a profile manager that applies limits based on chosen profiles. a1b817a
 - [ ] Task: Support scheduled profile activation.
 
 ## Phase 3: MCP Tool Integration
