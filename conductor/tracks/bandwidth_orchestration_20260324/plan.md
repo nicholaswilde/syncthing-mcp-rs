@@ -5,7 +5,7 @@
 - [x] Task: Support global limits for all instances or per-instance limits. 07da1d6
 
 ## Phase 2: Performance Profiles
-- [ ] Task: Define a format for performance profiles.
+- [x] Task: Define a format for performance profiles. 604e630
 - [ ] Task: Implement a profile manager that applies limits based on chosen profiles.
 - [ ] Task: Support scheduled profile activation.
 
