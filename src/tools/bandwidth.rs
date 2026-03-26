@@ -46,6 +46,27 @@ pub struct BandwidthConfig {
     pub active_profile: Option<String>,
 }
 
+/// Manager for performance profiles.
+pub struct ProfileManager {
+    /// Current bandwidth configuration.
+    pub config: BandwidthConfig,
+}
+
+impl ProfileManager {
+    /// Creates a new `ProfileManager`.
+    pub fn new(config: BandwidthConfig) -> Self {
+        Self { config }
+    }
+
+    /// Applies a performance profile by name.
+    /// Returns the bandwidth limits for the profile if found.
+    pub fn apply_profile(&mut self, name: &str) -> Option<BandwidthLimits> {
+        let profile = self.config.profiles.iter().find(|p| p.name == name)?;
+        self.config.active_profile = Some(name.to_string());
+        Some(profile.limits.clone())
+    }
+}
+
 /// Controller for managing bandwidth limits.
 pub struct BandwidthController;
 
