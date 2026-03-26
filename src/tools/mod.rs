@@ -3,6 +3,9 @@ pub mod bandwidth;
 /// Unit tests for bandwidth tools.
 #[cfg(test)]
 mod bandwidth_tests;
+/// Unit tests for performance profiles.
+#[cfg(test)]
+mod profile_tests;
 /// Browser tool for exploring synced folders.
 pub mod browser;
 /// Unit tests for the browser tool.

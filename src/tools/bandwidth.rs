@@ -2,13 +2,48 @@ use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::Result;
 
+use serde::{Deserialize, Serialize};
+
 /// Bandwidth limits to apply.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct BandwidthLimits {
     /// Maximum receive rate in Kbps.
     pub max_recv_kbps: Option<i64>,
     /// Maximum send rate in Kbps.
     pub max_send_kbps: Option<i64>,
+}
+
+/// A performance profile that defines bandwidth limits.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PerformanceProfile {
+    /// Name of the profile (e.g., "working_hours").
+    pub name: String,
+    /// Bandwidth limits for this profile.
+    pub limits: BandwidthLimits,
+}
+
+/// A schedule for when to apply a performance profile.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ProfileSchedule {
+    /// Profile to apply.
+    pub profile_name: String,
+    /// Days of the week this schedule applies to.
+    pub days: Vec<String>,
+    /// Start time in 24h format (e.g., "09:00").
+    pub start_time: String,
+    /// End time in 24h format (e.g., "17:00").
+    pub end_time: String,
+}
+
+/// Configuration for bandwidth orchestration.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct BandwidthConfig {
+    /// Available performance profiles.
+    pub profiles: Vec<PerformanceProfile>,
+    /// Schedules for applying profiles.
+    pub schedules: Vec<ProfileSchedule>,
+    /// The name of the currently active profile, if any.
+    pub active_profile: Option<String>,
 }
 
 /// Controller for managing bandwidth limits.
