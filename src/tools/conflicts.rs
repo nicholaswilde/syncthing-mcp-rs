@@ -404,10 +404,13 @@ mod tests {
         let info = parse_conflict_filename(filename, parent).unwrap();
         assert_eq!(info.timestamp, "20230101-120000");
         assert_eq!(info.device_id, "ABCDEFG");
-        assert_eq!(info.original_path, "/tmp/notes.txt");
+        assert_eq!(
+            info.original_path,
+            parent.join("notes.txt").to_string_lossy()
+        );
         assert_eq!(
             info.conflict_path,
-            "/tmp/notes.sync-conflict-20230101-120000-ABCDEFG.txt"
+            parent.join(filename).to_string_lossy()
         );
     }
 
@@ -418,7 +421,7 @@ mod tests {
         let info = parse_conflict_filename(filename, parent).unwrap();
         assert_eq!(info.timestamp, "20230101-120000");
         assert_eq!(info.device_id, "ABCDEFG");
-        assert_eq!(info.original_path, "/tmp/README");
+        assert_eq!(info.original_path, parent.join("README").to_string_lossy());
     }
 
     #[test]
@@ -426,7 +429,10 @@ mod tests {
         let parent = Path::new("/tmp");
         let filename = "archive.tar.gz.sync-conflict-20230101-120000-ABCDEFG.bak";
         let info = parse_conflict_filename(filename, parent).unwrap();
-        assert_eq!(info.original_path, "/tmp/archive.tar.gz.bak");
+        assert_eq!(
+            info.original_path,
+            parent.join("archive.tar.gz.bak").to_string_lossy()
+        );
     }
 
     #[test]

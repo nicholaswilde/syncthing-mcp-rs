@@ -481,6 +481,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg(unix)]
     async fn test_tool_call_list_conflicts_inaccessible() {
         let mock_server = MockServer::start().await;
         let temp_dir = tempdir().unwrap();
