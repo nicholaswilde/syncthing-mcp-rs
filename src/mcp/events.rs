@@ -4,7 +4,7 @@ use crate::mcp::Notification;
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, watch};
 
 /// Manages event polling for SyncThing instances.
 #[derive(Clone)]
@@ -15,21 +15,35 @@ pub struct EventManager {
     pub notification_tx: mpsc::Sender<Notification>,
     /// Last seen event ID for each instance.
     pub last_ids: Arc<DashMap<String, u64>>,
+    /// Shutdown signal.
+    pub shutdown_tx: Arc<watch::Sender<bool>>,
 }
 
 impl EventManager {
     /// Creates a new event manager.
     pub fn new(config: AppConfig, notification_tx: mpsc::Sender<Notification>) -> Self {
+        let (shutdown_tx, _) = watch::channel(false);
         Self {
             config,
             notification_tx,
             last_ids: Arc::new(DashMap::new()),
+            shutdown_tx: Arc::new(shutdown_tx),
         }
+    }
+
+    /// Stops the event manager.
+    pub fn stop(&self) {
+        let _ = self.shutdown_tx.send(true);
     }
 
     /// Runs the event polling loop.
     pub async fn run(&self) -> anyhow::Result<()> {
+        let mut shutdown_rx = self.shutdown_tx.subscribe();
         loop {
+            if *shutdown_rx.borrow() {
+                break;
+            }
+
             for instance in &self.config.instances {
                 let instance_name = instance
                     .name
@@ -66,7 +80,16 @@ impl EventManager {
                     }
                 }
             }
-            tokio::time::sleep(Duration::from_secs(5)).await;
+
+            tokio::select! {
+                _ = tokio::time::sleep(Duration::from_secs(5)) => {},
+                _ = shutdown_rx.changed() => {
+                    if *shutdown_rx.borrow() {
+                        break;
+                    }
+                }
+            }
         }
+        Ok(())
     }
 }

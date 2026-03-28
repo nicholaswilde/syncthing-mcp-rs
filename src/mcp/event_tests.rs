@@ -48,6 +48,8 @@ mod tests {
         let notification = rx.recv().await.unwrap();
         assert_eq!(notification.method, "notifications/message");
         assert_eq!(notification.params.unwrap()["instance"], "test");
+
+        event_manager.stop();
     }
 
     #[tokio::test]
@@ -93,6 +95,8 @@ mod tests {
             result.is_err(),
             "Expected no notification for filtered event"
         );
+
+        event_manager.stop();
     }
 
     #[tokio::test]
@@ -174,6 +178,7 @@ mod tests {
         }
 
         // Cleanup
+        event_manager.stop();
         drop(client_writer);
     }
 
@@ -236,6 +241,8 @@ mod tests {
 
         assert!(instances.contains(&"inst1".to_string()));
         assert!(instances.contains(&"inst2".to_string()));
+
+        event_manager.stop();
     }
 
     #[tokio::test(start_paused = true)]
@@ -312,5 +319,7 @@ mod tests {
                 .unwrap()
                 .contains("syncing to idle")
         );
+
+        event_manager.stop();
     }
 }
