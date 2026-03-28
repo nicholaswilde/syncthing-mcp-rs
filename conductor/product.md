@@ -33,4 +33,5 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Instance Configuration Management**: Generate detailed difference reports between instances; perform additive merges of folders and devices from a source to a target; synchronize configurations with granular control and safety previews.
 - **Conflict Management**: Identify, resolve, and clean up SyncThing conflict files with metadata-driven decision support, safe deletion (trash), and advanced intelligence including semantic diffing (JSON/YAML) and resolution previews.
 - **Self-Healing Monitor**: Automatically detect and resolve common SyncThing issues, such as stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
+- **Bandwidth Orchestration**: Dynamically manage upload and download rate limits across multiple SyncThing instances, with support for scheduled performance profiles (e.g., 'working_hours').
 - **Security & Secrets**: Secure credential handling with OS Keyring and authenticated encryption.
