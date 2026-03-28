@@ -58,12 +58,18 @@ tasks:
     cmds:
       - cross build --release --target armv7-unknown-linux-gnueabihf
 
+  build:armv6:
+    desc: Build for ARMv6
+    cmds:
+      - cross build --release --target arm-unknown-linux-gnueabihf
+
   build:
     desc: Build for all supported architectures
     cmds:
       - task: build:amd64
       - task: build:arm64
       - task: build:armv7
+      - task: build:armv6
 
   build:debug:
     desc: Build the project in debug mode

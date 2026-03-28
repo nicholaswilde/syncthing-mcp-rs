@@ -384,7 +384,7 @@ async fn test_git_sync_manager_push() {
 
     // Get current branch name
     let branch = client
-        .run_command(&["branch", "--show-current"])
+        .run_command(&["rev-parse", "--abbrev-ref", "HEAD"])
         .await
         .unwrap();
     let branch = branch.trim();
