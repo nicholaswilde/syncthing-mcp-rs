@@ -1,7 +1,7 @@
 # Implementation Plan: Version Control Integration (Git-Sync) (git_sync_20260324)
 
 ## Phase 1: Configuration Export
-- [ ] Task: Create a configuration exporter that produces clean, diffable JSON/YAML.
+- [x] Task: Create a configuration exporter that produces clean, diffable JSON/YAML. a24f684
 - [ ] Task: Ensure all sensitive information is masked or handled securely during export.
 
 ## Phase 2: Git Integration
