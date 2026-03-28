@@ -2,7 +2,7 @@
 
 ## Phase 1: Configuration Export
 - [x] Task: Create a configuration exporter that produces clean, diffable JSON/YAML. a24f684
-- [ ] Task: Ensure all sensitive information is masked or handled securely during export.
+- [x] Task: Ensure all sensitive information is masked or handled securely during export. 00b77fe
 
 ## Phase 2: Git Integration
 - [ ] Task: Implement a Git client for configuration management.
