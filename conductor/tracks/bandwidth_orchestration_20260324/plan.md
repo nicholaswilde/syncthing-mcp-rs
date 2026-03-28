@@ -16,4 +16,4 @@
 ## Phase 4: Validation
 - [x] Task: Unit tests for bandwidth limit calculations and profile logic. d4e5f6g
 - [x] Task: Integration tests with SyncThing instances. h7i8j9k
-- [ ] Task: End-to-end testing of profile scheduling and limit updates.
+- [x] Task: End-to-end testing of profile scheduling and limit updates. l8m9n0o
