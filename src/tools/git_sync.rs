@@ -63,3 +63,58 @@ impl ConfigExporter {
         Ok(serde_yaml_ng::to_string(&self.config)?)
     }
 }
+
+/// A Git client for managing configuration backups.
+pub struct GitClient {
+    repo_path: std::path::PathBuf,
+}
+
+impl GitClient {
+    /// Creates a new Git client for the given repository path.
+    pub fn new(repo_path: std::path::PathBuf) -> Self {
+        Self { repo_path }
+    }
+
+    /// Initializes a new Git repository at the target path.
+    pub async fn init(&self) -> Result<()> {
+        // Create directory if it doesn't exist
+        if !self.repo_path.exists() {
+            std::fs::create_dir_all(&self.repo_path).map_err(|e| crate::error::Error::Internal(format!("Failed to create repo directory: {}", e)))?;
+        }
+        self.run_command(&["init"]).await?;
+        Ok(())
+    }
+
+    /// Adds a file to the Git index.
+    pub async fn add(&self, file_path: &str) -> Result<()> {
+        self.run_command(&["add", file_path]).await?;
+        Ok(())
+    }
+
+    /// Commits changes to the repository.
+    /// Returns the commit hash.
+    pub async fn commit(&self, message: &str) -> Result<String> {
+        self.run_command(&["commit", "-m", message]).await?;
+        let output = self.run_command(&["rev-parse", "HEAD"]).await?;
+        Ok(output.trim().to_string())
+    }
+
+    /// Runs an arbitrary Git command and returns its output.
+    pub async fn run_command(&self, args: &[&str]) -> Result<String> {
+        let output = std::process::Command::new("git")
+            .args(args)
+            .current_dir(&self.repo_path)
+            .output()
+            .map_err(|e| crate::error::Error::Internal(format!("Failed to execute git command: {}", e)))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(crate::error::Error::Internal(format!(
+                "Git command failed: git {:?} - {}",
+                args, stderr
+            )));
+        }
+
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    }
+}

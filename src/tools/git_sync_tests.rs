@@ -78,3 +78,28 @@ fn test_mask_sensitive_info() {
     // Verify non-sensitive info is preserved
     assert!(exported.contains("\"enabled\": true"));
 }
+
+#[tokio::test]
+async fn test_git_client_init_and_commit() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let repo_path = temp_dir.path();
+    
+    let client = crate::tools::git_sync::GitClient::new(repo_path.to_path_buf());
+    
+    // 1. Initialize repo
+    client.init().await.expect("Failed to init git repo");
+    assert!(repo_path.join(".git").exists());
+    
+    // 2. Configure user for commit
+    client.run_command(&["config", "user.email", "test@example.com"]).await.unwrap();
+    client.run_command(&["config", "user.name", "Test User"]).await.unwrap();
+    
+    // 3. Create a file and commit
+    let test_file = repo_path.join("config.json");
+    std::fs::write(&test_file, "{}").unwrap();
+    
+    client.add("config.json").await.expect("Failed to add file");
+    let commit_hash = client.commit("Initial commit").await.expect("Failed to commit");
+    
+    assert!(!commit_hash.is_empty());
+}
