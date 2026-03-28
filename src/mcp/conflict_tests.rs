@@ -235,14 +235,15 @@ mod tests {
             params: Some(json!({
                 "name": "delete_conflict",
                 "arguments": {
-                    "conflict_path": conflict_file.to_str().unwrap()
+                    "conflict_path": conflict_file.to_str().unwrap(),
+                    "backup": false
                 }
             })),
         };
 
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("Moved conflict file to trash:"));
+        assert!(text.contains("Deleted conflict file:"));
 
         assert!(!conflict_file.exists());
     }
@@ -335,7 +336,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_tool_call_resolve_conflict_with_backup() {
+    async fn test_tool_call_resolve_conflict_no_backup() {
         let temp_dir = tempdir().unwrap();
         let folder_path = temp_dir.path();
 
@@ -364,17 +365,15 @@ mod tests {
                 "arguments": {
                     "conflict_path": conflict_file.to_str().unwrap(),
                     "action": "keep_original",
-                    "backup": true
+                    "backup": false
                 }
             })),
         };
 
-        // This might fail in CI if trash is not available, but we'll try to pass it
         let resp = server.handle_request(req).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
 
-        // If it succeeds, it should mention backup
-        assert!(text.contains("moved") && text.contains("to trash"));
+        assert!(text.contains("deleted"));
 
         assert!(original_file.exists());
         assert!(!conflict_file.exists());
