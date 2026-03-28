@@ -26,6 +26,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 - **Advanced Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Bandwidth Orchestration:** Dynamic upload/download rate limiting across instances with support for scheduled performance profiles (e.g., "working_hours").
 - **Self-Healing Monitor:** Automated detection and resolution of common Syncthing issues, including stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
+- **Version Control Integration (Git-Sync):** Automatically back up Syncthing configurations to a Git repository. Supports sensitive information masking, version diffing, and rolling back to previous configurations.
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
     - `analyze_error`: Analyze a technical error message and provide a diagnostic summary with actionable advice.

@@ -199,6 +199,119 @@ fn test_should_suggest_rescan_for_stuck_folder() {
     assert!(!monitor.should_rescan("folder1", now + Duration::from_secs(302)));
 }
 
+#[test]
+fn test_check_stuck_folder_no_previous() {
+    let thresholds = StuckFolderThresholds::default();
+    let now = Instant::now();
+    let current = FolderStatus {
+        state: "syncing".to_string(),
+        ..Default::default()
+    };
+
+    let result = check_stuck_folder(&current, None, &thresholds, now);
+    assert!(!result.is_stuck);
+}
+
+#[test]
+fn test_monitor_should_rescan_no_alert() {
+    let thresholds = StuckFolderThresholds::default();
+    let mut monitor = StuckFolderMonitor::new(thresholds);
+    let now = Instant::now();
+
+    monitor.update("folder1", FolderStatus::default(), now);
+    assert!(!monitor.should_rescan("folder1", now));
+}
+
+#[test]
+fn test_monitor_should_rescan_no_history() {
+    let thresholds = StuckFolderThresholds::default();
+    let monitor = StuckFolderMonitor::new(thresholds);
+    let now = Instant::now();
+
+    assert!(!monitor.should_rescan("folder1", now));
+}
+
+#[tokio::test]
+async fn test_monitor_self_healing_full() {
+    use crate::api::SyncThingClient;
+    use crate::config::{AppConfig, InstanceConfig};
+    use crate::tools::self_healing::monitor_self_healing;
+    use serde_json::json;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let server = MockServer::start().await;
+
+    // Mock list_folders
+    Mock::given(method("GET"))
+        .and(path("/rest/config/folders"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([{"id": "folder1", "path": "/tmp", "label": "Folder 1", "type": "sendreceive", "devices": []}])))
+        .mount(&server)
+        .await;
+
+    // Mock get_folder_status
+    Mock::given(method("GET"))
+        .and(path("/rest/db/status"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "state": "syncing",
+            "inSyncBytes": 500,
+            "needBytes": 1000
+        })))
+        .mount(&server)
+        .await;
+
+    // Mock rescan
+    Mock::given(method("POST"))
+        .and(path("/rest/db/scan"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&server)
+        .await;
+
+    // Mock get_connections
+    Mock::given(method("GET"))
+        .and(path("/rest/system/connections"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "connections": {
+                "device1": {
+                    "connected": false,
+                    "paused": false,
+                    "type": "tcp-client"
+                }
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    // Mock patch_device (pause/resume)
+    Mock::given(method("PATCH"))
+        .and(path("/rest/config/devices/device1"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&server)
+        .await;
+
+    let client = SyncThingClient::new(InstanceConfig {
+        url: server.uri(),
+        api_key: Some("test".to_string()),
+        ..Default::default()
+    });
+    let config = AppConfig::default();
+
+    // 1. Initial call to establish history
+    let _ = monitor_self_healing(client.clone(), config.clone(), json!({"dry_run": false}))
+        .await
+        .unwrap();
+
+    // Note: We can't easily wait for 300s in a unit test without mocking Instant,
+    // which our implementation doesn't support easily as it uses Instant::now() directly.
+    // However, the check() function is called, which increases coverage of the monitor logic.
+
+    let result = monitor_self_healing(client, config, json!({"dry_run": false}))
+        .await
+        .unwrap();
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Self-Healing Monitor Report:"));
+}
+
 #[tokio::test]
 async fn test_monitor_self_healing_dry_run() {
     use crate::api::SyncThingClient;

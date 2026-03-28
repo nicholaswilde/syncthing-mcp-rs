@@ -174,14 +174,14 @@ impl ConnectivityMonitor {
     }
 
     /// Records a retry attempt for a device.
-    pub fn record_retry(&mut self, device_id: &str, now: Instant) {
+    pub(crate) fn record_retry(&mut self, device_id: &str, now: Instant) {
         if let Some(snapshot) = self.history.get_mut(device_id) {
             snapshot.retry_count += 1;
             snapshot.last_retry = Some(now);
         }
     }
 
-    fn get_backoff(&self, retry_count: u32) -> Duration {
+    pub(crate) fn get_backoff(&self, retry_count: u32) -> Duration {
         if retry_count == 0 {
             return Duration::from_secs(0);
         }

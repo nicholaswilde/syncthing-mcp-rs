@@ -523,4 +523,146 @@ mod tests {
         assert!(text.contains("Conflicts in folder default:"));
         assert!(text.contains(conflict_name));
     }
+
+    #[tokio::test]
+    async fn test_list_conflicts_empty() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        let temp = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/empty"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "empty",
+                "path": temp.path().to_string_lossy(),
+                "label": "Empty Folder",
+                "type": "sendreceive",
+                "devices": []
+            })))
+            .mount(&server)
+            .await;
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig {
+            url: server.uri(),
+            api_key: Some("test".to_string()),
+            ..Default::default()
+        });
+        let config = AppConfig::default();
+        let params = json!({
+            "folder_id": "empty"
+        });
+
+        let result = list_conflicts(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("No conflicts found in folder empty."));
+    }
+
+    #[tokio::test]
+    async fn test_resolve_conflict_keep_original_no_backup() {
+        let temp = tempfile::tempdir().unwrap();
+        let original_path = temp.path().join("test.txt");
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = temp.path().join(conflict_name);
+
+        tokio::fs::write(&original_path, "original").await.unwrap();
+        tokio::fs::write(&conflict_path, "conflict").await.unwrap();
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig::default());
+        let config = AppConfig::default();
+        let params = json!({
+            "conflict_path": conflict_path.to_string_lossy(),
+            "action": "keep_original",
+            "backup": false
+        });
+
+        let result = resolve_conflict(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Resolved conflict by keeping original version"));
+        assert!(text.contains("deleted"));
+
+        assert!(original_path.exists());
+        assert!(!conflict_path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_resolve_conflict_keep_conflict_no_backup() {
+        let temp = tempfile::tempdir().unwrap();
+        let original_path = temp.path().join("test.txt");
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = temp.path().join(conflict_name);
+
+        tokio::fs::write(&original_path, "original").await.unwrap();
+        tokio::fs::write(&conflict_path, "conflict").await.unwrap();
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig::default());
+        let config = AppConfig::default();
+        let params = json!({
+            "conflict_path": conflict_path.to_string_lossy(),
+            "action": "keep_conflict",
+            "backup": false
+        });
+
+        let result = resolve_conflict(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Resolved conflict by keeping conflict version"));
+        assert!(text.contains("replaced"));
+
+        assert!(original_path.exists());
+        assert_eq!(
+            tokio::fs::read_to_string(&original_path).await.unwrap(),
+            "conflict"
+        );
+        assert!(!conflict_path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_resolve_conflict_preview() {
+        let temp = tempfile::tempdir().unwrap();
+        let original_path = temp.path().join("test.txt");
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = temp.path().join(conflict_name);
+
+        tokio::fs::write(&original_path, "original").await.unwrap();
+        tokio::fs::write(&conflict_path, "conflict").await.unwrap();
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig::default());
+        let config = AppConfig::default();
+        let params = json!({
+            "conflict_path": conflict_path.to_string_lossy(),
+            "action": "keep_conflict",
+            "preview": true
+        });
+
+        let result = resolve_conflict(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("PREVIEW of resolution: keep_conflict"));
+        assert!(text.contains("Resulting content:\nconflict"));
+
+        assert!(original_path.exists());
+        assert!(conflict_path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_delete_conflict_no_backup() {
+        let temp = tempfile::tempdir().unwrap();
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = temp.path().join(conflict_name);
+
+        tokio::fs::write(&conflict_path, "conflict").await.unwrap();
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig::default());
+        let config = AppConfig::default();
+        let params = json!({
+            "conflict_path": conflict_path.to_string_lossy(),
+            "backup": false
+        });
+
+        let result = delete_conflict(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Deleted conflict file"));
+
+        assert!(!conflict_path.exists());
+    }
 }

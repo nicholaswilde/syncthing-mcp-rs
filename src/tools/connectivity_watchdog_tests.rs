@@ -116,3 +116,45 @@ fn test_no_retry_if_all_devices_down() {
     // Should NOT retry because all devices are down (likely network issue)
     assert!(!monitor.should_retry("device1", now + Duration::from_secs(302)));
 }
+
+#[test]
+fn test_connectivity_monitor_check_no_history() {
+    let thresholds = ConnectivityThresholds::default();
+    let mut monitor = ConnectivityMonitor::new(thresholds);
+    let now = Instant::now();
+
+    let result = monitor.check("device1", true, now);
+    assert!(!result.is_offline_too_long);
+    assert!(monitor.history.contains_key("device1"));
+}
+
+#[test]
+fn test_connectivity_monitor_is_all_offline_empty() {
+    let thresholds = ConnectivityThresholds::default();
+    let monitor = ConnectivityMonitor::new(thresholds);
+    assert!(!monitor.is_all_offline());
+}
+
+#[test]
+fn test_connectivity_monitor_should_retry_no_history() {
+    let thresholds = ConnectivityThresholds::default();
+    let monitor = ConnectivityMonitor::new(thresholds);
+    let now = Instant::now();
+    assert!(!monitor.should_retry("device1", now));
+}
+
+#[test]
+fn test_connectivity_monitor_get_backoff_cap() {
+    let thresholds = ConnectivityThresholds {
+        initial_retry_delay: Duration::from_secs(60),
+        max_retry_delay: Duration::from_secs(3600),
+        ..Default::default()
+    };
+    let monitor = ConnectivityMonitor::new(thresholds);
+
+    // retry_count = 1 -> delay = 60 * 2^0 = 60
+    assert_eq!(monitor.get_backoff(1), Duration::from_secs(60));
+
+    // retry_count = 10 -> delay = 60 * 2^9 = 30720, capped at 3600
+    assert_eq!(monitor.get_backoff(10), Duration::from_secs(3600));
+}

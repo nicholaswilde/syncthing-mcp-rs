@@ -287,3 +287,122 @@ async fn test_get_config_diff() {
     assert!(diff.contains("-  \"version\": 1"));
     assert!(diff.contains("+  \"version\": 2"));
 }
+
+#[tokio::test]
+async fn test_git_client_clone_error() {
+    let temp_dest = tempfile::tempdir().expect("Failed to create dest dir");
+    let dest_path = temp_dest.path().to_path_buf();
+
+    let dest_client = crate::tools::git_sync::GitClient::new(dest_path.clone());
+    let result = dest_client.clone_from("invalid-url").await;
+    assert!(result.is_err());
+    assert!(format!("{:?}", result).contains("Git clone failed"));
+}
+
+#[tokio::test]
+async fn test_git_client_run_command_error() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let repo_path = temp_dir.path();
+
+    let client = crate::tools::git_sync::GitClient::new(repo_path.to_path_buf());
+    client.init().await.unwrap();
+
+    let result = client.run_command(&["invalid-command"]).await;
+    assert!(result.is_err());
+    assert!(format!("{:?}", result).contains("Git command failed"));
+}
+
+#[tokio::test]
+async fn test_git_sync_manager_init_remote() {
+    let temp_source = tempfile::tempdir().expect("Failed to create source dir");
+    let source_path = temp_source.path();
+
+    // Init source repo
+    let source_client = crate::tools::git_sync::GitClient::new(source_path.to_path_buf());
+    source_client.init().await.unwrap();
+    std::fs::write(source_path.join("README.md"), "# Test").unwrap();
+    source_client.add("README.md").await.unwrap();
+    source_client
+        .run_command(&["config", "user.email", "test@example.com"])
+        .await
+        .unwrap();
+    source_client
+        .run_command(&["config", "user.name", "Test User"])
+        .await
+        .unwrap();
+    source_client.commit("Initial").await.unwrap();
+
+    // Clone to destination via manager
+    let temp_dest = tempfile::tempdir().expect("Failed to create dest dir");
+    let dest_path = temp_dest.path().join("cloned");
+
+    let manager = crate::tools::git_sync::GitSyncManager::new(dest_path.clone());
+    manager
+        .init_remote(&source_path.to_string_lossy())
+        .await
+        .expect("Failed to init remote");
+
+    assert!(dest_path.join(".git").exists());
+    assert!(dest_path.join("README.md").exists());
+}
+
+#[tokio::test]
+async fn test_git_sync_manager_push() {
+    let temp_remote = tempfile::tempdir().expect("Failed to create remote dir");
+    let remote_path = temp_remote.path();
+
+    // Init bare remote repo
+    let remote_client = crate::tools::git_sync::GitClient::new(remote_path.to_path_buf());
+    remote_client
+        .run_command(&["init", "--bare"])
+        .await
+        .unwrap();
+
+    // Local repo
+    let temp_local = tempfile::tempdir().expect("Failed to create local dir");
+    let local_path = temp_local.path().to_path_buf();
+
+    let manager = crate::tools::git_sync::GitSyncManager::new(local_path.clone());
+    manager.init().await.unwrap();
+
+    // Configure user
+    let client = crate::tools::git_sync::GitClient::new(local_path.clone());
+    client
+        .run_command(&["config", "user.email", "test@example.com"])
+        .await
+        .unwrap();
+    client
+        .run_command(&["config", "user.name", "Test User"])
+        .await
+        .unwrap();
+
+    // Create a backup
+    manager
+        .backup_config(Config::default())
+        .await
+        .expect("Failed backup");
+
+    // Get current branch name
+    let branch = client
+        .run_command(&["branch", "--show-current"])
+        .await
+        .unwrap();
+    let branch = branch.trim();
+
+    // Add remote
+    client
+        .run_command(&["remote", "add", "origin", &remote_path.to_string_lossy()])
+        .await
+        .unwrap();
+
+    // Push via manager
+    manager
+        .push("origin", branch)
+        .await
+        .expect("Failed to push");
+
+    // Verify remote has the commit (using another client to check)
+    let check_client = crate::tools::git_sync::GitClient::new(remote_path.to_path_buf());
+    let log = check_client.run_command(&["log", branch]).await.unwrap();
+    assert!(log.contains("Backup configuration:"));
+}

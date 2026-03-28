@@ -40,4 +40,52 @@ mod tests {
         let error = Error::from(err);
         assert!(matches!(error, Error::Yaml(_)));
     }
+
+    #[test]
+    fn test_language_parse() {
+        use crate::error::Language;
+        assert_eq!(Language::parse("en"), Language::English);
+        assert_eq!(Language::parse("fr"), Language::French);
+        assert_eq!(Language::parse("FRENCH"), Language::French);
+        assert_eq!(Language::parse("unknown"), Language::English);
+    }
+
+    #[test]
+    fn test_error_from_string() {
+        let err = Error::from("test error".to_string());
+        assert!(matches!(err, Error::SyncThing(_)));
+    }
+
+    #[test]
+    fn test_error_diagnose_fr() {
+        use crate::error::Language;
+        let err = Error::Unauthorized("auth failed".to_string());
+        let diag = err.diagnose_with_language(Language::French);
+        assert_eq!(diag.explanation, "L'authentification a échoué.");
+    }
+
+    #[test]
+    fn test_error_diagnose_syncthing_disk_space() {
+        let err = Error::SyncThing("no space left on device".to_string());
+        let diag = err.diagnose();
+        assert_eq!(diag.category, "Resource");
+        assert!(diag.advice.contains("Check disk space"));
+    }
+
+    #[test]
+    fn test_error_diagnose_syncthing_path_too_long() {
+        let err = Error::SyncThing("path too long".to_string());
+        let diag = err.diagnose();
+        assert!(diag.advice.contains("Windows MAX_PATH"));
+    }
+
+    #[test]
+    fn test_error_diagnose_network_timeout() {
+        let err = Error::Network("deadline exceeded".to_string());
+        let diag = err.diagnose();
+        assert!(
+            diag.advice
+                .contains("Check if the server is under heavy load")
+        );
+    }
 }

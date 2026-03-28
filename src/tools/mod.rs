@@ -45,6 +45,9 @@ pub mod diff;
 mod diff_tests;
 /// Folder management tools.
 pub mod folders;
+/// Unit tests for the folders tool.
+#[cfg(test)]
+mod folders_tests;
 /// Git-Sync tools for version control.
 pub mod git_sync;
 /// Unit tests for Git-Sync tools.

@@ -180,4 +180,83 @@ mod tests {
         let text = result["content"][0]["text"].as_str().unwrap();
         assert_eq!(text, "conflict content");
     }
+
+    #[test]
+    fn test_get_resolution_preview_invalid_action() {
+        let original = "original content";
+        let conflict = "conflict content";
+        let preview =
+            crate::tools::diff::get_resolution_preview(original, conflict, "invalid_action");
+        assert_eq!(preview, "Invalid resolution action");
+    }
+
+    #[test]
+    fn test_get_diff_auto_fallback_to_text() {
+        let original = "just some text";
+        let conflict = "just some other text";
+        let diff = get_diff(original, conflict, DiffFormat::Auto).unwrap();
+        assert!(diff.contains("-just some text"));
+        assert!(diff.contains("+just some other text"));
+    }
+
+    #[tokio::test]
+    async fn test_diff_conflicts_missing_path() {
+        use crate::api::SyncThingClient;
+        use crate::config::{AppConfig, InstanceConfig};
+        use serde_json::json;
+
+        let client = SyncThingClient::new(InstanceConfig::default());
+        let config = AppConfig::default();
+        let args = json!({});
+
+        let result = crate::tools::diff::diff_conflicts(client, config, args).await;
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("Missing conflict_path"));
+    }
+
+    #[tokio::test]
+    async fn test_diff_conflicts_invalid_filename() {
+        use crate::api::SyncThingClient;
+        use crate::config::{AppConfig, InstanceConfig};
+        use serde_json::json;
+        use tempfile::tempdir;
+
+        let dir = tempdir().unwrap();
+        let conflict_path = dir.path().join("not-a-conflict.txt");
+        std::fs::write(&conflict_path, "content").unwrap();
+
+        let client = SyncThingClient::new(InstanceConfig::default());
+        let config = AppConfig::default();
+        let args = json!({
+            "conflict_path": conflict_path.to_str().unwrap()
+        });
+
+        let result = crate::tools::diff::diff_conflicts(client, config, args).await;
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("Not a valid SyncThing conflict file"));
+    }
+
+    #[tokio::test]
+    async fn test_preview_conflict_resolution_missing_args() {
+        use crate::api::SyncThingClient;
+        use crate::config::{AppConfig, InstanceConfig};
+        use serde_json::json;
+
+        let client = SyncThingClient::new(InstanceConfig::default());
+        let config = AppConfig::default();
+
+        // Missing conflict_path
+        let args = json!({ "action": "keep_original" });
+        let result =
+            crate::tools::diff::preview_conflict_resolution(client.clone(), config.clone(), args)
+                .await;
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("Missing conflict_path"));
+
+        // Missing action
+        let args = json!({ "conflict_path": "some/path" });
+        let result = crate::tools::diff::preview_conflict_resolution(client, config, args).await;
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("Missing action"));
+    }
 }

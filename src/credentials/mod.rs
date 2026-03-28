@@ -169,4 +169,16 @@ mod tests {
         let p = cipher.decrypt(n, c).unwrap();
         assert_eq!(String::from_utf8(p).unwrap(), "secret-message");
     }
+
+    #[test]
+    fn test_decrypt_value_short_payload() {
+        let encrypted = "encrypted:v1:too-short";
+        assert_eq!(decrypt_value(encrypted), None);
+    }
+
+    #[test]
+    fn test_decrypt_value_invalid_prefix() {
+        let encrypted = "invalid:prefix:payload";
+        assert_eq!(decrypt_value(encrypted), None);
+    }
 }

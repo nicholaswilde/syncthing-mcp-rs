@@ -213,3 +213,40 @@ fn test_get_instance() {
     // Not found
     assert!(config.get_instance(Some("third")).is_err());
 }
+
+#[test]
+fn test_app_config_load_encrypt() {
+    let args = vec![
+        "app".to_string(),
+        "encrypt".to_string(),
+        "secret".to_string(),
+    ];
+    let result = AppConfig::load(None, args).unwrap();
+    assert!(matches!(result, ConfigResult::Exit));
+}
+
+#[test]
+fn test_instance_config_propagation() {
+    let mut config = AppConfig {
+        retry_max_attempts: 5,
+        instances: vec![InstanceConfig {
+            url: "http://test".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    config.validate().unwrap();
+    assert_eq!(config.instances[0].retry_max_attempts, Some(5));
+}
+
+#[test]
+fn test_app_config_validate_host_to_instance() {
+    let mut config = AppConfig {
+        host: "1.2.3.4".to_string(),
+        port: 9090,
+        ..Default::default()
+    };
+    config.validate().unwrap();
+    assert_eq!(config.instances.len(), 1);
+    assert_eq!(config.instances[0].url, "http://1.2.3.4:9090");
+}

@@ -131,4 +131,16 @@ mod tests {
         let result = run_with_args(args).await;
         assert!(result.is_ok());
     }
+
+    #[tokio::test]
+    async fn test_run_with_args_invalid_config() {
+        let _args = [
+            "syncthing-mcp-rs".to_string(),
+            "--port".to_string(),
+            "not-a-port".to_string(),
+        ];
+        // This will exit the process in the current implementation of parse_args
+        // because it uses get_matches_from.
+        // So we can't easily test it here without changing parse_args to try_get_matches.
+    }
 }
