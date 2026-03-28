@@ -9,7 +9,7 @@
 - [x] Task: Develop a "watch-and-commit" mechanism for configuration changes. 1c78e6e
 - [x] Task: Support custom Git repository targets for backups. d24a096
 
-## Phase 3: Rollback Mechanism
+## Phase 3: Rollback Mechanism [checkpoint: 9b8b920]
 - [x] Task: Implement a configuration restorer that applies versions from Git. 92636f4
 - [x] Task: Create a diff viewer for configuration versions. d8a2779
 
