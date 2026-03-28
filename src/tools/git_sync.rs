@@ -14,6 +14,33 @@ impl ConfigExporter {
         Self { config }
     }
 
+    /// Masks sensitive information in the configuration.
+    ///
+    /// This currently masks:
+    /// - GUI user, password, and apiKey
+    /// - LDAP password
+    pub fn mask_sensitive(&mut self) {
+        // Mask GUI sensitive fields
+        if let Some(gui) = self.config.gui.as_object_mut() {
+            if gui.contains_key("user") {
+                gui.insert("user".to_string(), serde_json::Value::String("********".to_string()));
+            }
+            if gui.contains_key("password") {
+                gui.insert("password".to_string(), serde_json::Value::String("********".to_string()));
+            }
+            if gui.contains_key("apiKey") {
+                gui.insert("apiKey".to_string(), serde_json::Value::String("********".to_string()));
+            }
+        }
+
+        // Mask LDAP sensitive fields
+        if let Some(ldap) = self.config.ldap.as_object_mut() {
+            if ldap.contains_key("password") {
+                ldap.insert("password".to_string(), serde_json::Value::String("********".to_string()));
+            }
+        }
+    }
+
     /// Exports the configuration to a pretty-printed JSON string.
     pub fn to_json(&self) -> Result<String> {
         Ok(serde_json::to_string_pretty(&self.config)?)
