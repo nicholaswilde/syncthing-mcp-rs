@@ -408,10 +408,7 @@ mod tests {
             info.original_path,
             parent.join("notes.txt").to_string_lossy()
         );
-        assert_eq!(
-            info.conflict_path,
-            parent.join(filename).to_string_lossy()
-        );
+        assert_eq!(info.conflict_path, parent.join(filename).to_string_lossy());
     }
 
     #[test]
