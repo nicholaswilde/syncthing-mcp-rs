@@ -65,7 +65,7 @@ fn test_stuck_folder_detection_progress_stalled() {
         min_rescan_interval: Duration::from_secs(300),
     };
 
-    let now = Instant::now();
+    let base = Instant::now();
 
     // Initial status: syncing at 50%
     let initial_status = FolderStatus {
@@ -77,14 +77,16 @@ fn test_stuck_folder_detection_progress_stalled() {
 
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
-        timestamp: now - Duration::from_secs(301),
+        timestamp: base,
         last_rescan: None,
     };
 
-    // Current status: same as 301 seconds ago
+    // Current status: same as in the snapshot
     let current_status = initial_status;
 
-    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
+    // Check after 301 seconds
+    let check_time = base + Duration::from_secs(301);
+    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, check_time);
     assert!(
         result.is_stuck,
         "Folder should be detected as stuck due to stalled progress"
@@ -101,7 +103,7 @@ fn test_stuck_folder_detection_scanning_too_long() {
         min_rescan_interval: Duration::from_secs(300),
     };
 
-    let now = Instant::now();
+    let base = Instant::now();
 
     // Initial status: scanning
     let initial_status = FolderStatus {
@@ -111,14 +113,16 @@ fn test_stuck_folder_detection_scanning_too_long() {
 
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
-        timestamp: now - Duration::from_secs(601),
+        timestamp: base,
         last_rescan: None,
     };
 
     // Current status: still scanning
     let current_status = initial_status;
 
-    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
+    // Check after 601 seconds
+    let check_time = base + Duration::from_secs(601);
+    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, check_time);
     assert!(
         result.is_stuck,
         "Folder should be detected as stuck due to long scanning"
@@ -135,7 +139,7 @@ fn test_not_stuck_if_progress_made() {
         min_rescan_interval: Duration::from_secs(300),
     };
 
-    let now = Instant::now();
+    let base = Instant::now();
 
     // Initial status: syncing at 50%
     let initial_status = FolderStatus {
@@ -147,7 +151,7 @@ fn test_not_stuck_if_progress_made() {
 
     let snapshot = FolderStatusSnapshot {
         status: initial_status,
-        timestamp: now - Duration::from_secs(301),
+        timestamp: base,
         last_rescan: None,
     };
 
@@ -159,7 +163,9 @@ fn test_not_stuck_if_progress_made() {
         ..Default::default()
     };
 
-    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
+    // Check after 301 seconds
+    let check_time = base + Duration::from_secs(301);
+    let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, check_time);
     assert!(
         !result.is_stuck,
         "Folder should NOT be detected as stuck because progress was made"
