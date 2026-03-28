@@ -235,6 +235,13 @@ impl GitSyncManager {
         Ok(config)
     }
 
+    /// Gets the diff between two Git revisions for the configuration file.
+    pub async fn get_diff(&self, from_revision: &str, to_revision: &str) -> Result<String> {
+        self.git
+            .run_command(&["diff", from_revision, to_revision, "--", "config.json"])
+            .await
+    }
+
     /// Pushes the local backups to a remote repository.
     pub async fn push(&self, remote: &str, branch: &str) -> Result<()> {
         self.git.push(remote, branch).await
