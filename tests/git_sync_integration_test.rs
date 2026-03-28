@@ -50,15 +50,24 @@ async fn test_e2e_backup_and_rollback() {
         .expect("Failed to get diff");
     assert!(diff.contains("-  \"version\": 1"));
     assert!(diff.contains("+  \"version\": 2"));
-    
+
     // 4. Verify Masking in both versions
     let restored1 = manager.restore_config(&hash1).await.unwrap();
     let restored2 = manager.restore_config(&hash2).await.unwrap();
-    
-    assert_eq!(restored1.gui.get("password").unwrap().as_str().unwrap(), "********");
-    assert_eq!(restored2.gui.get("password").unwrap().as_str().unwrap(), "********");
+
+    assert_eq!(
+        restored1.gui.get("password").unwrap().as_str().unwrap(),
+        "********"
+    );
+    assert_eq!(
+        restored2.gui.get("password").unwrap().as_str().unwrap(),
+        "********"
+    );
 
     // 5. Rollback to v1
-    let rolled_back = manager.restore_config(&hash1).await.expect("Failed rollback");
+    let rolled_back = manager
+        .restore_config(&hash1)
+        .await
+        .expect("Failed rollback");
     assert_eq!(rolled_back.version, 1);
 }
