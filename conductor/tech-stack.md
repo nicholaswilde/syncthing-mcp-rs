@@ -6,15 +6,18 @@
 - **Transports**: Supports both `stdio` (local) and `HTTP/SSE` (remote).
 
 ## Build & Development Tools
-- **Task Runner**: `go-task` (via `Taskfile.yml`) for build, test, and deployment automation.
-- **Cross-Compilation**: `cross` for building `amd64`, `arm64`, and `armv7` architectures.
-- **Package Manager**: `cargo` (Rust standard).
-- **MCP Testing**: `mcp-inspector` for verifying MCP tool definitions and responses.
+- Task Runner: `go-task` (via `Taskfile.yml`) for build, test, and deployment automation.
+- Cross-Compilation: `cross` for building `amd64`, `arm64`, and `armv7` architectures.
+- Version Control: `git` for configuration backup and management.
+- Package Manager: `cargo` (Rust standard).
+- MCP Testing: `mcp-inspector` for verifying MCP tool definitions and responses.
 
 ## Configuration Management
-- **Formats**: Optimized support for **TOML** (YAML/JSON disabled for size).
-- **Hierarchy**: Configuration via CLI arguments, environment variables, and config files (e.g., `config.toml`).
-- **Multi-Instance Support**: Built-in logic for managing multiple SyncThing instances.
+- Formats: Optimized support for **TOML** (YAML/JSON disabled for size).
+- Hierarchy: Configuration via CLI arguments, environment variables, and config files (e.g., `config.toml`).
+- Backups: Git-Sync integration for automated configuration versioning and rollbacks.
+- Multi-Instance Support: Built-in logic for managing multiple SyncThing instances.
+
 
 ## Security & Secrets
 - **Secrets Encryption**: OS Keyring integration and authenticated encryption (ChaCha20-Poly1305).
