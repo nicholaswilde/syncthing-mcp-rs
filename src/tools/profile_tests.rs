@@ -44,16 +44,22 @@ mod tests {
         };
 
         let mut manager = ProfileManager::new(config);
-        
+
         // Apply working_hours
         let limits = manager.apply_profile("working_hours").unwrap();
         assert_eq!(limits.max_recv_kbps, Some(100));
-        assert_eq!(manager.config.active_profile, Some("working_hours".to_string()));
+        assert_eq!(
+            manager.config.active_profile,
+            Some("working_hours".to_string())
+        );
 
         // Apply full_speed
         let limits = manager.apply_profile("full_speed").unwrap();
         assert_eq!(limits.max_recv_kbps, Some(0));
-        assert_eq!(manager.config.active_profile, Some("full_speed".to_string()));
+        assert_eq!(
+            manager.config.active_profile,
+            Some("full_speed".to_string())
+        );
 
         // Apply non-existent
         assert!(manager.apply_profile("non_existent").is_none());
@@ -92,18 +98,27 @@ mod tests {
         let manager = ProfileManager::new(config);
 
         // Monday 10:00 -> working_hours
-        let monday_10 = chrono::NaiveDate::from_ymd_opt(2026, 3, 23).unwrap() // Monday
-            .and_hms_opt(10, 0, 0).unwrap();
-        assert_eq!(manager.get_scheduled_profile_at(monday_10), Some("working_hours".to_string()));
+        let monday_10 = chrono::NaiveDate::from_ymd_opt(2026, 3, 23)
+            .unwrap() // Monday
+            .and_hms_opt(10, 0, 0)
+            .unwrap();
+        assert_eq!(
+            manager.get_scheduled_profile_at(monday_10),
+            Some("working_hours".to_string())
+        );
 
         // Monday 08:00 -> None
-        let monday_08 = chrono::NaiveDate::from_ymd_opt(2026, 3, 23).unwrap()
-            .and_hms_opt(8, 0, 0).unwrap();
+        let monday_08 = chrono::NaiveDate::from_ymd_opt(2026, 3, 23)
+            .unwrap()
+            .and_hms_opt(8, 0, 0)
+            .unwrap();
         assert_eq!(manager.get_scheduled_profile_at(monday_08), None);
 
         // Wednesday 10:00 -> None
-        let wednesday_10 = chrono::NaiveDate::from_ymd_opt(2026, 3, 25).unwrap() // Wednesday
-            .and_hms_opt(10, 0, 0).unwrap();
+        let wednesday_10 = chrono::NaiveDate::from_ymd_opt(2026, 3, 25)
+            .unwrap() // Wednesday
+            .and_hms_opt(10, 0, 0)
+            .unwrap();
         assert_eq!(manager.get_scheduled_profile_at(wednesday_10), None);
     }
 }

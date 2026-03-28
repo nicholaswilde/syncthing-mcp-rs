@@ -1,14 +1,11 @@
 /// Bandwidth orchestration tools.
 pub mod bandwidth;
-/// Unit tests for bandwidth tools.
-#[cfg(test)]
-mod bandwidth_tests;
 /// Unit tests for bandwidth MCP tools.
 #[cfg(test)]
 mod bandwidth_mcp_tests;
-/// Unit tests for performance profiles.
+/// Unit tests for bandwidth tools.
 #[cfg(test)]
-mod profile_tests;
+mod bandwidth_tests;
 /// Browser tool for exploring synced folders.
 pub mod browser;
 /// Unit tests for the browser tool.
@@ -53,6 +50,9 @@ pub mod git_sync;
 /// Unit tests for Git-Sync tools.
 #[cfg(test)]
 mod git_sync_tests;
+/// Unit tests for performance profiles.
+#[cfg(test)]
+mod profile_tests;
 /// Self-healing monitor tools.
 pub mod self_healing;
 /// Unit tests for self-healing tools.

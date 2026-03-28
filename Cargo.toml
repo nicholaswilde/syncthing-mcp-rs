@@ -64,6 +64,10 @@ testcontainers-modules = "0.14"
 tower = { version = "0.5", features = ["util"] }
 wiremock = "0.6"
 
+[[example]]
+name = "verify_config_export"
+path = "scripts/verify_config_export.rs"
+
 # Profile for final production releases (smaller, faster)
 [profile.release]
 opt-level = "z"         # Optimize for size

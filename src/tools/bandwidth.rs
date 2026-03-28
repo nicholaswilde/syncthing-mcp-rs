@@ -30,7 +30,10 @@ impl ProfileManager {
         let time = now.format("%H:%M").to_string();
 
         for schedule in &self.config.schedules {
-            if schedule.days.contains(&day) && time >= schedule.start_time && time <= schedule.end_time {
+            if schedule.days.contains(&day)
+                && time >= schedule.start_time
+                && time <= schedule.end_time
+            {
                 return Some(schedule.profile_name.clone());
             }
         }
@@ -40,6 +43,12 @@ impl ProfileManager {
 
 /// Controller for managing bandwidth limits.
 pub struct BandwidthController;
+
+impl Default for BandwidthController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl BandwidthController {
     /// Creates a new `BandwidthController`.
@@ -66,28 +75,30 @@ impl BandwidthController {
         Ok(())
     }
 
-    /// Sets the bandwidth limits for one or all instances.
+    /// Sets the bandwidth limits for all instances.
     pub async fn update_bandwidth_limits(
         &self,
-        app_config: &AppConfig,
+        config: &AppConfig,
         target_instance: Option<&str>,
         limits: BandwidthLimits,
     ) -> Result<()> {
-        for (i, instance_config) in app_config.instances.iter().enumerate() {
+        for (i, instance_config) in config.instances.iter().enumerate() {
             let name = instance_config
                 .name
                 .clone()
                 .unwrap_or_else(|| format!("Instance {}", i));
-            
+
             // If target_instance is specified, skip if it doesn't match the name or index
-            if let Some(target) = target_instance {
-                if target != name && target != i.to_string() {
-                    continue;
-                }
+            if let Some(target) = target_instance
+                && target != name
+                && target != i.to_string()
+            {
+                continue;
             }
 
             let client = SyncThingClient::new(instance_config.clone());
-            self.set_instance_bandwidth_limits(&client, limits.clone()).await?;
+            self.set_instance_bandwidth_limits(&client, limits.clone())
+                .await?;
         }
 
         Ok(())
@@ -158,22 +169,34 @@ pub async fn get_bandwidth_status(
             .name
             .clone()
             .unwrap_or_else(|| format!("Instance {}", i));
-        
+
         let client = SyncThingClient::new(instance_config.clone());
         let config = client.get_config().await?;
-        
-        let max_recv = config.options.get("maxRecvKbps")
+
+        let max_recv = config
+            .options
+            .get("maxRecvKbps")
             .and_then(|v| v.as_i64())
             .unwrap_or(0);
-        let max_send = config.options.get("maxSendKbps")
+        let max_send = config
+            .options
+            .get("maxSendKbps")
             .and_then(|v| v.as_i64())
             .unwrap_or(0);
-            
+
         instance_stats.push(format!(
             "- Instance {}: Recv {} Kbps, Send {} Kbps",
             name,
-            if max_recv == 0 { "Unlimited".to_string() } else { max_recv.to_string() },
-            if max_send == 0 { "Unlimited".to_string() } else { max_send.to_string() }
+            if max_recv == 0 {
+                "Unlimited".to_string()
+            } else {
+                max_recv.to_string()
+            },
+            if max_send == 0 {
+                "Unlimited".to_string()
+            } else {
+                max_send.to_string()
+            }
         ));
     }
 

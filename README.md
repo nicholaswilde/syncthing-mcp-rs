@@ -32,10 +32,12 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.
     - `configure_sharing`: Configure folder sharing between devices (share or unshare).
     - `delete_conflict`: Permanently delete a Syncthing conflict file.
+    - `diff_conflicts`: Compare the original and conflict versions of a file.
     - `diff_instance_configs`: Returns a detailed difference report between two SyncThing instance configurations.
     - `get_bandwidth_status`: Get current bandwidth limits and active profiles for all SyncThing instances.
     - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
+    - `get_global_dashboard`: Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
     - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices.

@@ -23,21 +23,33 @@ impl ConfigExporter {
         // Mask GUI sensitive fields
         if let Some(gui) = self.config.gui.as_object_mut() {
             if gui.contains_key("user") {
-                gui.insert("user".to_string(), serde_json::Value::String("********".to_string()));
+                gui.insert(
+                    "user".to_string(),
+                    serde_json::Value::String("********".to_string()),
+                );
             }
             if gui.contains_key("password") {
-                gui.insert("password".to_string(), serde_json::Value::String("********".to_string()));
+                gui.insert(
+                    "password".to_string(),
+                    serde_json::Value::String("********".to_string()),
+                );
             }
             if gui.contains_key("apiKey") {
-                gui.insert("apiKey".to_string(), serde_json::Value::String("********".to_string()));
+                gui.insert(
+                    "apiKey".to_string(),
+                    serde_json::Value::String("********".to_string()),
+                );
             }
         }
 
         // Mask LDAP sensitive fields
-        if let Some(ldap) = self.config.ldap.as_object_mut() {
-            if ldap.contains_key("password") {
-                ldap.insert("password".to_string(), serde_json::Value::String("********".to_string()));
-            }
+        if let Some(ldap) = self.config.ldap.as_object_mut()
+            && ldap.contains_key("password")
+        {
+            ldap.insert(
+                "password".to_string(),
+                serde_json::Value::String("********".to_string()),
+            );
         }
     }
 

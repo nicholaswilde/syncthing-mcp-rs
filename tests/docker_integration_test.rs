@@ -723,13 +723,16 @@ async fn test_bandwidth_tools() -> Result<()> {
     // 3. Test set_performance_profile
     // We need to add a profile to the config first
     let mut ctx = ctx;
-    ctx.config.bandwidth.profiles.push(syncthing_mcp_rs::config::PerformanceProfile {
-        name: "test_profile".to_string(),
-        limits: syncthing_mcp_rs::config::BandwidthLimits {
-            max_recv_kbps: Some(9999),
-            max_send_kbps: Some(8888),
-        },
-    });
+    ctx.config
+        .bandwidth
+        .profiles
+        .push(syncthing_mcp_rs::config::PerformanceProfile {
+            name: "test_profile".to_string(),
+            limits: syncthing_mcp_rs::config::BandwidthLimits {
+                max_recv_kbps: Some(9999),
+                max_send_kbps: Some(8888),
+            },
+        });
 
     let result = ctx
         .call_tool(

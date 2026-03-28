@@ -17,7 +17,7 @@ fn test_export_config_to_json() {
 
     let exporter = ConfigExporter::new(config);
     let exported = exporter.to_json().expect("Failed to export to JSON");
-    
+
     // Verify it's pretty-printed JSON
     assert!(exported.contains("  \"version\": 37"));
     assert!(exported.contains("\"gui\": {"));
@@ -38,7 +38,7 @@ fn test_export_config_to_yaml() {
 
     let exporter = ConfigExporter::new(config);
     let exported = exporter.to_yaml().expect("Failed to export to YAML");
-    
+
     // Verify it's YAML
     assert!(exported.contains("version: 37"));
     assert!(exported.contains("gui:"));
@@ -69,12 +69,12 @@ fn test_mask_sensitive_info() {
     let mut exporter = ConfigExporter::new(config);
     exporter.mask_sensitive();
     let exported = exporter.to_json().expect("Failed to export to JSON");
-    
+
     // Verify sensitive info is masked
     assert!(exported.contains("\"user\": \"********\""));
     assert!(exported.contains("\"password\": \"********\""));
     assert!(exported.contains("\"apiKey\": \"********\""));
-    
+
     // Verify non-sensitive info is preserved
     assert!(exported.contains("\"enabled\": true"));
 }

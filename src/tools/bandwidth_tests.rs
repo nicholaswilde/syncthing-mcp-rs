@@ -1,5 +1,5 @@
 use crate::api::SyncThingClient;
-use crate::config::{AppConfig, InstanceConfig, BandwidthLimits};
+use crate::config::{AppConfig, BandwidthLimits, InstanceConfig};
 use crate::tools::bandwidth::BandwidthController;
 use serde_json::json;
 
@@ -58,7 +58,9 @@ mod tests {
         };
 
         let controller = BandwidthController::new();
-        let result = controller.set_instance_bandwidth_limits(&client, limits).await;
+        let result = controller
+            .set_instance_bandwidth_limits(&client, limits)
+            .await;
 
         if let Err(e) = &result {
             println!("Error: {:?}", e);
@@ -128,7 +130,9 @@ mod tests {
 
         let controller = BandwidthController::new();
         // Update all instances
-        let result = controller.update_bandwidth_limits(&app_config, None, limits).await;
+        let result = controller
+            .update_bandwidth_limits(&app_config, None, limits)
+            .await;
 
         assert!(result.is_ok());
     }

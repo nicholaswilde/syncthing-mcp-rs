@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         api_key: Some(api_key.clone()),
         ..Default::default()
     };
-    
+
     // Add a test profile
     app_config.bandwidth.profiles.push(PerformanceProfile {
         name: "test_live_profile".to_string(),
@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             max_send_kbps: Some(567),
         },
     });
-    
+
     app_config.validate()?;
 
     let client = SyncThingClient::new(app_config.instances[0].clone());
