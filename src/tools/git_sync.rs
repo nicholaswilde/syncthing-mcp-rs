@@ -79,9 +79,41 @@ impl GitClient {
     pub async fn init(&self) -> Result<()> {
         // Create directory if it doesn't exist
         if !self.repo_path.exists() {
-            std::fs::create_dir_all(&self.repo_path).map_err(|e| crate::error::Error::Internal(format!("Failed to create repo directory: {}", e)))?;
+            std::fs::create_dir_all(&self.repo_path).map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to create repo directory: {}", e))
+            })?;
         }
         self.run_command(&["init"]).await?;
+        Ok(())
+    }
+
+    /// Clones a repository from a remote URL.
+    pub async fn clone_from(&self, url: &str) -> Result<()> {
+        // Git clone requires the target directory to be empty or non-existent
+        let parent = self.repo_path.parent().ok_or_else(|| {
+            crate::error::Error::Internal("Repo path has no parent directory".to_string())
+        })?;
+        let dir_name = self
+            .repo_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .ok_or_else(|| crate::error::Error::Internal("Invalid repo path".to_string()))?;
+
+        let output = std::process::Command::new("git")
+            .args(["clone", url, dir_name])
+            .current_dir(parent)
+            .output()
+            .map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to execute git clone: {}", e))
+            })?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(crate::error::Error::Internal(format!(
+                "Git clone failed: {}",
+                stderr
+            )));
+        }
         Ok(())
     }
 
@@ -99,13 +131,21 @@ impl GitClient {
         Ok(output.trim().to_string())
     }
 
+    /// Pushes changes to a remote repository.
+    pub async fn push(&self, remote: &str, branch: &str) -> Result<()> {
+        self.run_command(&["push", remote, branch]).await?;
+        Ok(())
+    }
+
     /// Runs an arbitrary Git command and returns its output.
     pub async fn run_command(&self, args: &[&str]) -> Result<String> {
         let output = std::process::Command::new("git")
             .args(args)
             .current_dir(&self.repo_path)
             .output()
-            .map_err(|e| crate::error::Error::Internal(format!("Failed to execute git command: {}", e)))?;
+            .map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to execute git command: {}", e))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -139,6 +179,11 @@ impl GitSyncManager {
         self.git.init().await
     }
 
+    /// Initializes the Git repository by cloning from a remote.
+    pub async fn init_remote(&self, url: &str) -> Result<()> {
+        self.git.clone_from(url).await
+    }
+
     /// Backs up a configuration to the Git repository.
     /// Returns the commit hash.
     pub async fn backup_config(&self, config: Config) -> Result<String> {
@@ -151,16 +196,25 @@ impl GitSyncManager {
         let json_path = self.repo_path.join("config.json");
         let yaml_path = self.repo_path.join("config.yaml");
 
-        std::fs::write(&json_path, json_content)
-            .map_err(|e| crate::error::Error::Internal(format!("Failed to write config.json: {}", e)))?;
-        std::fs::write(&yaml_path, yaml_content)
-            .map_err(|e| crate::error::Error::Internal(format!("Failed to write config.yaml: {}", e)))?;
+        std::fs::write(&json_path, json_content).map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to write config.json: {}", e))
+        })?;
+        std::fs::write(&yaml_path, yaml_content).map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to write config.yaml: {}", e))
+        })?;
 
         self.git.add("config.json").await?;
         self.git.add("config.yaml").await?;
-        
+
         // Use a generic commit message for now
         let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-        self.git.commit(&format!("Backup configuration: {}", timestamp)).await
+        self.git
+            .commit(&format!("Backup configuration: {}", timestamp))
+            .await
+    }
+
+    /// Pushes the local backups to a remote repository.
+    pub async fn push(&self, remote: &str, branch: &str) -> Result<()> {
+        self.git.push(remote, branch).await
     }
 }
