@@ -52,6 +52,10 @@ path = "scripts/test_live_conflict_tools.rs"
 name = "verify_health_check"
 path = "scripts/verify_health_check.rs"
 
+[[example]]
+name = "test_live_bandwidth_tools"
+path = "scripts/test_live_bandwidth_tools.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"

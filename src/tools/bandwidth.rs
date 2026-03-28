@@ -1,50 +1,8 @@
 use crate::api::SyncThingClient;
-use crate::config::AppConfig;
+use crate::config::{AppConfig, BandwidthConfig, BandwidthLimits};
 use crate::error::Result;
 
-use serde::{Deserialize, Serialize};
-
-/// Bandwidth limits to apply.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-pub struct BandwidthLimits {
-    /// Maximum receive rate in Kbps.
-    pub max_recv_kbps: Option<i64>,
-    /// Maximum send rate in Kbps.
-    pub max_send_kbps: Option<i64>,
-}
-
-/// A performance profile that defines bandwidth limits.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct PerformanceProfile {
-    /// Name of the profile (e.g., "working_hours").
-    pub name: String,
-    /// Bandwidth limits for this profile.
-    pub limits: BandwidthLimits,
-}
-
-/// A schedule for when to apply a performance profile.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct ProfileSchedule {
-    /// Profile to apply.
-    pub profile_name: String,
-    /// Days of the week this schedule applies to.
-    pub days: Vec<String>,
-    /// Start time in 24h format (e.g., "09:00").
-    pub start_time: String,
-    /// End time in 24h format (e.g., "17:00").
-    pub end_time: String,
-}
-
-/// Configuration for bandwidth orchestration.
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct BandwidthConfig {
-    /// Available performance profiles.
-    pub profiles: Vec<PerformanceProfile>,
-    /// Schedules for applying profiles.
-    pub schedules: Vec<ProfileSchedule>,
-    /// The name of the currently active profile, if any.
-    pub active_profile: Option<String>,
-}
+use serde_json::Value;
 
 /// Manager for performance profiles.
 pub struct ProfileManager {
@@ -134,4 +92,99 @@ impl BandwidthController {
 
         Ok(())
     }
+}
+
+/// MCP tool to set bandwidth limits.
+pub async fn set_bandwidth_limits(
+    _client: SyncThingClient,
+    app_config: AppConfig,
+    params: Value,
+) -> Result<Value> {
+    let limits: BandwidthLimits = serde_json::from_value(params.clone())?;
+    let target_instance = params.get("instance").and_then(|v| v.as_str());
+
+    let controller = BandwidthController::new();
+    controller
+        .update_bandwidth_limits(&app_config, target_instance, limits)
+        .await?;
+
+    Ok(serde_json::json!({
+        "content": [{
+            "type": "text",
+            "text": "Bandwidth limits updated successfully"
+        }]
+    }))
+}
+
+/// MCP tool to set the active performance profile.
+pub async fn set_performance_profile(
+    _client: SyncThingClient,
+    app_config: AppConfig,
+    params: Value,
+) -> Result<Value> {
+    let name = params
+        .get("name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| crate::error::Error::Internal("name is required".to_string()))?;
+
+    let mut manager = ProfileManager::new(app_config.bandwidth.clone());
+    let limits = manager
+        .apply_profile(name)
+        .ok_or_else(|| crate::error::Error::Internal(format!("Profile not found: {}", name)))?;
+
+    let controller = BandwidthController::new();
+    controller
+        .update_bandwidth_limits(&app_config, None, limits)
+        .await?;
+
+    Ok(serde_json::json!({
+        "content": [{
+            "type": "text",
+            "text": format!("Performance profile '{}' applied successfully", name)
+        }]
+    }))
+}
+
+/// MCP tool to get the current bandwidth status.
+pub async fn get_bandwidth_status(
+    _client: SyncThingClient,
+    app_config: AppConfig,
+    _params: Value,
+) -> Result<Value> {
+    let mut instance_stats = Vec::new();
+
+    for (i, instance_config) in app_config.instances.iter().enumerate() {
+        let name = instance_config
+            .name
+            .clone()
+            .unwrap_or_else(|| format!("Instance {}", i));
+        
+        let client = SyncThingClient::new(instance_config.clone());
+        let config = client.get_config().await?;
+        
+        let max_recv = config.options.get("maxRecvKbps")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
+        let max_send = config.options.get("maxSendKbps")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
+            
+        instance_stats.push(format!(
+            "- Instance {}: Recv {} Kbps, Send {} Kbps",
+            name,
+            if max_recv == 0 { "Unlimited".to_string() } else { max_recv.to_string() },
+            if max_send == 0 { "Unlimited".to_string() } else { max_send.to_string() }
+        ));
+    }
+
+    let mut text = String::from("Bandwidth Status:\n\n");
+    text.push_str(&instance_stats.join("\n"));
+    text.push_str("\n\nActive Profile: none"); // TODO: Implement persistent active profile tracking
+
+    Ok(serde_json::json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }]
+    }))
 }

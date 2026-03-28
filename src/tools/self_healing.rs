@@ -10,8 +10,10 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 lazy_static! {
-    static ref STUCK_FOLDER_MONITOR: Mutex<StuckFolderMonitor> = Mutex::new(StuckFolderMonitor::new(StuckFolderThresholds::default()));
-    static ref CONNECTIVITY_MONITOR: Mutex<ConnectivityMonitor> = Mutex::new(ConnectivityMonitor::new(ConnectivityThresholds::default()));
+    static ref STUCK_FOLDER_MONITOR: Mutex<StuckFolderMonitor> =
+        Mutex::new(StuckFolderMonitor::new(StuckFolderThresholds::default()));
+    static ref CONNECTIVITY_MONITOR: Mutex<ConnectivityMonitor> =
+        Mutex::new(ConnectivityMonitor::new(ConnectivityThresholds::default()));
 }
 
 /// Thresholds for determining if a folder is stuck.
@@ -106,6 +108,7 @@ impl StuckFolderMonitor {
     }
 
     /// Checks if a folder is stuck based on current status and its history in the monitor.
+    #[allow(clippy::collapsible_if)]
     pub fn check(
         &mut self,
         folder_id: &str,
@@ -114,7 +117,7 @@ impl StuckFolderMonitor {
     ) -> StuckCheckResult {
         let previous = self.history.get(folder_id);
         let result = check_stuck_folder(&current, previous, &self.thresholds, now);
-        
+
         if result.is_stuck {
             if let Some(reason) = &result.reason {
                 // Update alert or add new one
@@ -133,14 +136,15 @@ impl StuckFolderMonitor {
             // Remove alert if it was cleared
             self.alerts.retain(|a| a.folder_id != folder_id);
         }
-        
+
         // Always update history with latest status
         self.update(folder_id, current, now);
-        
+
         result
     }
 
     /// Checks if an automatic rescan should be triggered for a folder.
+    #[allow(clippy::collapsible_if)]
     pub fn should_rescan(&self, folder_id: &str, now: Instant) -> bool {
         if let Some(snapshot) = self.history.get(folder_id) {
             // Check if folder is currently in an alert state
@@ -169,6 +173,7 @@ impl StuckFolderMonitor {
 }
 
 /// Checks if a folder is stuck based on current status and history.
+#[allow(clippy::collapsible_if)]
 pub fn check_stuck_folder(
     current: &FolderStatus,
     previous: Option<&FolderStatusSnapshot>,
@@ -179,25 +184,26 @@ pub fn check_stuck_folder(
         let duration = now.duration_since(prev.timestamp);
 
         // Check if scanning for too long
-        if current.state == "scanning" && prev.status.state == "scanning" {
-            if duration >= thresholds.max_scanning_duration {
-                return StuckCheckResult {
-                    is_stuck: true,
-                    reason: Some(format!("Scanning for {}s", duration.as_secs())),
-                };
-            }
+        if current.state == "scanning"
+            && prev.status.state == "scanning"
+            && duration >= thresholds.max_scanning_duration
+        {
+            return StuckCheckResult {
+                is_stuck: true,
+                reason: Some(format!("Scanning for {}s", duration.as_secs())),
+            };
         }
 
         // Check if progress stalled during syncing
-        if current.state == "syncing" && prev.status.state == "syncing" {
-            if current.in_sync_bytes == prev.status.in_sync_bytes {
-                if duration >= thresholds.max_stalled_duration {
-                    return StuckCheckResult {
-                        is_stuck: true,
-                        reason: Some(format!("Progress stalled for {}s", duration.as_secs())),
-                    };
-                }
-            }
+        if current.state == "syncing"
+            && prev.status.state == "syncing"
+            && current.in_sync_bytes == prev.status.in_sync_bytes
+            && duration >= thresholds.max_stalled_duration
+        {
+            return StuckCheckResult {
+                is_stuck: true,
+                reason: Some(format!("Progress stalled for {}s", duration.as_secs())),
+            };
         }
     }
 
@@ -271,16 +277,28 @@ pub async fn monitor_self_healing(
     for device_id in reconnection_targets {
         if !dry_run {
             // Force reconnection by pausing and resuming
-            if let Err(e) = client.patch_device(&device_id, json!({"paused": true})).await {
+            if let Err(e) = client
+                .patch_device(&device_id, json!({"paused": true}))
+                .await
+            {
                 tracing::error!("Failed to pause device {}: {}", device_id, e);
-            } else if let Err(e) = client.patch_device(&device_id, json!({"paused": false})).await {
+            } else if let Err(e) = client
+                .patch_device(&device_id, json!({"paused": false}))
+                .await
+            {
                 tracing::error!("Failed to resume device {}: {}", device_id, e);
             } else {
-                CONNECTIVITY_MONITOR.lock().unwrap().record_retry(&device_id, now);
+                CONNECTIVITY_MONITOR
+                    .lock()
+                    .unwrap()
+                    .record_retry(&device_id, now);
                 actions_taken.push(format!("Triggered reconnection for device {}", device_id));
             }
         } else {
-            actions_taken.push(format!("[Dry Run] Would trigger reconnection for device {}", device_id));
+            actions_taken.push(format!(
+                "[Dry Run] Would trigger reconnection for device {}",
+                device_id
+            ));
         }
     }
 
@@ -301,10 +319,16 @@ pub async fn monitor_self_healing(
     if !folder_alerts.is_empty() || !connectivity_alerts.is_empty() {
         text.push_str("\nCurrent Alerts:\n");
         for alert in folder_alerts {
-            text.push_str(&format!("- [Folder {}] {}\n", alert.folder_id, alert.reason));
+            text.push_str(&format!(
+                "- [Folder {}] {}\n",
+                alert.folder_id, alert.reason
+            ));
         }
         for alert in connectivity_alerts {
-            text.push_str(&format!("- [Device {}] {}\n", alert.device_id, alert.reason));
+            text.push_str(&format!(
+                "- [Device {}] {}\n",
+                alert.device_id, alert.reason
+            ));
         }
     }
 

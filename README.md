@@ -24,6 +24,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 - **Authentication:** Connects to Syncthing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
 - **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
 - **Advanced Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
+- **Bandwidth Orchestration:** Dynamic upload/download rate limiting across instances with support for scheduled performance profiles (e.g., "working_hours").
 - **Self-Healing Monitor:** Automated detection and resolution of common Syncthing issues, including stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
@@ -32,6 +33,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `configure_sharing`: Configure folder sharing between devices (share or unshare).
     - `delete_conflict`: Permanently delete a Syncthing conflict file.
     - `diff_instance_configs`: Returns a detailed difference report between two SyncThing instance configurations.
+    - `get_bandwidth_status`: Get current bandwidth limits and active profiles for all SyncThing instances.
     - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
@@ -50,6 +52,8 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `preview_conflict_resolution`: Show what the file will look like after a proposed resolution.
     - `replicate_config`: Replicate configuration (folders and devices) from one Syncthing instance to another. Optionally perform a dry run or select specific folders/devices.
     - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version. Supports a preview mode.
+    - `set_bandwidth_limits`: Set the bandwidth limits (upload/download) across one or all SyncThing instances.
+    - `set_performance_profile`: Set the active performance profile (e.g., 'working_hours', 'overnight', 'full_speed').
 
 ## :package: Installation
 
@@ -171,6 +175,24 @@ retry_initial_backoff_ms = 100
 host = "localhost"
 port = 8384
 api_key = "keyring:syncthing:local-key"
+
+# Bandwidth Orchestration (Optional)
+[bandwidth]
+active_profile = "working_hours"
+
+[[bandwidth.profiles]]
+name = "working_hours"
+limits = { max_recv_kbps = 1000, max_send_kbps = 500 }
+
+[[bandwidth.profiles]]
+name = "full_speed"
+limits = { max_recv_kbps = 0, max_send_kbps = 0 }
+
+[[bandwidth.schedules]]
+profile_name = "working_hours"
+days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+start_time = "09:00"
+end_time = "17:00"
 
 # OR use the instances list with encrypted values
 [[instances]]

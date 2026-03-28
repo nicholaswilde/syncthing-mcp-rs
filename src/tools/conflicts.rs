@@ -223,14 +223,22 @@ pub async fn resolve_conflict(
     let preview = args["preview"].as_bool().unwrap_or(false);
 
     if preview {
-        let original_content = tokio::fs::read_to_string(&info.original_path).await.map_err(|e| {
-            crate::error::Error::Internal(format!("Failed to read original file: {}", e))
-        })?;
-        let conflict_content = tokio::fs::read_to_string(conflict_path).await.map_err(|e| {
-            crate::error::Error::Internal(format!("Failed to read conflict file: {}", e))
-        })?;
+        let original_content = tokio::fs::read_to_string(&info.original_path)
+            .await
+            .map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to read original file: {}", e))
+            })?;
+        let conflict_content = tokio::fs::read_to_string(conflict_path)
+            .await
+            .map_err(|e| {
+                crate::error::Error::Internal(format!("Failed to read conflict file: {}", e))
+            })?;
 
-        let preview_text = crate::tools::diff::get_resolution_preview(&original_content, &conflict_content, action);
+        let preview_text = crate::tools::diff::get_resolution_preview(
+            &original_content,
+            &conflict_content,
+            action,
+        );
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -426,5 +434,93 @@ mod tests {
         let parent = Path::new("/tmp");
         assert!(parse_conflict_filename("not-a-conflict.txt", parent).is_none());
         assert!(parse_conflict_filename("file.sync-conflict-invalid-DEVICE.txt", parent).is_none());
+    }
+
+    #[tokio::test]
+    async fn test_scan_conflicts() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path();
+
+        // Create original file
+        let original_path = path.join("test.txt");
+        tokio::fs::write(&original_path, "original content")
+            .await
+            .unwrap();
+
+        // Create conflict file
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = path.join(conflict_name);
+        tokio::fs::write(&conflict_path, "conflict content")
+            .await
+            .unwrap();
+
+        // Create sub-directory with conflict
+        let sub = path.join("sub");
+        tokio::fs::create_dir(&sub).await.unwrap();
+        let sub_original = sub.join("notes.md");
+        tokio::fs::write(&sub_original, "sub original")
+            .await
+            .unwrap();
+        let sub_conflict_name = "notes.sync-conflict-20230101-120000-ABCDEFG.md";
+        let sub_conflict_path = sub.join(sub_conflict_name);
+        tokio::fs::write(&sub_conflict_path, "sub conflict")
+            .await
+            .unwrap();
+
+        let conflicts = scan_conflicts(path).await.unwrap();
+        assert_eq!(conflicts.len(), 2);
+
+        // Sort by path for stable assertion
+        let mut conflicts = conflicts;
+        conflicts.sort_by(|a, b| a.conflict_path.cmp(&b.conflict_path));
+
+        assert!(conflicts[0].conflict_path.contains("sub"));
+        assert_eq!(conflicts[0].original_size, Some(12));
+        assert!(conflicts[1].conflict_path.contains(conflict_name));
+        assert_eq!(conflicts[1].conflict_size, 16);
+        assert_eq!(conflicts[1].original_size, Some(16));
+    }
+
+    #[tokio::test]
+    async fn test_list_conflicts_tool() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        let temp = tempfile::tempdir().unwrap();
+
+        // Create conflict file
+        let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
+        let conflict_path = temp.path().join(conflict_name);
+        tokio::fs::write(&conflict_path, "conflict content")
+            .await
+            .unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "default",
+                "path": temp.path().to_string_lossy(),
+                "label": "Default Folder",
+                "type": "sendreceive",
+                "devices": []
+            })))
+            .mount(&server)
+            .await;
+
+        let client = SyncThingClient::new(crate::config::InstanceConfig {
+            url: server.uri(),
+            api_key: Some("test".to_string()),
+            ..Default::default()
+        });
+        let config = AppConfig::default();
+        let params = json!({
+            "folder_id": "default"
+        });
+
+        let result = list_conflicts(client, config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Conflicts in folder default:"));
+        assert!(text.contains(conflict_name));
     }
 }

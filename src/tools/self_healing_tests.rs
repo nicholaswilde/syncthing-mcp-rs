@@ -1,5 +1,7 @@
 use crate::api::models::FolderStatus;
-use crate::tools::self_healing::{check_stuck_folder, StuckFolderThresholds, FolderStatusSnapshot, StuckFolderMonitor};
+use crate::tools::self_healing::{
+    FolderStatusSnapshot, StuckFolderMonitor, StuckFolderThresholds, check_stuck_folder,
+};
 use std::time::{Duration, Instant};
 
 #[test]
@@ -13,7 +15,7 @@ fn test_monitor_detects_stuck_folder() {
 
     let mut monitor = StuckFolderMonitor::new(thresholds);
     let now = Instant::now();
-    
+
     // Initial status: syncing at 50%
     let status_t0 = FolderStatus {
         state: "syncing".to_string(),
@@ -21,13 +23,16 @@ fn test_monitor_detects_stuck_folder() {
         in_sync_bytes: 500,
         ..Default::default()
     };
-    
+
     // Update monitor at t0
     monitor.update("folder1", status_t0.clone(), now);
-    
+
     // Check after 301 seconds, same status
     let result = monitor.check("folder1", status_t0.clone(), now + Duration::from_secs(301));
-    assert!(result.is_stuck, "Monitor should detect stuck folder after stalled period");
+    assert!(
+        result.is_stuck,
+        "Monitor should detect stuck folder after stalled period"
+    );
 
     // Task 3: Verify alerts
     let alerts = monitor.get_alerts(now + Duration::from_secs(301));
@@ -44,9 +49,12 @@ fn test_monitor_detects_stuck_folder() {
     };
     monitor.check("folder1", status_t2, now + Duration::from_secs(302));
     let alerts = monitor.get_alerts(now + Duration::from_secs(302));
-    assert_eq!(alerts.len(), 0, "Alert should be cleared after progress is made");
+    assert_eq!(
+        alerts.len(),
+        0,
+        "Alert should be cleared after progress is made"
+    );
 }
-
 
 #[test]
 fn test_stuck_folder_detection_progress_stalled() {
@@ -58,7 +66,7 @@ fn test_stuck_folder_detection_progress_stalled() {
     };
 
     let now = Instant::now();
-    
+
     // Initial status: syncing at 50%
     let initial_status = FolderStatus {
         state: "syncing".to_string(),
@@ -66,7 +74,7 @@ fn test_stuck_folder_detection_progress_stalled() {
         in_sync_bytes: 500,
         ..Default::default()
     };
-    
+
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
         timestamp: now - Duration::from_secs(301),
@@ -75,9 +83,12 @@ fn test_stuck_folder_detection_progress_stalled() {
 
     // Current status: same as 301 seconds ago
     let current_status = initial_status;
-    
+
     let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
-    assert!(result.is_stuck, "Folder should be detected as stuck due to stalled progress");
+    assert!(
+        result.is_stuck,
+        "Folder should be detected as stuck due to stalled progress"
+    );
     assert_eq!(result.reason, Some("Progress stalled for 301s".to_string()));
 }
 
@@ -91,13 +102,13 @@ fn test_stuck_folder_detection_scanning_too_long() {
     };
 
     let now = Instant::now();
-    
+
     // Initial status: scanning
     let initial_status = FolderStatus {
         state: "scanning".to_string(),
         ..Default::default()
     };
-    
+
     let snapshot = FolderStatusSnapshot {
         status: initial_status.clone(),
         timestamp: now - Duration::from_secs(601),
@@ -106,9 +117,12 @@ fn test_stuck_folder_detection_scanning_too_long() {
 
     // Current status: still scanning
     let current_status = initial_status;
-    
+
     let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
-    assert!(result.is_stuck, "Folder should be detected as stuck due to long scanning");
+    assert!(
+        result.is_stuck,
+        "Folder should be detected as stuck due to long scanning"
+    );
     assert_eq!(result.reason, Some("Scanning for 601s".to_string()));
 }
 
@@ -122,7 +136,7 @@ fn test_not_stuck_if_progress_made() {
     };
 
     let now = Instant::now();
-    
+
     // Initial status: syncing at 50%
     let initial_status = FolderStatus {
         state: "syncing".to_string(),
@@ -130,7 +144,7 @@ fn test_not_stuck_if_progress_made() {
         in_sync_bytes: 500,
         ..Default::default()
     };
-    
+
     let snapshot = FolderStatusSnapshot {
         status: initial_status,
         timestamp: now - Duration::from_secs(301),
@@ -144,9 +158,12 @@ fn test_not_stuck_if_progress_made() {
         in_sync_bytes: 600,
         ..Default::default()
     };
-    
+
     let result = check_stuck_folder(&current_status, Some(&snapshot), &thresholds, now);
-    assert!(!result.is_stuck, "Folder should NOT be detected as stuck because progress was made");
+    assert!(
+        !result.is_stuck,
+        "Folder should NOT be detected as stuck because progress was made"
+    );
 }
 
 #[test]
@@ -160,7 +177,7 @@ fn test_should_suggest_rescan_for_stuck_folder() {
 
     let mut monitor = StuckFolderMonitor::new(thresholds);
     let now = Instant::now();
-    
+
     // Initial status: syncing at 50%
     let status_t0 = FolderStatus {
         state: "syncing".to_string(),
@@ -168,16 +185,82 @@ fn test_should_suggest_rescan_for_stuck_folder() {
         ..Default::default()
     };
     monitor.update("folder1", status_t0.clone(), now);
-    
+
     // Check after 301 seconds, same status
     monitor.check("folder1", status_t0.clone(), now + Duration::from_secs(301));
-    
+
     // Should suggest rescan
     assert!(monitor.should_rescan("folder1", now + Duration::from_secs(301)));
-    
+
     // Record rescan at t=301
     monitor.record_rescan("folder1", now + Duration::from_secs(301));
-    
+
     // Next rescan should NOT be immediate
     assert!(!monitor.should_rescan("folder1", now + Duration::from_secs(302)));
+}
+
+#[tokio::test]
+async fn test_monitor_self_healing_dry_run() {
+    use crate::api::SyncThingClient;
+    use crate::config::{AppConfig, InstanceConfig};
+    use crate::tools::self_healing::monitor_self_healing;
+    use serde_json::json;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    let server = MockServer::start().await;
+
+    // Mock list_folders
+    Mock::given(method("GET"))
+        .and(path("/rest/config/folders"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([{"id": "folder1", "path": "/tmp", "label": "Folder 1", "type": "sendreceive", "devices": []}])))
+        .mount(&server)
+        .await;
+
+    // Mock get_folder_status
+    Mock::given(method("GET"))
+        .and(path("/rest/db/status"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "state": "syncing",
+            "inSyncBytes": 500,
+            "needBytes": 1000
+        })))
+        .mount(&server)
+        .await;
+
+    // Mock get_connections
+    Mock::given(method("GET"))
+        .and(path("/rest/system/connections"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "connections": {
+                "device1": {
+                    "connected": false,
+                    "paused": false,
+                    "type": "tcp-client"
+                }
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let client = SyncThingClient::new(InstanceConfig {
+        url: server.uri(),
+        api_key: Some("test".to_string()),
+        ..Default::default()
+    });
+    let config = AppConfig::default();
+
+    // First call to establish history
+    let _ = monitor_self_healing(client.clone(), config.clone(), json!({"dry_run": true}))
+        .await
+        .unwrap();
+
+    // Fast-forward time is not easy with real Instant, but we can call it again
+    // and since it's dry_run it shouldn't trigger anything yet because duration is 0
+    let result = monitor_self_healing(client, config, json!({"dry_run": true}))
+        .await
+        .unwrap();
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Self-Healing Monitor Report:"));
+    assert!(text.contains("No actions needed at this time."));
 }

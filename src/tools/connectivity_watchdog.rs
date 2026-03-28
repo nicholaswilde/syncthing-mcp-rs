@@ -149,24 +149,24 @@ impl ConnectivityMonitor {
     }
 
     /// Checks if a retry attempt should be made for a device.
+    #[allow(clippy::collapsible_if)]
     pub fn should_retry(&self, device_id: &str, now: Instant) -> bool {
-        // Advanced Strategy: Check if all known devices are offline. 
+        // Advanced Strategy: Check if all known devices are offline.
         // If they are, it's likely a local network issue, so don't bother retrying individual devices.
         if self.is_all_offline() && self.history.len() > 1 {
             return false;
         }
 
         if let Some(snapshot) = self.history.get(device_id) {
-            if !snapshot.connected {
-                let offline_duration = now.duration_since(snapshot.timestamp);
-                if offline_duration >= self.thresholds.max_offline_duration {
-                    if let Some(last_retry) = snapshot.last_retry {
-                        let backoff = self.get_backoff(snapshot.retry_count);
-                        return now.duration_since(last_retry) >= backoff;
-                    } else {
-                        // No retry attempted yet
-                        return true;
-                    }
+            if !snapshot.connected
+                && now.duration_since(snapshot.timestamp) >= self.thresholds.max_offline_duration
+            {
+                if let Some(last_retry) = snapshot.last_retry {
+                    let backoff = self.get_backoff(snapshot.retry_count);
+                    return now.duration_since(last_retry) >= backoff;
+                } else {
+                    // No retry attempted yet
+                    return true;
                 }
             }
         }

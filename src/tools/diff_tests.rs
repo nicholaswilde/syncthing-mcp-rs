@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::tools::diff::{get_text_diff, DiffFormat, get_diff};
+    use crate::tools::diff::{DiffFormat, get_diff, get_text_diff};
 
     #[test]
     fn test_get_text_diff() {
@@ -44,7 +44,8 @@ mod tests {
     fn test_get_resolution_preview_keep_original() {
         let original = "original content";
         let conflict = "conflict content";
-        let preview = crate::tools::diff::get_resolution_preview(original, conflict, "keep_original");
+        let preview =
+            crate::tools::diff::get_resolution_preview(original, conflict, "keep_original");
         assert_eq!(preview, original);
     }
 
@@ -52,20 +53,63 @@ mod tests {
     fn test_get_resolution_preview_keep_conflict() {
         let original = "original content";
         let conflict = "conflict content";
-        let preview = crate::tools::diff::get_resolution_preview(original, conflict, "keep_conflict");
+        let preview =
+            crate::tools::diff::get_resolution_preview(original, conflict, "keep_conflict");
         assert_eq!(preview, conflict);
+    }
+
+    #[test]
+    fn test_get_diff_auto_json() {
+        let original = r#"{"a": 1}"#;
+        let conflict = r#"{"a": 2}"#;
+        let diff = get_diff(original, conflict, DiffFormat::Auto).unwrap();
+        assert!(diff.contains("\"a\""));
+    }
+
+    #[test]
+    fn test_get_diff_auto_yaml() {
+        let original = "a: 1";
+        let conflict = "a: 2";
+        let diff = get_diff(original, conflict, DiffFormat::Auto).unwrap();
+        assert!(diff.contains("a"));
+    }
+
+    #[test]
+    fn test_get_json_diff_no_changes() {
+        let original = r#"{"a": 1}"#;
+        let conflict = r#"{"a": 1}"#;
+        let diff = get_diff(original, conflict, DiffFormat::Json).unwrap();
+        assert_eq!(diff, "No changes detected in JSON structure.");
+    }
+
+    #[test]
+    fn test_get_yaml_diff_no_changes() {
+        let original = "a: 1";
+        let conflict = "a: 1";
+        let diff = get_diff(original, conflict, DiffFormat::Yaml).unwrap();
+        assert_eq!(diff, "No changes detected in YAML structure.");
+    }
+
+    #[test]
+    fn test_get_json_diff_invalid() {
+        let original = r#"{"a": 1}"#;
+        let conflict = r#"{"a": 1"#; // Invalid JSON
+        let result = get_diff(original, conflict, DiffFormat::Json);
+        assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn test_diff_conflicts_tool() {
-        use tempfile::tempdir;
         use crate::api::SyncThingClient;
         use crate::config::{AppConfig, InstanceConfig};
         use serde_json::json;
+        use tempfile::tempdir;
 
         let dir = tempdir().unwrap();
         let original_path = dir.path().join("test.txt");
-        let conflict_path = dir.path().join("test.sync-conflict-20230101-120000-DEVICE.txt");
+        let conflict_path = dir
+            .path()
+            .join("test.sync-conflict-20230101-120000-DEVICE.txt");
 
         std::fs::write(&original_path, "original content").unwrap();
         std::fs::write(&conflict_path, "conflict content").unwrap();
@@ -81,7 +125,9 @@ mod tests {
             "conflict_path": conflict_path.to_str().unwrap()
         });
 
-        let result = crate::tools::diff::diff_conflicts(client, config, args).await.unwrap();
+        let result = crate::tools::diff::diff_conflicts(client, config, args)
+            .await
+            .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("-original content"));
         assert!(text.contains("+conflict content"));
@@ -89,14 +135,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_preview_conflict_resolution_tool() {
-        use tempfile::tempdir;
         use crate::api::SyncThingClient;
         use crate::config::{AppConfig, InstanceConfig};
         use serde_json::json;
+        use tempfile::tempdir;
 
         let dir = tempdir().unwrap();
         let original_path = dir.path().join("test.txt");
-        let conflict_path = dir.path().join("test.sync-conflict-20230101-120000-DEVICE.txt");
+        let conflict_path = dir
+            .path()
+            .join("test.sync-conflict-20230101-120000-DEVICE.txt");
 
         std::fs::write(&original_path, "original content").unwrap();
         std::fs::write(&conflict_path, "conflict content").unwrap();
@@ -108,13 +156,16 @@ mod tests {
             ..Default::default()
         });
         let config = AppConfig::default();
-        
+
         // Test keep_original
         let args = json!({
             "conflict_path": conflict_path.to_str().unwrap(),
             "action": "keep_original"
         });
-        let result = crate::tools::diff::preview_conflict_resolution(client.clone(), config.clone(), args).await.unwrap();
+        let result =
+            crate::tools::diff::preview_conflict_resolution(client.clone(), config.clone(), args)
+                .await
+                .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert_eq!(text, "original content");
 
@@ -123,7 +174,9 @@ mod tests {
             "conflict_path": conflict_path.to_str().unwrap(),
             "action": "keep_conflict"
         });
-        let result = crate::tools::diff::preview_conflict_resolution(client, config, args).await.unwrap();
+        let result = crate::tools::diff::preview_conflict_resolution(client, config, args)
+            .await
+            .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert_eq!(text, "conflict content");
     }

@@ -647,16 +647,17 @@ async fn test_conflict_diff_and_preview_tools() -> Result<()> {
     let host_path = temp_dir.path().to_str().unwrap().to_string();
     let container_path = "/var/syncthing/test-mount".to_string();
 
-    let container = SyncThingContainer::with_mount(Some((host_path.clone(), container_path.clone()))).await?;
+    let container =
+        SyncThingContainer::with_mount(Some((host_path.clone(), container_path.clone()))).await?;
     let ctx = TestContext::from_container(container);
-    
+
     // Create original and conflict files on the host (accessible to both)
     let original_filename = "test.txt";
     let conflict_filename = "test.sync-conflict-20230101-120000-DEVICE.txt";
-    
+
     let host_original_path = temp_dir.path().join(original_filename);
     let host_conflict_path = temp_dir.path().join(conflict_filename);
-    
+
     std::fs::write(&host_original_path, "original content")?;
     std::fs::write(&host_conflict_path, "conflict content")?;
 
@@ -664,20 +665,88 @@ async fn test_conflict_diff_and_preview_tools() -> Result<()> {
     let mcp_conflict_path = host_conflict_path.to_str().unwrap();
 
     // 1. Test diff_conflicts
-    let result = ctx.call_tool("diff_conflicts", json!({
-        "conflict_path": mcp_conflict_path
-    })).await?;
+    let result = ctx
+        .call_tool(
+            "diff_conflicts",
+            json!({
+                "conflict_path": mcp_conflict_path
+            }),
+        )
+        .await?;
     let text = result["content"][0]["text"].as_str().unwrap();
     assert!(text.contains("-original content"));
     assert!(text.contains("+conflict content"));
 
     // 2. Test preview_conflict_resolution
-    let result = ctx.call_tool("preview_conflict_resolution", json!({
-        "conflict_path": mcp_conflict_path,
-        "action": "keep_conflict"
-    })).await?;
+    let result = ctx
+        .call_tool(
+            "preview_conflict_resolution",
+            json!({
+                "conflict_path": mcp_conflict_path,
+                "action": "keep_conflict"
+            }),
+        )
+        .await?;
     let text = result["content"][0]["text"].as_str().unwrap();
     assert_eq!(text, "conflict content");
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_bandwidth_tools() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // 1. Test set_bandwidth_limits
+    let result = ctx
+        .call_tool(
+            "set_bandwidth_limits",
+            json!({
+                "max_recv_kbps": 1234,
+                "max_send_kbps": 5678
+            }),
+        )
+        .await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Bandwidth limits updated"));
+
+    // 2. Test get_bandwidth_status
+    let result = ctx.call_tool("get_bandwidth_status", json!({})).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("1234"));
+    assert!(text.contains("5678"));
+
+    // 3. Test set_performance_profile
+    // We need to add a profile to the config first
+    let mut ctx = ctx;
+    ctx.config.bandwidth.profiles.push(syncthing_mcp_rs::config::PerformanceProfile {
+        name: "test_profile".to_string(),
+        limits: syncthing_mcp_rs::config::BandwidthLimits {
+            max_recv_kbps: Some(9999),
+            max_send_kbps: Some(8888),
+        },
+    });
+
+    let result = ctx
+        .call_tool(
+            "set_performance_profile",
+            json!({
+                "name": "test_profile"
+            }),
+        )
+        .await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("test_profile' applied"));
+
+    // 4. Verify limits were applied from profile
+    let result = ctx.call_tool("get_bandwidth_status", json!({})).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("9999"));
+    assert!(text.contains("8888"));
 
     Ok(())
 }

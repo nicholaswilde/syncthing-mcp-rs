@@ -1,7 +1,7 @@
 use crate::credentials::resolve_api_key;
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -41,6 +41,51 @@ pub struct AppConfig {
     /// The list of SyncThing event types to notify about.
     #[serde(default = "default_mcp_events")]
     pub mcp_events: Vec<String>,
+    /// Bandwidth orchestration configuration.
+    #[serde(default)]
+    pub bandwidth: BandwidthConfig,
+}
+
+/// Bandwidth limits to apply.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BandwidthLimits {
+    /// Maximum receive rate in Kbps.
+    pub max_recv_kbps: Option<i64>,
+    /// Maximum send rate in Kbps.
+    pub max_send_kbps: Option<i64>,
+}
+
+/// A performance profile that defines bandwidth limits.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PerformanceProfile {
+    /// Name of the profile (e.g., "working_hours").
+    pub name: String,
+    /// Bandwidth limits for this profile.
+    pub limits: BandwidthLimits,
+}
+
+/// A schedule for when to apply a performance profile.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ProfileSchedule {
+    /// Profile to apply.
+    pub profile_name: String,
+    /// Days of the week this schedule applies to.
+    pub days: Vec<String>,
+    /// Start time in 24h format (e.g., "09:00").
+    pub start_time: String,
+    /// End time in 24h format (e.g., "17:00").
+    pub end_time: String,
+}
+
+/// Configuration for bandwidth orchestration.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct BandwidthConfig {
+    /// Available performance profiles.
+    pub profiles: Vec<PerformanceProfile>,
+    /// Schedules for applying profiles.
+    pub schedules: Vec<ProfileSchedule>,
+    /// The name of the currently active profile, if any.
+    pub active_profile: Option<String>,
 }
 
 /// Configuration for the HTTP/SSE server.
@@ -149,6 +194,7 @@ impl Default for AppConfig {
             instances: Vec::new(),
             http_server: HttpServerConfig::default(),
             mcp_events: default_mcp_events(),
+            bandwidth: BandwidthConfig::default(),
         }
     }
 }

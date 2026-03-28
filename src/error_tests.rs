@@ -35,7 +35,8 @@ mod tests {
 
     #[test]
     fn test_yaml_error_mapping() {
-        let err: serde_yaml_ng::Error = serde_yaml_ng::from_str::<serde_json::Value>("invalid: : yaml").unwrap_err();
+        let err: serde_yaml_ng::Error =
+            serde_yaml_ng::from_str::<serde_json::Value>("invalid: : yaml").unwrap_err();
         let error = Error::from(err);
         assert!(matches!(error, Error::Yaml(_)));
     }

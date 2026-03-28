@@ -44,15 +44,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Find a folder to use for testing
     let folders = client.list_folders().await?;
     let mut folder_to_use = None;
-    
+
     for folder in folders {
         let expanded = expand_tilde(&folder.path);
         if expanded.exists() {
-            println!("Using folder: {} ({}) at {:?}", folder.label, folder.id, expanded);
+            println!(
+                "Using folder: {} ({}) at {:?}",
+                folder.label, folder.id, expanded
+            );
             folder_to_use = Some((folder, expanded));
             break;
         } else {
-            println!("Skipping folder {} (path {:?} does not exist locally)", folder.id, expanded);
+            println!(
+                "Skipping folder {} (path {:?} does not exist locally)",
+                folder.id, expanded
+            );
         }
     }
 
@@ -68,9 +74,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let original_path = folder_path.join("mcp_live_test.json");
     let conflict_path = folder_path.join("mcp_live_test.sync-conflict-20260324-120000-LIVE.json");
 
-    println!("Creating temporary test files (JSON) at {:?} and {:?}...", original_path, conflict_path);
+    println!(
+        "Creating temporary test files (JSON) at {:?} and {:?}...",
+        original_path, conflict_path
+    );
     fs::write(&original_path, r#"{"a": 1, "b": 2, "nested": {"x": true}}"#)?;
-    fs::write(&conflict_path, r#"{"a": 1, "b": 3, "nested": {"x": false}, "c": 4}"#)?;
+    fs::write(
+        &conflict_path,
+        r#"{"a": 1, "b": 3, "nested": {"x": false}, "c": 4}"#,
+    )?;
 
     // 3. Test diff_conflicts (JSON)
     println!("\n--- Testing diff_conflicts (JSON) ---");
@@ -84,8 +96,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "conflict_path": conflict_path.to_str().unwrap(),
             "format": "json"
         })),
-    ).await?;
-    println!("JSON Diff Result:\n{}", result["content"][0]["text"].as_str().unwrap());
+    )
+    .await?;
+    println!(
+        "JSON Diff Result:\n{}",
+        result["content"][0]["text"].as_str().unwrap()
+    );
 
     // 4. Test preview_conflict_resolution
     println!("\n--- Testing preview_conflict_resolution (keep_conflict) ---");
@@ -99,8 +115,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "conflict_path": conflict_path.to_str().unwrap(),
             "action": "keep_conflict"
         })),
-    ).await?;
-    println!("Preview Result:\n{}", result["content"][0]["text"].as_str().unwrap());
+    )
+    .await?;
+    println!(
+        "Preview Result:\n{}",
+        result["content"][0]["text"].as_str().unwrap()
+    );
 
     // 5. Test resolve_conflict with preview
     println!("\n--- Testing resolve_conflict with preview: true ---");
@@ -115,8 +135,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "action": "keep_original",
             "preview": true
         })),
-    ).await?;
-    println!("Resolve Preview Result:\n{}", result["content"][0]["text"].as_str().unwrap());
+    )
+    .await?;
+    println!(
+        "Resolve Preview Result:\n{}",
+        result["content"][0]["text"].as_str().unwrap()
+    );
 
     // 6. Cleanup
     println!("\nCleaning up temporary files...");

@@ -3,6 +3,9 @@ pub mod bandwidth;
 /// Unit tests for bandwidth tools.
 #[cfg(test)]
 mod bandwidth_tests;
+/// Unit tests for bandwidth MCP tools.
+#[cfg(test)]
+mod bandwidth_mcp_tests;
 /// Unit tests for performance profiles.
 #[cfg(test)]
 mod profile_tests;
@@ -657,6 +660,51 @@ pub fn create_registry() -> ToolRegistry {
             }
         }),
         self_healing::monitor_self_healing,
+    );
+
+    registry.register(
+        "set_bandwidth_limits",
+        "Set the bandwidth limits (upload/download) across one or all SyncThing instances.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "max_recv_kbps": {
+                    "type": "integer",
+                    "description": "Maximum receive rate in Kbps. Set to 0 for unlimited."
+                },
+                "max_send_kbps": {
+                    "type": "integer",
+                    "description": "Maximum send rate in Kbps. Set to 0 for unlimited."
+                }
+            }
+        }),
+        bandwidth::set_bandwidth_limits,
+    );
+
+    registry.register(
+        "set_performance_profile",
+        "Set the active performance profile (e.g., 'working_hours', 'overnight', 'full_speed').",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the performance profile to activate."
+                }
+            },
+            "required": ["name"]
+        }),
+        bandwidth::set_performance_profile,
+    );
+
+    registry.register(
+        "get_bandwidth_status",
+        "Get current bandwidth limits and active profiles for all SyncThing instances.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        bandwidth::get_bandwidth_status,
     );
 
     registry

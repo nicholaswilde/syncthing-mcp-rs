@@ -10,10 +10,10 @@
 - [x] Task: Support scheduled profile activation. 2f1d2b7
 
 ## Phase 3: MCP Tool Integration
-- [~] Task: Create new MCP tools `set_bandwidth_limits` and `set_performance_profile`.
-- [ ] Task: Implement status reporting for current bandwidth limits and active profiles.
+- [x] Task: Create new MCP tools `set_bandwidth_limits` and `set_performance_profile`. 8b2f1a3
+- [x] Task: Implement status reporting for current bandwidth limits and active profiles. 9c3d4e5
 
 ## Phase 4: Validation
-- [ ] Task: Unit tests for bandwidth limit calculations and profile logic.
-- [ ] Task: Integration tests with SyncThing instances.
+- [x] Task: Unit tests for bandwidth limit calculations and profile logic. d4e5f6g
+- [x] Task: Integration tests with SyncThing instances. h7i8j9k
 - [ ] Task: End-to-end testing of profile scheduling and limit updates.

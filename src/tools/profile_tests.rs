@@ -1,9 +1,9 @@
-use crate::tools::bandwidth::{BandwidthConfig, BandwidthLimits, PerformanceProfile, ProfileSchedule};
+use crate::config::{BandwidthConfig, BandwidthLimits, PerformanceProfile, ProfileSchedule};
+use crate::tools::bandwidth::ProfileManager;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tools::bandwidth::ProfileManager;
 
     #[test]
     fn test_profile_logic() {

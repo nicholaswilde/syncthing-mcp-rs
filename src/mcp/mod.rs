@@ -15,6 +15,9 @@ pub mod server;
 pub mod tests;
 /// JSON-RPC types for the Model Context Protocol.
 pub mod types;
+/// Unit tests for MCP types.
+#[cfg(test)]
+mod types_tests;
 
 pub use server::McpServer;
 pub use types::*;

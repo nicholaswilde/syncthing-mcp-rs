@@ -1,6 +1,6 @@
 use crate::api::SyncThingClient;
-use crate::config::{AppConfig, InstanceConfig};
-use crate::tools::bandwidth::{BandwidthController, BandwidthLimits};
+use crate::config::{AppConfig, InstanceConfig, BandwidthLimits};
+use crate::tools::bandwidth::BandwidthController;
 use serde_json::json;
 
 #[cfg(test)]

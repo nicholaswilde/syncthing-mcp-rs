@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use syncthing_mcp_rs::api::SyncThingClient;
 use syncthing_mcp_rs::config::{AppConfig, InstanceConfig};
 use syncthing_mcp_rs::tools::ToolRegistry;
-use testcontainers::core::{ContainerPort, WaitFor, ExecCommand};
+use testcontainers::core::{ContainerPort, ExecCommand, WaitFor};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
 use tokio::io::AsyncBufReadExt;
@@ -32,7 +32,10 @@ impl SyncThingContainer {
             .with_env_var("STGUIAPIKEY", &api_key);
 
         if let Some((host_path, container_path)) = mount {
-            image = image.with_mount(testcontainers::core::Mount::bind_mount(host_path, container_path));
+            image = image.with_mount(testcontainers::core::Mount::bind_mount(
+                host_path,
+                container_path,
+            ));
         }
 
         let container: testcontainers::ContainerAsync<GenericImage> = image.start().await?;

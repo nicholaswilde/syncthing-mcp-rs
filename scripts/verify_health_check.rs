@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Performing health check...");
     let health = client.health_check().await?;
-    
+
     println!("Status: {}", health.status);
     println!("Latency: {}ms", health.latency_ms);
     if let Some(version) = health.version {
