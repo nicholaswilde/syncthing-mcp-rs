@@ -13,7 +13,7 @@
 - [x] Task: Implement a configuration restorer that applies versions from Git. 92636f4
 - [x] Task: Create a diff viewer for configuration versions. d8a2779
 
-## Phase 4: Integration & Validation
-- [ ] Task: Unit tests for configuration export and restoration.
-- [ ] Task: Integration tests with a real Git repository.
-- [ ] Task: End-to-end testing of the backup and rollback workflow.
+## Phase 4: Integration & Validation [checkpoint: f5dee09]
+- [x] Task: Unit tests for configuration export and restoration. 3adaad7
+- [x] Task: Integration tests with a real Git repository. 3adaad7
+- [x] Task: End-to-end testing of the backup and rollback workflow. 2fde628
