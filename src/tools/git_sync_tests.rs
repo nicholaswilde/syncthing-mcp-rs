@@ -283,7 +283,7 @@ async fn test_get_config_diff() {
         .get_diff(&hash1, &hash2)
         .await
         .expect("Failed to get diff");
-    
+
     assert!(diff.contains("-  \"version\": 1"));
     assert!(diff.contains("+  \"version\": 2"));
 }

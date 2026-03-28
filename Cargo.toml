@@ -72,6 +72,10 @@ path = "scripts/verify_config_export.rs"
 name = "verify_git_integration"
 path = "scripts/verify_git_integration.rs"
 
+[[example]]
+name = "verify_rollback"
+path = "scripts/verify_rollback.rs"
+
 # Profile for final production releases (smaller, faster)
 [profile.release]
 opt-level = "z"         # Optimize for size
