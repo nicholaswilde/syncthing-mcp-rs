@@ -48,6 +48,11 @@ pub mod diff;
 mod diff_tests;
 /// Folder management tools.
 pub mod folders;
+/// Git-Sync tools for version control.
+pub mod git_sync;
+/// Unit tests for Git-Sync tools.
+#[cfg(test)]
+mod git_sync_tests;
 /// Self-healing monitor tools.
 pub mod self_healing;
 /// Unit tests for self-healing tools.
