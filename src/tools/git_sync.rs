@@ -137,6 +137,12 @@ impl GitClient {
         Ok(())
     }
 
+    /// Checks out a specific revision (branch, tag, or commit hash).
+    pub async fn checkout(&self, revision: &str) -> Result<()> {
+        self.run_command(&["checkout", revision]).await?;
+        Ok(())
+    }
+
     /// Runs an arbitrary Git command and returns its output.
     pub async fn run_command(&self, args: &[&str]) -> Result<String> {
         let output = std::process::Command::new("git")
@@ -211,6 +217,22 @@ impl GitSyncManager {
         self.git
             .commit(&format!("Backup configuration: {}", timestamp))
             .await
+    }
+
+    /// Restores a configuration from a specific Git revision.
+    ///
+    /// This checks out the revision and reads the configuration from the repository.
+    pub async fn restore_config(&self, revision: &str) -> Result<Config> {
+        self.git.checkout(revision).await?;
+
+        let json_path = self.repo_path.join("config.json");
+        let json_content = std::fs::read_to_string(&json_path).map_err(|e| {
+            crate::error::Error::Internal(format!("Failed to read config.json: {}", e))
+        })?;
+
+        let config: Config = serde_json::from_str(&json_content)?;
+
+        Ok(config)
     }
 
     /// Pushes the local backups to a remote repository.

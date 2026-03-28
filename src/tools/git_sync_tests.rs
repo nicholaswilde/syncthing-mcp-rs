@@ -191,3 +191,50 @@ async fn test_git_client_clone() {
     assert!(dest_path.join(".git").exists());
     assert!(dest_path.join("README.md").exists());
 }
+
+#[tokio::test]
+async fn test_restore_config() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let repo_path = temp_dir.path().to_path_buf();
+
+    let manager = crate::tools::git_sync::GitSyncManager::new(repo_path.clone());
+    manager.init().await.expect("Failed to init");
+
+    // Configure user for commit
+    let client = crate::tools::git_sync::GitClient::new(repo_path.clone());
+    client
+        .run_command(&["config", "user.email", "test@example.com"])
+        .await
+        .unwrap();
+    client
+        .run_command(&["config", "user.name", "Test User"])
+        .await
+        .unwrap();
+
+    // 1. First backup
+    let config1 = Config {
+        version: 1,
+        ..Default::default()
+    };
+    let hash1 = manager
+        .backup_config(config1)
+        .await
+        .expect("Failed backup 1");
+
+    // 2. Second backup
+    let config2 = Config {
+        version: 2,
+        ..Default::default()
+    };
+    let _hash2 = manager
+        .backup_config(config2)
+        .await
+        .expect("Failed backup 2");
+
+    // 3. Restore to first backup
+    let restored = manager
+        .restore_config(&hash1)
+        .await
+        .expect("Failed to restore");
+    assert_eq!(restored.version, 1);
+}
