@@ -7,7 +7,7 @@
 ## Phase 2: Git Integration
 - [x] Task: Implement a Git client for configuration management. 1b55997
 - [x] Task: Develop a "watch-and-commit" mechanism for configuration changes. 1c78e6e
-- [ ] Task: Support custom Git repository targets for backups.
+- [x] Task: Support custom Git repository targets for backups. d24a096
 
 ## Phase 3: Rollback Mechanism
 - [ ] Task: Implement a configuration restorer that applies versions from Git.
