@@ -150,7 +150,8 @@ impl StuckFolderMonitor {
             // Check if folder is currently in an alert state
             if self.alerts.iter().any(|a| a.folder_id == folder_id) {
                 if let Some(last_rescan) = snapshot.last_rescan {
-                    return now.duration_since(last_rescan) >= self.thresholds.min_rescan_interval;
+                    return now.saturating_duration_since(last_rescan)
+                        >= self.thresholds.min_rescan_interval;
                 } else {
                     return true;
                 }
@@ -181,7 +182,7 @@ pub fn check_stuck_folder(
     now: Instant,
 ) -> StuckCheckResult {
     if let Some(prev) = previous {
-        let duration = now.duration_since(prev.timestamp);
+        let duration = now.saturating_duration_since(prev.timestamp);
 
         // Check if scanning for too long
         if current.state == "scanning"
