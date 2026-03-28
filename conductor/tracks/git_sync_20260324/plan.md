@@ -5,7 +5,7 @@
 - [x] Task: Ensure all sensitive information is masked or handled securely during export. 00b77fe
 
 ## Phase 2: Git Integration
-- [ ] Task: Implement a Git client for configuration management.
+- [x] Task: Implement a Git client for configuration management. 1b55997
 - [ ] Task: Develop a "watch-and-commit" mechanism for configuration changes.
 - [ ] Task: Support custom Git repository targets for backups.
 
