@@ -118,3 +118,49 @@ impl GitClient {
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     }
 }
+
+/// Orchestrates configuration backups to Git.
+pub struct GitSyncManager {
+    git: GitClient,
+    repo_path: std::path::PathBuf,
+}
+
+impl GitSyncManager {
+    /// Creates a new Git sync manager for the given repository path.
+    pub fn new(repo_path: std::path::PathBuf) -> Self {
+        Self {
+            git: GitClient::new(repo_path.clone()),
+            repo_path,
+        }
+    }
+
+    /// Initializes the Git repository for backups.
+    pub async fn init(&self) -> Result<()> {
+        self.git.init().await
+    }
+
+    /// Backs up a configuration to the Git repository.
+    /// Returns the commit hash.
+    pub async fn backup_config(&self, config: Config) -> Result<String> {
+        let mut exporter = ConfigExporter::new(config);
+        exporter.mask_sensitive();
+
+        let json_content = exporter.to_json()?;
+        let yaml_content = exporter.to_yaml()?;
+
+        let json_path = self.repo_path.join("config.json");
+        let yaml_path = self.repo_path.join("config.yaml");
+
+        std::fs::write(&json_path, json_content)
+            .map_err(|e| crate::error::Error::Internal(format!("Failed to write config.json: {}", e)))?;
+        std::fs::write(&yaml_path, yaml_content)
+            .map_err(|e| crate::error::Error::Internal(format!("Failed to write config.yaml: {}", e)))?;
+
+        self.git.add("config.json").await?;
+        self.git.add("config.yaml").await?;
+        
+        // Use a generic commit message for now
+        let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        self.git.commit(&format!("Backup configuration: {}", timestamp)).await
+    }
+}

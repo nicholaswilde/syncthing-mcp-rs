@@ -103,3 +103,39 @@ async fn test_git_client_init_and_commit() {
     
     assert!(!commit_hash.is_empty());
 }
+
+#[tokio::test]
+async fn test_backup_config() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+    let repo_path = temp_dir.path().to_path_buf();
+    
+    let config = Config {
+        version: 37,
+        folders: vec![],
+        devices: vec![],
+        gui: json!({"enabled": true, "password": "secret"}),
+        ldap: json!({}),
+        options: json!({}),
+        remote_ignored_devices: json!([]),
+        defaults: json!({}),
+    };
+
+    let manager = crate::tools::git_sync::GitSyncManager::new(repo_path.clone());
+    manager.init().await.expect("Failed to init");
+    
+    // Configure user for commit
+    let client = crate::tools::git_sync::GitClient::new(repo_path.clone());
+    client.run_command(&["config", "user.email", "test@example.com"]).await.unwrap();
+    client.run_command(&["config", "user.name", "Test User"]).await.unwrap();
+
+    let commit_hash = manager.backup_config(config).await.expect("Failed to backup");
+    assert!(!commit_hash.is_empty());
+    
+    // Verify files exist
+    assert!(repo_path.join("config.json").exists());
+    assert!(repo_path.join("config.yaml").exists());
+    
+    // Verify masking in the file
+    let json_content = std::fs::read_to_string(repo_path.join("config.json")).unwrap();
+    assert!(json_content.contains("\"password\": \"********\""));
+}
