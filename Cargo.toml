@@ -68,6 +68,10 @@ wiremock = "0.6"
 name = "verify_config_export"
 path = "scripts/verify_config_export.rs"
 
+[[example]]
+name = "verify_git_integration"
+path = "scripts/verify_git_integration.rs"
+
 # Profile for final production releases (smaller, faster)
 [profile.release]
 opt-level = "z"         # Optimize for size
