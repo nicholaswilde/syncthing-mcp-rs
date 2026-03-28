@@ -11,7 +11,7 @@
 
 ## Phase 3: Rollback Mechanism
 - [x] Task: Implement a configuration restorer that applies versions from Git. 92636f4
-- [ ] Task: Create a diff viewer for configuration versions.
+- [x] Task: Create a diff viewer for configuration versions. d8a2779
 
 ## Phase 4: Integration & Validation
 - [ ] Task: Unit tests for configuration export and restoration.
