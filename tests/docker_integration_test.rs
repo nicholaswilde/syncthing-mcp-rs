@@ -377,8 +377,7 @@ async fn test_get_sync_status_tool() -> Result<()> {
 
 #[tokio::test]
 async fn test_maintain_system_tool() -> Result<()> {
-    if std::env::var("RUN_DOCKER_TESTS").is_err() {
-        println!("Skipping Docker test. Set RUN_DOCKER_TESTS=1 to run.");
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
     }
 
@@ -410,8 +409,7 @@ async fn test_maintain_system_tool() -> Result<()> {
 
 #[tokio::test]
 async fn test_replicate_config_tool() -> Result<()> {
-    if std::env::var("RUN_DOCKER_TESTS").is_err() {
-        println!("Skipping Docker test. Set RUN_DOCKER_TESTS=1 to run.");
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
     }
 
