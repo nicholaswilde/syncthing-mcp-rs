@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, linux-arm, linux-armv7, linux-armv6, macos, macos-arm, win-msvc, win32-msvc]
+        build: [linux, linux-arm, macos, macos-arm, win-msvc, win32-msvc]
         include:
         - build: linux
           os: ubuntu-latest
@@ -94,18 +94,6 @@ jobs:
           target: aarch64-unknown-linux-musl
           strip: aarch64-linux-musl-strip
           qemu: qemu-aarch64
-        - build: linux-armv7
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-gnueabihf
-          strip: arm-linux-gnueabihf-strip
-          qemu: qemu-arm
-        - build: linux-armv6
-          os: ubuntu-latest
-          rust: stable
-          target: arm-unknown-linux-gnueabihf
-          strip: arm-linux-gnueabihf-strip
-          qemu: qemu-arm
         - build: macos
           os: macos-latest
           rust: stable
@@ -137,7 +125,7 @@ jobs:
       uses: swatinem/rust-cache@v2
 
     - name: Use Cross
-      if: matrix.os == 'ubuntu-latest' && matrix.target != '' && matrix.build != 'linux-armv7' && matrix.build != 'linux-armv6'
+      if: matrix.os == 'ubuntu-latest' && matrix.target != ''
       shell: bash
       run: |
         # In the past, new releases of 'cross' have broken CI. So for now, we
@@ -155,13 +143,6 @@ jobs:
         cd "$GITHUB_WORKSPACE"
         echo "[target.${{ matrix.target }}]" > Cross.toml
         echo "image = \"ghcr.io/cross-rs/${{ matrix.target }}:main\"" >> Cross.toml
-
-    - name: Setup Native Cross-Compilation (ARM)
-      if: matrix.os == 'ubuntu-latest' && (matrix.build == 'linux-armv7' || matrix.build == 'linux-armv6')
-      run: |
-        echo "CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]-' '[:upper:]_')_LINKER=arm-linux-gnueabihf-gcc" >> $GITHUB_ENV
-        echo "QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf" >> $GITHUB_ENV
-        echo "CARGO=cargo" >> $GITHUB_ENV
 
     - name: Set target variables
       shell: bash
@@ -190,10 +171,6 @@ jobs:
     - name: Strip release binary (macos)
       if: matrix.build == 'macos' || matrix.build == 'macos-arm'
       run: strip "${{ env.BIN }}"
-
-    - name: Strip release binary (native)
-      if: matrix.build == 'linux-armv7' || matrix.build == 'linux-armv6'
-      run: ${{ matrix.strip }} "${{ env.BIN }}"
 
     - name: Strip release binary (cross)
       if: matrix.build == 'linux' || matrix.build == 'linux-arm'

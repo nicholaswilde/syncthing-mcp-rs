@@ -93,9 +93,6 @@ task build:amd64
 # Build for ARM64 (aarch64)
 task build:arm64
 
-# Build for ARMv7
-task build:armv7
-
 # Build for all supported architectures
 task build
 ```

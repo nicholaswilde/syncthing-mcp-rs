@@ -48,14 +48,6 @@ jobs:
           os: ubuntu-latest
           rust: stable
           target: aarch64-unknown-linux-gnu
-        - build: armv7
-          os: ubuntu-latest
-          rust: stable
-          target: armv7-unknown-linux-gnueabihf
-        - build: armv6
-          os: ubuntu-latest
-          rust: stable
-          target: arm-unknown-linux-gnueabihf
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -69,18 +61,8 @@ jobs:
     - name: Rust Cache
       uses: swatinem/rust-cache@v2
 
-    - name: Setup Native Cross-Compilation (ARM)
-      if: matrix.target != '' && (matrix.build == 'armv7' || matrix.build == 'armv6')
-      run: |
-        echo "CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]-' '[:upper:]_')_LINKER=arm-linux-gnueabihf-gcc" >> $GITHUB_ENV
-        echo "QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf" >> $GITHUB_ENV
-        # We also need to tell cargo-test to use qemu
-        echo "CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]-' '[:upper:]_')_RUNNER=qemu-arm" >> $GITHUB_ENV
-        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
-
     - name: Use Cross
-      if: matrix.target != '' && matrix.build != 'armv7' && matrix.build != 'armv6'
+      if: matrix.target != ''
       run: |
         cargo install cross --git https://github.com/cross-rs/cross
         echo "CARGO=cross" >> $GITHUB_ENV

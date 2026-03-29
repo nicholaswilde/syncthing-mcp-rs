@@ -7,7 +7,7 @@
 
 ## Build & Development Tools
 - Task Runner: `go-task` (via `Taskfile.yml`) for build, test, and deployment automation.
-- Cross-Compilation: `cross` for building `amd64`, `arm64`. Native cross-compilation tools (`gcc-arm-linux-gnueabihf` and `qemu-user-static`) for `armv7` and `armv6` in CI for improved performance.
+- Cross-Compilation: `cross` for building `amd64`, `arm64`.
 - Version Control: `git` for configuration backup and management.
 - Package Manager: `cargo` (Rust standard).
 - MCP Testing: `mcp-inspector` for verifying MCP tool definitions and responses.
