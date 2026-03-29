@@ -2606,7 +2606,7 @@ dependencies = [
  "http-body-util",
  "keyring",
  "lazy_static",
- "rand 0.8.5",
+ "rand 0.10.0",
  "regex",
  "reqwest",
  "semver",
