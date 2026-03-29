@@ -41,7 +41,8 @@ impl EventManager {
         let mut shutdown_rx = self.shutdown_tx.subscribe();
 
         // Create clients once before the loop to reuse connection pools and avoid repeated allocations
-        let clients: Vec<(String, SyncThingClient)> = self.config
+        let clients: Vec<(String, SyncThingClient)> = self
+            .config
             .instances
             .iter()
             .map(|instance| {
