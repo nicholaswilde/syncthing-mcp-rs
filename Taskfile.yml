@@ -63,6 +63,18 @@ tasks:
     cmds:
       - cross build --release --target arm-unknown-linux-gnueabihf
 
+  build:armv7:native:
+    desc: Build for ARMv7 using native tools
+    cmds:
+      - rustup target add armv7-unknown-linux-gnueabihf
+      - CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc cargo build --release --target armv7-unknown-linux-gnueabihf
+
+  build:armv6:native:
+    desc: Build for ARMv6 using native tools
+    cmds:
+      - rustup target add arm-unknown-linux-gnueabihf
+      - CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc cargo build --release --target arm-unknown-linux-gnueabihf
+
   build:
     desc: Build for all supported architectures
     cmds:

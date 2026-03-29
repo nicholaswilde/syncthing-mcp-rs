@@ -97,8 +97,8 @@ jobs:
         - build: linux-armv7
           os: ubuntu-latest
           rust: stable
-          target: armv7-unknown-linux-musleabihf
-          strip: arm-linux-musleabihf-strip
+          target: armv7-unknown-linux-gnueabihf
+          strip: arm-linux-gnueabihf-strip
           qemu: qemu-arm
         - build: linux-armv6
           os: ubuntu-latest
@@ -137,7 +137,7 @@ jobs:
       uses: swatinem/rust-cache@v2
 
     - name: Use Cross
-      if: matrix.os == 'ubuntu-latest' && matrix.target != ''
+      if: matrix.os == 'ubuntu-latest' && matrix.target != '' && matrix.build != 'linux-armv7' && matrix.build != 'linux-armv6'
       shell: bash
       run: |
         # In the past, new releases of 'cross' have broken CI. So for now, we
@@ -155,6 +155,13 @@ jobs:
         cd "$GITHUB_WORKSPACE"
         echo "[target.${{ matrix.target }}]" > Cross.toml
         echo "image = \"ghcr.io/cross-rs/${{ matrix.target }}:main\"" >> Cross.toml
+
+    - name: Setup Native Cross-Compilation (ARM)
+      if: matrix.os == 'ubuntu-latest' && (matrix.build == 'linux-armv7' || matrix.build == 'linux-armv6')
+      run: |
+        echo "CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]-' '[:upper:]_')_LINKER=arm-linux-gnueabihf-gcc" >> $GITHUB_ENV
+        echo "QEMU_LD_PREFIX=/usr/arm-linux-gnueabihf" >> $GITHUB_ENV
+        echo "CARGO=cargo" >> $GITHUB_ENV
 
     - name: Set target variables
       shell: bash
@@ -175,18 +182,6 @@ jobs:
         echo "target dir is: ${{ env.TARGET_DIR }}"
         echo "bin is: ${{ env.BIN }}"
 
-    - name: Setup Custom Cross Image
-      if: matrix.build == 'linux-armv6'
-      run: |
-        # Create the Dockerfile on the fly
-        echo "FROM ghcr.io/cross-rs/arm-unknown-linux-gnueabihf:main" > Dockerfile.custom
-        echo "USER root" >> Dockerfile.custom
-        echo "RUN apt-get update && apt-get install -y binutils-arm-linux-gnueabihf" >> Dockerfile.custom
-        
-        # Create Cross.toml on the fly
-        echo "[target.arm-unknown-linux-gnueabihf]" > Cross.toml
-        echo "dockerfile = \"./Dockerfile.custom\"" >> Cross.toml
-        
     - name: Build release binary
       shell: bash
       run: |
@@ -196,8 +191,12 @@ jobs:
       if: matrix.build == 'macos' || matrix.build == 'macos-arm'
       run: strip "${{ env.BIN }}"
 
+    - name: Strip release binary (native)
+      if: matrix.build == 'linux-armv7' || matrix.build == 'linux-armv6'
+      run: ${{ matrix.strip }} "${{ env.BIN }}"
+
     - name: Strip release binary (cross)
-      if: matrix.build == 'linux' || matrix.build == 'linux-arm' || matrix.build == 'linux-armv7'
+      if: matrix.build == 'linux' || matrix.build == 'linux-arm'
       shell: bash
       run: |
         docker run --rm -v \
@@ -205,16 +204,6 @@ jobs:
           "ghcr.io/cross-rs/${{ matrix.target }}:main" \
           "${{ matrix.strip }}" \
           "/$BIN"
-
-    - name: Strip release binary (cross)
-      if: matrix.build == 'linux-armv6'
-      shell: bash
-      run: |
-        docker run --rm -v \
-          "$PWD/target:/target:Z" \
-          --entrypoint /bin/sh \
-          "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-          -c "apt-get update && apt-get install -y binutils-arm-linux-gnueabihf && ${{ matrix.strip }} /$BIN"
 
     - name: Build archive
       shell: bash
