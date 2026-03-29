@@ -150,13 +150,18 @@ impl McpServer {
                         writer.write_all(out.as_bytes()).await?;
                         writer.flush().await?;
 
-                        // Also notify all active SSE sessions
-                        let sessions = self.sessions.clone();
-                        tokio::spawn(async move {
-                            for session in sessions.iter() {
-                                let _ = session.tx.send(Message::Notification(n.clone())).await;
-                            }
-                        });
+                        // Only notify active SSE sessions if any exist
+                        if !self.sessions.is_empty() {
+                            let sessions = self.sessions.clone();
+                            tokio::spawn(async move {
+                                for session in sessions.iter() {
+                                    let _ = session.tx.send(Message::Notification(n.clone())).await;
+                                }
+                            });
+                        }
+                    } else {
+                        // rx closed
+                        break;
                     }
                 }
             }
@@ -240,8 +245,27 @@ async fn sse_handler(
 
     let initial_event = Event::default().event("endpoint").data(endpoint_url);
 
+    // Use a guard to remove the session when the stream is dropped
+    struct SessionGuard {
+        session_id: String,
+        sessions: Arc<DashMap<String, Session>>,
+    }
+
+    impl Drop for SessionGuard {
+        fn drop(&mut self) {
+            tracing::info!("SSE session closed: {}", self.session_id);
+            self.sessions.remove(&self.session_id);
+        }
+    }
+
+    let guard = Arc::new(SessionGuard {
+        session_id: session_id.clone(),
+        sessions: server.sessions.clone(),
+    });
+
     let stream = ReceiverStream::new(rx)
-        .map(|msg| {
+        .map(move |msg| {
+            let _guard = &guard;
             let json = serde_json::to_string(&msg).unwrap_or_default();
             Event::default().event("message").data(json)
         })

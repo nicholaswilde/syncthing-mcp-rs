@@ -39,19 +39,27 @@ impl EventManager {
     /// Runs the event polling loop.
     pub async fn run(&self) -> anyhow::Result<()> {
         let mut shutdown_rx = self.shutdown_tx.subscribe();
+
+        // Create clients once before the loop to reuse connection pools and avoid repeated allocations
+        let clients: Vec<(String, SyncThingClient)> = self.config
+            .instances
+            .iter()
+            .map(|instance| {
+                let instance_name = instance
+                    .name
+                    .clone()
+                    .unwrap_or_else(|| "default".to_string());
+                (instance_name, SyncThingClient::new(instance.clone()))
+            })
+            .collect();
+
         loop {
             if *shutdown_rx.borrow() {
                 break;
             }
 
-            for instance in &self.config.instances {
-                let instance_name = instance
-                    .name
-                    .clone()
-                    .unwrap_or_else(|| "default".to_string());
-                let client = SyncThingClient::new(instance.clone());
-
-                let since = self.last_ids.get(&instance_name).map(|r| *r);
+            for (instance_name, client) in &clients {
+                let since = self.last_ids.get(instance_name).map(|r| *r);
                 match client.get_events(since, Some(10)).await {
                     Ok(events) => {
                         for event in events {
