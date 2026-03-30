@@ -62,4 +62,16 @@ mod tests {
         let resolved = resolve_api_key(Some("mock:test-service:test-account".to_string())).await;
         assert_eq!(resolved, Some("secret-key".to_string()));
     }
+
+    #[tokio::test]
+    async fn test_resolve_invalid_prefix() {
+        let resolved = resolve_api_key(Some("unknown:service:account".to_string())).await;
+        assert_eq!(resolved, Some("unknown:service:account".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_resolve_invalid_format() {
+        let resolved = resolve_api_key(Some("keyring:too-few-parts".to_string())).await;
+        assert_eq!(resolved, Some("keyring:too-few-parts".to_string()));
+    }
 }
