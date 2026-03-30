@@ -14,7 +14,7 @@
 - [x] Task: Implement the AWS Secrets Manager backend for credential management. (cfddea9)
 - [x] Task: Add configuration options for AWS (e.g., region, profile, ARN). (2821996)
 
-## Phase 4: Integration & Validation
+## Phase 4: Integration & Validation [checkpoint: d456469]
 - [x] Task: Unit tests for the abstraction layer and each backend. (749824e)
 - [x] Task: Integration tests with mock/local instances of Vault and AWS. (c2cadff)
 - [x] Task: End-to-end testing of the credential management workflow with each backend. (eeccdd4)
