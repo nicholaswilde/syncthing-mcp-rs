@@ -7,7 +7,7 @@
 ## Phase 2: HashiCorp Vault Backend
 - [x] Task: Research and select a Vault client library for Rust. (192f2ce)
 - [x] Task: Implement the Vault backend for credential storage and retrieval. (413c998)
-- [ ] Task: Add configuration options for Vault (e.g., address, token, path).
+- [x] Task: Add configuration options for Vault (e.g., address, token, path). (9504d37)
 
 ## Phase 3: AWS Secrets Manager Backend
 - [ ] Task: Integrate the AWS SDK for Rust.
