@@ -1,4 +1,4 @@
-use crate::credentials::{VaultBackend, register_backend, resolve_api_key};
+use crate::credentials::{AwsBackend, VaultBackend, register_backend, resolve_api_key};
 use tracing::warn;
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
@@ -48,6 +48,9 @@ pub struct AppConfig {
     /// Vault configuration.
     #[serde(default)]
     pub vault: VaultConfig,
+    /// AWS Secrets Manager configuration.
+    #[serde(default)]
+    pub aws: AwsConfig,
 }
 
 /// Configuration for HashiCorp Vault.
@@ -72,6 +75,23 @@ fn default_vault_address() -> String {
 
 fn default_vault_mount() -> String {
     "secret".to_string()
+}
+
+/// Configuration for AWS Secrets Manager.
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct AwsConfig {
+    /// Whether AWS is enabled.
+    #[serde(default)]
+    pub enabled: bool,
+    /// The AWS region.
+    #[serde(default = "default_aws_region")]
+    pub region: String,
+    /// The AWS profile name.
+    pub profile: Option<String>,
+}
+
+fn default_aws_region() -> String {
+    "us-east-1".to_string()
 }
 
 /// Bandwidth limits to apply.
@@ -224,6 +244,7 @@ impl Default for AppConfig {
             mcp_events: default_mcp_events(),
             bandwidth: BandwidthConfig::default(),
             vault: VaultConfig::default(),
+            aws: AwsConfig::default(),
         }
     }
 }
@@ -326,7 +347,9 @@ impl AppConfig {
             .set_default("mcp_events", default_mcp_events())?
             .set_default("vault.enabled", false)?
             .set_default("vault.address", "http://127.0.0.1:8200")?
-            .set_default("vault.mount", "secret")?;
+            .set_default("vault.mount", "secret")?
+            .set_default("aws.enabled", false)?
+            .set_default("aws.region", "us-east-1")?;
 
         // 3. Load from File
         if let Some(path) = path_to_load {
@@ -402,6 +425,15 @@ impl AppConfig {
             } else {
                 warn!("Vault is enabled but no token provided. Vault backend not registered.");
             }
+        }
+
+        // Register AWS backend if enabled
+        if self.aws.enabled {
+            let backend = AwsBackend::new(
+                self.aws.region.clone(),
+                self.aws.profile.clone(),
+            ).await;
+            register_backend("aws", Box::new(backend));
         }
 
         if self.instances.is_empty() && !self.host.is_empty() {
