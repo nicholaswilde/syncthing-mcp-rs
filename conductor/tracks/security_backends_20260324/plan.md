@@ -17,4 +17,4 @@
 ## Phase 4: Integration & Validation
 - [x] Task: Unit tests for the abstraction layer and each backend. (749824e)
 - [x] Task: Integration tests with mock/local instances of Vault and AWS. (c2cadff)
-- [ ] Task: End-to-end testing of the credential management workflow with each backend.
+- [x] Task: End-to-end testing of the credential management workflow with each backend. (eeccdd4)
