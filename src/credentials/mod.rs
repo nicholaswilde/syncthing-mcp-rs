@@ -3,16 +3,33 @@ use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use keyring::Entry;
 use rand::{Rng, thread_rng};
+use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
+use lazy_static::lazy_static;
 use tracing::{debug, error, warn};
 
 /// A backend for managing credentials.
-pub trait CredentialBackend {
+pub trait CredentialBackend: Send + Sync {
     /// Retrieves the API key for a given service and account.
     fn get_api_key(&self, service: &str, account: &str) -> Option<String>;
     /// Sets the API key for a given service and account.
     fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String>;
     /// Deletes the API key for a given service and account.
     fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String>;
+}
+
+lazy_static! {
+    static ref BACKEND_REGISTRY: Arc<RwLock<HashMap<String, Box<dyn CredentialBackend>>>> = {
+        let mut m: HashMap<String, Box<dyn CredentialBackend>> = HashMap::new();
+        m.insert("keyring".to_string(), Box::new(KeyringBackend));
+        Arc::new(RwLock::new(m))
+    };
+}
+
+/// Registers a credential backend.
+pub fn register_backend(prefix: &str, backend: Box<dyn CredentialBackend>) {
+    let mut registry = BACKEND_REGISTRY.write().unwrap();
+    registry.insert(prefix.to_string(), backend);
 }
 
 /// A credential backend that uses the system keyring.
@@ -65,18 +82,28 @@ impl CredentialBackend for KeyringBackend {
 /// Resolves an API key, potentially from a keyring or encrypted value.
 pub fn resolve_api_key(api_key: Option<String>) -> Option<String> {
     match api_key {
-        Some(key) if key.starts_with("keyring:") => {
+        Some(key) if key.contains(':') => {
             let parts: Vec<&str> = key.split(':').collect();
-            if parts.len() == 3 {
-                let service = parts[1];
-                let account = parts[2];
-                KeyringBackend.get_api_key(service, account)
+            let prefix = parts[0];
+            
+            if prefix == "encrypted" && parts.len() >= 3 && parts[1] == "v1" {
+                return decrypt_value(&key);
+            }
+
+            let registry = BACKEND_REGISTRY.read().unwrap();
+            if let Some(backend) = registry.get(prefix) {
+                if parts.len() == 3 {
+                    let service = parts[1];
+                    let account = parts[2];
+                    backend.get_api_key(service, account)
+                } else {
+                    warn!("Invalid credential format for prefix {}. Expected {}:service:account", prefix, prefix);
+                    Some(key)
+                }
             } else {
-                warn!("Invalid keyring format. Expected keyring:service:account");
                 Some(key)
             }
         }
-        Some(key) if key.starts_with("encrypted:v1:") => decrypt_value(&key),
         _ => api_key,
     }
 }

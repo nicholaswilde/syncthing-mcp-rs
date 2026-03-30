@@ -49,4 +49,15 @@ mod tests {
         backend.delete_api_key("service1", "account1").unwrap();
         assert_eq!(backend.get_api_key("service1", "account1"), None);
     }
+
+    #[test]
+    fn test_backend_registry() {
+        let backend = MockBackend::new();
+        backend.set_api_key("test-service", "test-account", "secret-key").unwrap();
+        
+        register_backend("mock", Box::new(backend));
+        
+        let resolved = resolve_api_key(Some("mock:test-service:test-account".to_string()));
+        assert_eq!(resolved, Some("secret-key".to_string()));
+    }
 }
