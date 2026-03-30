@@ -36,6 +36,7 @@ similar = "2.7.0"
 serde_json_diff = "0.2.0"
 serde_yaml_ng = "0.10.0"
 vaultrs = "0.8.0"
+async-trait = "0.1.89"
 
 [[example]]
 name = "run_new_tools"

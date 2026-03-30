@@ -2706,6 +2706,7 @@ version = "0.1.12"
 dependencies = [
  "anyhow",
  "async-recursion",
+ "async-trait",
  "axum",
  "base64 0.22.1",
  "chacha20poly1305",
