@@ -10,7 +10,7 @@
 - [x] Task: Add configuration options for Vault (e.g., address, token, path). (9504d37)
 
 ## Phase 3: AWS Secrets Manager Backend
-- [ ] Task: Integrate the AWS SDK for Rust.
+- [x] Task: Integrate the AWS SDK for Rust. (58ac7da)
 - [ ] Task: Implement the AWS Secrets Manager backend for credential management.
 - [ ] Task: Add configuration options for AWS (e.g., region, profile, ARN).
 
