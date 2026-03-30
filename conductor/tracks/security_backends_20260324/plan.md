@@ -1,6 +1,6 @@
 # Implementation Plan: Enhanced Security Backends (security_backends_20260324)
 
-## Phase 1: Abstraction Layer
+## Phase 1: Abstraction Layer [checkpoint: 1d904c5]
 - [x] Task: Refactor the existing credentials module to use a trait-based abstraction. (38c8081)
 - [x] Task: Update the core logic to work with the abstracted credential trait. (685dd01)
 
