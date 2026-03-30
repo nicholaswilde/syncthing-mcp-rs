@@ -1,4 +1,5 @@
-use crate::credentials::resolve_api_key;
+use crate::credentials::{VaultBackend, register_backend, resolve_api_key};
+use tracing::warn;
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
 use serde::{Deserialize, Serialize};
@@ -44,6 +45,33 @@ pub struct AppConfig {
     /// Bandwidth orchestration configuration.
     #[serde(default)]
     pub bandwidth: BandwidthConfig,
+    /// Vault configuration.
+    #[serde(default)]
+    pub vault: VaultConfig,
+}
+
+/// Configuration for HashiCorp Vault.
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct VaultConfig {
+    /// Whether Vault is enabled.
+    #[serde(default)]
+    pub enabled: bool,
+    /// The Vault server address.
+    #[serde(default = "default_vault_address")]
+    pub address: String,
+    /// The Vault token.
+    pub token: Option<String>,
+    /// The Vault KV mount point.
+    #[serde(default = "default_vault_mount")]
+    pub mount: String,
+}
+
+fn default_vault_address() -> String {
+    "http://127.0.0.1:8200".to_string()
+}
+
+fn default_vault_mount() -> String {
+    "secret".to_string()
 }
 
 /// Bandwidth limits to apply.
@@ -195,6 +223,7 @@ impl Default for AppConfig {
             http_server: HttpServerConfig::default(),
             mcp_events: default_mcp_events(),
             bandwidth: BandwidthConfig::default(),
+            vault: VaultConfig::default(),
         }
     }
 }
@@ -294,7 +323,10 @@ impl AppConfig {
             .set_default("http_server.enabled", false)?
             .set_default("http_server.host", "0.0.0.0")?
             .set_default("http_server.port", 3000)?
-            .set_default("mcp_events", default_mcp_events())?;
+            .set_default("mcp_events", default_mcp_events())?
+            .set_default("vault.enabled", false)?
+            .set_default("vault.address", "http://127.0.0.1:8200")?
+            .set_default("vault.mount", "secret")?;
 
         // 3. Load from File
         if let Some(path) = path_to_load {
@@ -358,6 +390,20 @@ impl AppConfig {
 
     /// Validates the configuration and ensures at least one instance is configured.
     pub async fn validate(&mut self) -> Result<(), String> {
+        // Register Vault backend if enabled
+        if self.vault.enabled {
+            if let Some(token) = &self.vault.token {
+                let backend = VaultBackend::new(
+                    self.vault.address.clone(),
+                    token.clone(),
+                    self.vault.mount.clone(),
+                );
+                register_backend("vault", Box::new(backend));
+            } else {
+                warn!("Vault is enabled but no token provided. Vault backend not registered.");
+            }
+        }
+
         if self.instances.is_empty() && !self.host.is_empty() {
             let url = if self.host.starts_with("http") {
                 self.host.clone()

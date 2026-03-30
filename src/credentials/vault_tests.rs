@@ -21,7 +21,7 @@ async fn test_vault_backend_integration() {
     let host_port = node.get_host_port_ipv4(8200).await.unwrap();
     let address = format!("http://127.0.0.1:{}", host_port);
 
-    let backend = VaultBackend::new(address, "root".to_string(), "secret".to_string());
+    let backend = VaultBackend::new(address.clone(), "root".to_string(), "secret".to_string());
     
     // Test set
     backend.set_api_key("service1", "account1", "key1").await.unwrap();
@@ -33,7 +33,26 @@ async fn test_vault_backend_integration() {
     // Test delete
     backend.delete_api_key("service1", "account1").await.unwrap();
     
-    // KV2 read returns error if not found (usually 404)
     let key = backend.get_api_key("service1", "account1").await;
     assert_eq!(key, None);
+
+    // Test via AppConfig registration
+    let mut config = crate::config::AppConfig {
+        vault: crate::config::VaultConfig {
+            enabled: true,
+            address: address.clone(),
+            token: Some("root".to_string()),
+            mount: "secret".to_string(),
+        },
+        ..Default::default()
+    };
+    
+    // This should register the backend
+    config.validate().await.unwrap();
+    
+    // Re-set the key for testing resolution
+    backend.set_api_key("service2", "account2", "key2").await.unwrap();
+    
+    let resolved = crate::credentials::resolve_api_key(Some("vault:service2:account2".to_string())).await;
+    assert_eq!(resolved, Some("key2".to_string()));
 }
