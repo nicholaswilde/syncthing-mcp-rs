@@ -49,7 +49,7 @@ async fn test_aws_backend_integration() {
         std::env::set_var("AWS_REGION", "us-east-1");
     }
 
-    let backend = AwsBackend::new("us-east-1".to_string(), None, Some(address)).await;
+    let backend = AwsBackend::new("us-east-1".to_string(), None, Some(address.clone())).await;
     
     // Test set
     backend.set_api_key("service1", "account1", "key1").await.unwrap();
@@ -58,10 +58,30 @@ async fn test_aws_backend_integration() {
     let key = backend.get_api_key("service1", "account1").await;
     assert_eq!(key, Some("key1".to_string()));
     
+    // Test via AppConfig registration (E2E part)
+    let mut config = crate::config::AppConfig {
+        aws: crate::config::AwsConfig {
+            enabled: true,
+            region: "us-east-1".to_string(),
+            profile: None,
+            endpoint_url: Some(address.clone()),
+        },
+        instances: vec![crate::config::InstanceConfig {
+            name: Some("test-instance".to_string()),
+            url: "http://localhost:8384".to_string(),
+            api_key: Some("aws:service1:account1".to_string()),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    
+    // This should register the backend and resolve the API key
+    config.validate().await.unwrap();
+    
+    assert_eq!(config.instances[0].api_key, Some("key1".to_string()));
+
     // Test delete
     backend.delete_api_key("service1", "account1").await.unwrap();
-    
-    // AWS get_secret_value returns error if not found
     let key = backend.get_api_key("service1", "account1").await;
     assert_eq!(key, None);
 }
