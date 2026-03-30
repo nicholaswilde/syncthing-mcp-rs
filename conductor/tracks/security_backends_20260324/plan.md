@@ -11,7 +11,7 @@
 
 ## Phase 3: AWS Secrets Manager Backend
 - [x] Task: Integrate the AWS SDK for Rust. (58ac7da)
-- [ ] Task: Implement the AWS Secrets Manager backend for credential management.
+- [x] Task: Implement the AWS Secrets Manager backend for credential management. (cfddea9)
 - [ ] Task: Add configuration options for AWS (e.g., region, profile, ARN).
 
 ## Phase 4: Integration & Validation
