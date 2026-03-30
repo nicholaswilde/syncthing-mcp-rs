@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         api_key: Some(api_key.clone()),
         ..Default::default()
     };
-    app_config.validate()?;
+    app_config.validate().await?;
 
     let client = SyncThingClient::new(app_config.instances[0].clone());
     let registry = create_registry();
