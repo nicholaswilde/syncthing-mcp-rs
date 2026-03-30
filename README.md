@@ -63,9 +63,6 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 
 ### Homebrew
 
-> [!NOTE]
-> The brew installation method is not currently implemented.
-
 ```bash
 brew install nicholaswilde/tap/syncthing-mcp-rs
 ```
