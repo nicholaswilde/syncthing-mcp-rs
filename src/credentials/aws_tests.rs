@@ -20,7 +20,7 @@ async fn test_aws_config_registration() {
         },
         ..Default::default()
     };
-    
+
     // This should register the backend
     config.validate().await.unwrap();
 }
@@ -50,14 +50,17 @@ async fn test_aws_backend_integration() {
     }
 
     let backend = AwsBackend::new("us-east-1".to_string(), None, Some(address.clone())).await;
-    
+
     // Test set
-    backend.set_api_key("service1", "account1", "key1").await.unwrap();
-    
+    backend
+        .set_api_key("service1", "account1", "key1")
+        .await
+        .unwrap();
+
     // Test get
     let key = backend.get_api_key("service1", "account1").await;
     assert_eq!(key, Some("key1".to_string()));
-    
+
     // Test via AppConfig registration (E2E part)
     let mut config = crate::config::AppConfig {
         aws: crate::config::AwsConfig {
@@ -74,14 +77,17 @@ async fn test_aws_backend_integration() {
         }],
         ..Default::default()
     };
-    
+
     // This should register the backend and resolve the API key
     config.validate().await.unwrap();
-    
+
     assert_eq!(config.instances[0].api_key, Some("key1".to_string()));
 
     // Test delete
-    backend.delete_api_key("service1", "account1").await.unwrap();
+    backend
+        .delete_api_key("service1", "account1")
+        .await
+        .unwrap();
     let key = backend.get_api_key("service1", "account1").await;
     assert_eq!(key, None);
 }

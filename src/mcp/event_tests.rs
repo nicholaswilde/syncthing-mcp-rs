@@ -4,6 +4,7 @@ mod tests {
     use crate::mcp::Notification;
     use crate::mcp::events::EventManager;
     use tokio::sync::mpsc;
+    use tokio::time::{Duration, timeout};
     use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -33,6 +34,7 @@ mod tests {
                 url: mock_server.uri(),
                 ..Default::default()
             }],
+            mcp_events: vec!["FolderStateChanged".to_string()],
             ..Default::default()
         };
 
@@ -41,15 +43,21 @@ mod tests {
 
         // Run one iteration manually or use a short sleep
         let em_clone = event_manager.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let _ = em_clone.run().await;
         });
 
-        let notification = rx.recv().await.unwrap();
+        // Wait for notification with timeout
+        let notification = timeout(Duration::from_secs(2), rx.recv())
+            .await
+            .expect("Timeout waiting for notification")
+            .expect("Channel closed");
+
         assert_eq!(notification.method, "notifications/message");
-        assert_eq!(notification.params.unwrap()["instance"], "test");
+        assert_eq!(notification.params.as_ref().unwrap()["instance"], "test");
 
         event_manager.stop();
+        let _ = timeout(Duration::from_secs(1), handle).await;
     }
 
     #[tokio::test]
@@ -85,18 +93,19 @@ mod tests {
         let event_manager = EventManager::new(config, tx);
 
         let em_clone = event_manager.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let _ = em_clone.run().await;
         });
 
         // Use a timeout to wait for no notification
-        let result = tokio::time::timeout(tokio::time::Duration::from_millis(100), rx.recv()).await;
+        let result = tokio::time::timeout(tokio::time::Duration::from_millis(200), rx.recv()).await;
         assert!(
             result.is_err(),
             "Expected no notification for filtered event"
         );
 
         event_manager.stop();
+        let _ = timeout(Duration::from_secs(1), handle).await;
     }
 
     #[tokio::test]
@@ -134,6 +143,7 @@ mod tests {
                 url: mock_server.uri(),
                 ..Default::default()
             }],
+            mcp_events: vec!["FolderStateChanged".to_string()],
             ..Default::default()
         };
 
@@ -143,7 +153,7 @@ mod tests {
 
         // Spawn manager
         let em_clone = event_manager.clone();
-        tokio::spawn(async move {
+        let em_handle = tokio::spawn(async move {
             let _ = em_clone.run().await;
         });
 
@@ -151,13 +161,16 @@ mod tests {
         let (client_writer, server_reader) = tokio::io::duplex(1024);
         let (server_writer, mut client_reader) = tokio::io::duplex(1024);
 
-        tokio::spawn(async move {
+        let server_handle = tokio::spawn(async move {
             server.run(server_reader, server_writer, rx).await.unwrap();
         });
 
         // Read notification from client side
         let mut buffer = [0u8; 1024];
-        let n = client_reader.read(&mut buffer).await.unwrap();
+        let n = timeout(Duration::from_secs(2), client_reader.read(&mut buffer))
+            .await
+            .expect("Timeout reading notification")
+            .unwrap();
 
         // Use a Deserializer to handle potentially multiple messages (trailing characters error fix)
         let mut de = serde_json::Deserializer::from_slice(&buffer[..n]);
@@ -179,7 +192,9 @@ mod tests {
 
         // Cleanup
         event_manager.stop();
+        let _ = timeout(Duration::from_secs(1), em_handle).await;
         drop(client_writer);
+        let _ = timeout(Duration::from_secs(1), server_handle).await;
     }
 
     #[tokio::test]
@@ -214,6 +229,7 @@ mod tests {
                     ..Default::default()
                 },
             ],
+            mcp_events: vec!["DeviceConnected".to_string()],
             ..Default::default()
         };
 
@@ -221,12 +237,18 @@ mod tests {
         let event_manager = EventManager::new(config, tx);
 
         let em_clone = event_manager.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let _ = em_clone.run().await;
         });
 
-        let n1 = rx.recv().await.unwrap();
-        let n2 = rx.recv().await.unwrap();
+        let n1 = timeout(Duration::from_secs(2), rx.recv())
+            .await
+            .expect("Timeout waiting for n1")
+            .unwrap();
+        let n2 = timeout(Duration::from_secs(2), rx.recv())
+            .await
+            .expect("Timeout waiting for n2")
+            .unwrap();
 
         let instances = [
             n1.params.as_ref().unwrap()["instance"]
@@ -243,6 +265,7 @@ mod tests {
         assert!(instances.contains(&"inst2".to_string()));
 
         event_manager.stop();
+        let _ = timeout(Duration::from_secs(1), handle).await;
     }
 
     #[tokio::test(start_paused = true)]
@@ -287,20 +310,24 @@ mod tests {
                 url: mock_server.uri(),
                 ..Default::default()
             }],
+            mcp_events: vec!["FolderStateChanged".to_string()],
             ..Default::default()
         };
 
-        let (tx, mut rx) = mpsc::channel(100);
+        let (tx, mut rx) = mpsc::channel::<Notification>(100);
         let event_manager = EventManager::new(config, tx);
 
         // We need to run it in a loop but we want to control it
         let em_clone = event_manager.clone();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             let _ = em_clone.run().await;
         });
 
+        // Yield to allow the spawned task to run
+        tokio::task::yield_now().await;
+
         // First notification
-        let n1 = rx.recv().await.unwrap();
+        let n1 = rx.recv().await.expect("Failed to receive n1");
         assert!(
             n1.params.unwrap()["summary"]
                 .as_str()
@@ -308,11 +335,13 @@ mod tests {
                 .contains("idle to syncing")
         );
 
-        // Advance time to trigger next poll
+        // Advance time to trigger next poll (interval is 5s)
         tokio::time::advance(std::time::Duration::from_secs(6)).await;
+        // Yield again to allow the loop to wake up and process
+        tokio::task::yield_now().await;
 
         // Second notification
-        let n2 = rx.recv().await.unwrap();
+        let n2 = rx.recv().await.expect("Failed to receive n2");
         assert!(
             n2.params.unwrap()["summary"]
                 .as_str()
@@ -321,5 +350,8 @@ mod tests {
         );
 
         event_manager.stop();
+        // Since clock is paused, we might need to advance it once more to let the select! finish
+        tokio::time::advance(std::time::Duration::from_millis(10)).await;
+        let _ = handle.await;
     }
 }

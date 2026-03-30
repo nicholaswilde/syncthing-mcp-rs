@@ -1,13 +1,13 @@
+use async_trait::async_trait;
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use keyring::Entry;
+use lazy_static::lazy_static;
 use rand::{Rng, thread_rng};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use lazy_static::lazy_static;
 use tracing::{debug, error, warn};
-use async_trait::async_trait;
 
 /// A backend for managing credentials.
 #[async_trait]
@@ -21,15 +21,15 @@ pub trait CredentialBackend: Send + Sync {
 }
 
 lazy_static! {
-    static ref BACKEND_REGISTRY: Arc<RwLock<HashMap<String, Box<dyn CredentialBackend>>>> = {
-        let mut m: HashMap<String, Box<dyn CredentialBackend>> = HashMap::new();
-        m.insert("keyring".to_string(), Box::new(KeyringBackend));
-        Arc::new(RwLock::new(m))
+    static ref BACKEND_REGISTRY: RwLock<HashMap<String, Arc<dyn CredentialBackend>>> = {
+        let mut m: HashMap<String, Arc<dyn CredentialBackend>> = HashMap::new();
+        m.insert("keyring".to_string(), Arc::new(KeyringBackend));
+        RwLock::new(m)
     };
 }
 
 /// Registers a credential backend.
-pub fn register_backend(prefix: &str, backend: Box<dyn CredentialBackend>) {
+pub fn register_backend(prefix: &str, backend: Arc<dyn CredentialBackend>) {
     let mut registry = BACKEND_REGISTRY.write().unwrap();
     registry.insert(prefix.to_string(), backend);
 }
@@ -98,7 +98,8 @@ impl VaultBackend {
                 .token(token)
                 .build()
                 .expect("Failed to build Vault client settings"),
-        ).expect("Failed to create Vault client");
+        )
+        .expect("Failed to create Vault client");
         Self { client, mount }
     }
 }
@@ -108,7 +109,7 @@ impl CredentialBackend for VaultBackend {
     async fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
         use vaultrs::kv2;
         let path = format!("{}/{}", service, account);
-        let res: Result<HashMap<String, String>, vaultrs::error::ClientError> = 
+        let res: Result<HashMap<String, String>, vaultrs::error::ClientError> =
             kv2::read(&self.client, &self.mount, &path).await;
         match res {
             Ok(data) => data.get("api_key").cloned(),
@@ -124,7 +125,9 @@ impl CredentialBackend for VaultBackend {
         let path = format!("{}/{}", service, account);
         let mut data = HashMap::new();
         data.insert("api_key".to_string(), key.to_string());
-        kv2::set(&self.client, &self.mount, &path, &data).await.map_err(|e| e.to_string())?;
+        kv2::set(&self.client, &self.mount, &path, &data)
+            .await
+            .map_err(|e| e.to_string())?;
         Ok(())
     }
 
@@ -132,7 +135,9 @@ impl CredentialBackend for VaultBackend {
         use vaultrs::kv2;
         let path = format!("{}/{}", service, account);
         // KV2 delete deletes the latest version. For full deletion, use metadata delete.
-        kv2::delete_metadata(&self.client, &self.mount, &path).await.map_err(|e| e.to_string())?;
+        kv2::delete_metadata(&self.client, &self.mount, &path)
+            .await
+            .map_err(|e| e.to_string())?;
         Ok(())
     }
 }
@@ -144,18 +149,22 @@ pub struct AwsBackend {
 
 impl AwsBackend {
     /// Creates a new AWS backend.
-    pub async fn new(region: String, profile: Option<String>, endpoint_url: Option<String>) -> Self {
+    pub async fn new(
+        region: String,
+        profile: Option<String>,
+        endpoint_url: Option<String>,
+    ) -> Self {
         let mut loader = aws_config::defaults(aws_config::BehaviorVersion::latest())
             .region(aws_config::Region::new(region));
-        
+
         if let Some(p) = profile {
             loader = loader.profile_name(p);
         }
-        
+
         if let Some(url) = endpoint_url {
             loader = loader.endpoint_url(url);
         }
-        
+
         let config = loader.load().await;
         let client = aws_sdk_secretsmanager::Client::new(&config);
         Self { client }
@@ -166,7 +175,13 @@ impl AwsBackend {
 impl CredentialBackend for AwsBackend {
     async fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
         let secret_id = format!("{}/{}", service, account);
-        match self.client.get_secret_value().secret_id(secret_id).send().await {
+        match self
+            .client
+            .get_secret_value()
+            .secret_id(secret_id)
+            .send()
+            .await
+        {
             Ok(res) => res.secret_string().map(|s| s.to_string()),
             Err(e) => {
                 warn!("Failed to get secret from AWS: {}", e);
@@ -178,16 +193,21 @@ impl CredentialBackend for AwsBackend {
     async fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
         let secret_id = format!("{}/{}", service, account);
         // Try to update first, if fails try to create
-        let res = self.client.update_secret()
+        let res = self
+            .client
+            .update_secret()
             .secret_id(&secret_id)
             .secret_string(key)
-            .send().await;
-            
+            .send()
+            .await;
+
         if res.is_err() {
-            self.client.create_secret()
+            self.client
+                .create_secret()
                 .name(&secret_id)
                 .secret_string(key)
-                .send().await
+                .send()
+                .await
                 .map_err(|e| e.to_string())?;
         }
         Ok(())
@@ -195,10 +215,12 @@ impl CredentialBackend for AwsBackend {
 
     async fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
         let secret_id = format!("{}/{}", service, account);
-        self.client.delete_secret()
+        self.client
+            .delete_secret()
             .secret_id(secret_id)
             .force_delete_without_recovery(true)
-            .send().await
+            .send()
+            .await
             .map_err(|e| e.to_string())?;
         Ok(())
     }
@@ -210,19 +232,26 @@ pub async fn resolve_api_key(api_key: Option<String>) -> Option<String> {
         Some(key) if key.contains(':') => {
             let parts: Vec<&str> = key.split(':').collect();
             let prefix = parts[0];
-            
+
             if prefix == "encrypted" && parts.len() >= 3 && parts[1] == "v1" {
                 return decrypt_value(&key);
             }
 
-            let registry = BACKEND_REGISTRY.read().unwrap();
-            if let Some(backend) = registry.get(prefix) {
+            let backend = {
+                let registry = BACKEND_REGISTRY.read().unwrap();
+                registry.get(prefix).cloned()
+            };
+
+            if let Some(backend) = backend {
                 if parts.len() == 3 {
                     let service = parts[1];
                     let account = parts[2];
                     backend.get_api_key(service, account).await
                 } else {
-                    warn!("Invalid credential format for prefix {}. Expected {}:service:account", prefix, prefix);
+                    warn!(
+                        "Invalid credential format for prefix {}. Expected {}:service:account",
+                        prefix, prefix
+                    );
                     Some(key)
                 }
             } else {

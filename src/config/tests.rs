@@ -3,7 +3,7 @@ use crate::test_utils::ENV_LOCK;
 
 #[tokio::test]
 async fn test_load_defaults() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     unsafe {
         std::env::remove_var("SYNCTHING_HOST");
         std::env::remove_var("SYNCTHING_PORT");
@@ -21,7 +21,7 @@ async fn test_load_defaults() {
 
 #[tokio::test]
 async fn test_cli_override() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     let args = vec![
         "app".to_string(),
         "--host".to_string(),
@@ -39,7 +39,7 @@ async fn test_cli_override() {
 
 #[tokio::test]
 async fn test_env_override() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     unsafe {
         std::env::set_var("SYNCTHING_HOST", "env.com");
         std::env::set_var("SYNCTHING_PORT", "5050");
@@ -61,7 +61,7 @@ async fn test_env_override() {
 
 #[tokio::test]
 async fn test_file_override() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
     writeln!(
@@ -82,7 +82,7 @@ async fn test_file_override() {
 
 #[tokio::test]
 async fn test_multi_instance_loading() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
     writeln!(
@@ -122,7 +122,7 @@ retry_max_attempts = 2
 
 #[tokio::test]
 async fn test_multi_instance_map_loading() {
-    let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = ENV_LOCK.lock().await;
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
     writeln!(

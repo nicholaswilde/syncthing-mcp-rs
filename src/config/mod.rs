@@ -1,10 +1,11 @@
 use crate::credentials::{AwsBackend, VaultBackend, register_backend, resolve_api_key};
-use tracing::warn;
 use clap::ArgMatches;
 use config::{Config, ConfigError, Environment, File};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
+use std::sync::Arc;
+use tracing::warn;
 
 /// Application configuration.
 #[derive(Debug, Deserialize, Clone)]
@@ -423,7 +424,7 @@ impl AppConfig {
                     token.clone(),
                     self.vault.mount.clone(),
                 );
-                register_backend("vault", Box::new(backend));
+                register_backend("vault", Arc::new(backend));
             } else {
                 warn!("Vault is enabled but no token provided. Vault backend not registered.");
             }
@@ -435,8 +436,9 @@ impl AppConfig {
                 self.aws.region.clone(),
                 self.aws.profile.clone(),
                 self.aws.endpoint_url.clone(),
-            ).await;
-            register_backend("aws", Box::new(backend));
+            )
+            .await;
+            register_backend("aws", Arc::new(backend));
         }
 
         if self.instances.is_empty() && !self.host.is_empty() {
