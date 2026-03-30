@@ -30,7 +30,7 @@ impl LiveTestContext {
             api_key: Some(api_key.clone()),
             ..Default::default()
         };
-        app_config.validate().map_err(|e| anyhow::anyhow!(e))?;
+        app_config.validate().await.map_err(|e| anyhow::anyhow!(e))?;
 
         let client = SyncThingClient::new(app_config.instances[0].clone());
         let registry = Arc::new(Mutex::new(syncthing_mcp_rs::tools::create_registry()));

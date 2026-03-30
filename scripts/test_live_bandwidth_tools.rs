@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     });
 
-    app_config.validate()?;
+    app_config.validate().await?;
 
     let client = SyncThingClient::new(app_config.instances[0].clone());
     let registry = create_registry();

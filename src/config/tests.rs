@@ -1,15 +1,15 @@
 use super::*;
 use crate::test_utils::ENV_LOCK;
 
-#[test]
-fn test_load_defaults() {
+#[tokio::test]
+async fn test_load_defaults() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     unsafe {
         std::env::remove_var("SYNCTHING_HOST");
         std::env::remove_var("SYNCTHING_PORT");
     }
 
-    let config = match AppConfig::load(None, vec![]).unwrap() {
+    let config = match AppConfig::load(None, vec![]).await.unwrap() {
         ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -19,8 +19,8 @@ fn test_load_defaults() {
     assert_eq!(config.retry_initial_backoff_ms, 100);
 }
 
-#[test]
-fn test_cli_override() {
+#[tokio::test]
+async fn test_cli_override() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let args = vec![
         "app".to_string(),
@@ -29,7 +29,7 @@ fn test_cli_override() {
         "--port".to_string(),
         "4000".to_string(),
     ];
-    let config = match AppConfig::load(None, args).unwrap() {
+    let config = match AppConfig::load(None, args).await.unwrap() {
         ConfigResult::Config(c) => c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -37,15 +37,15 @@ fn test_cli_override() {
     assert_eq!(config.port, 4000);
 }
 
-#[test]
-fn test_env_override() {
+#[tokio::test]
+async fn test_env_override() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     unsafe {
         std::env::set_var("SYNCTHING_HOST", "env.com");
         std::env::set_var("SYNCTHING_PORT", "5050");
     }
 
-    let config = match AppConfig::load(None, vec![]).unwrap() {
+    let config = match AppConfig::load(None, vec![]).await.unwrap() {
         ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -59,8 +59,8 @@ fn test_env_override() {
     assert_eq!(config.port, 5050);
 }
 
-#[test]
-fn test_file_override() {
+#[tokio::test]
+async fn test_file_override() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
@@ -71,7 +71,7 @@ fn test_file_override() {
     .unwrap();
     let path = file.path().to_str().unwrap().to_string();
 
-    let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+    let config = match AppConfig::load(Some(path), vec![]).await.unwrap() {
         ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -80,8 +80,8 @@ fn test_file_override() {
     assert_eq!(config.retry_max_attempts, 5);
 }
 
-#[test]
-fn test_multi_instance_loading() {
+#[tokio::test]
+async fn test_multi_instance_loading() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
@@ -107,7 +107,7 @@ retry_max_attempts = 2
     .unwrap();
     let path = file.path().to_str().unwrap().to_string();
 
-    let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+    let config = match AppConfig::load(Some(path), vec![]).await.unwrap() {
         ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -120,8 +120,8 @@ retry_max_attempts = 2
     assert_eq!(config.instances[1].retry_max_attempts, Some(2));
 }
 
-#[test]
-fn test_multi_instance_map_loading() {
+#[tokio::test]
+async fn test_multi_instance_map_loading() {
     let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     use std::io::Write;
     let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
@@ -140,7 +140,7 @@ api_key = "key2"
     .unwrap();
     let path = file.path().to_str().unwrap().to_string();
 
-    let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+    let config = match AppConfig::load(Some(path), vec![]).await.unwrap() {
         ConfigResult::Config(c) => *c,
         ConfigResult::Exit => panic!("Expected Config, got Exit"),
     };
@@ -151,8 +151,8 @@ api_key = "key2"
     assert!(config.instances.iter().any(|i| i.url == "http://inst2"));
 }
 
-#[test]
-fn test_config_validation_errors() {
+#[tokio::test]
+async fn test_config_validation_errors() {
     let mut config = AppConfig {
         instances: vec![InstanceConfig {
             url: "".to_string(),
@@ -160,15 +160,16 @@ fn test_config_validation_errors() {
         }],
         ..Default::default()
     };
-    assert!(config.validate().is_err());
-    assert!(config.validate().unwrap_err().contains("missing URL"));
+    assert!(config.validate().await.is_err());
+    assert!(config.validate().await.unwrap_err().contains("missing URL"));
 
     config.instances = vec![];
     config.host = "".to_string();
-    assert!(config.validate().is_err());
+    assert!(config.validate().await.is_err());
     assert!(
         config
             .validate()
+            .await
             .unwrap_err()
             .contains("At least one SyncThing instance")
     );
@@ -214,19 +215,19 @@ fn test_get_instance() {
     assert!(config.get_instance(Some("third")).is_err());
 }
 
-#[test]
-fn test_app_config_load_encrypt() {
+#[tokio::test]
+async fn test_app_config_load_encrypt() {
     let args = vec![
         "app".to_string(),
         "encrypt".to_string(),
         "secret".to_string(),
     ];
-    let result = AppConfig::load(None, args).unwrap();
+    let result = AppConfig::load(None, args).await.unwrap();
     assert!(matches!(result, ConfigResult::Exit));
 }
 
-#[test]
-fn test_instance_config_propagation() {
+#[tokio::test]
+async fn test_instance_config_propagation() {
     let mut config = AppConfig {
         retry_max_attempts: 5,
         instances: vec![InstanceConfig {
@@ -235,18 +236,18 @@ fn test_instance_config_propagation() {
         }],
         ..Default::default()
     };
-    config.validate().unwrap();
+    config.validate().await.unwrap();
     assert_eq!(config.instances[0].retry_max_attempts, Some(5));
 }
 
-#[test]
-fn test_app_config_validate_host_to_instance() {
+#[tokio::test]
+async fn test_app_config_validate_host_to_instance() {
     let mut config = AppConfig {
         host: "1.2.3.4".to_string(),
         port: 9090,
         ..Default::default()
     };
-    config.validate().unwrap();
+    config.validate().await.unwrap();
     assert_eq!(config.instances.len(), 1);
     assert_eq!(config.instances[0].url, "http://1.2.3.4:9090");
 }

@@ -4,8 +4,8 @@ mod tests {
     use crate::test_utils::ENV_LOCK;
     use std::io::Write;
 
-    #[test]
-    fn test_http_server_config_loading() {
+    #[tokio::test]
+    async fn test_http_server_config_loading() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
         writeln!(
@@ -20,7 +20,7 @@ port = 8080
         .unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
-        let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+        let config = match AppConfig::load(Some(path), vec![]).await.unwrap() {
             ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
@@ -30,10 +30,10 @@ port = 8080
         assert_eq!(config.http_server.port, 8080);
     }
 
-    #[test]
-    fn test_http_server_config_defaults() {
+    #[tokio::test]
+    async fn test_http_server_config_defaults() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        let config = match AppConfig::load(None, vec![]).unwrap() {
+        let config = match AppConfig::load(None, vec![]).await.unwrap() {
             ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
@@ -43,8 +43,8 @@ port = 8080
         assert_eq!(config.http_server.port, 3000);
     }
 
-    #[test]
-    fn test_http_server_cli_override() {
+    #[tokio::test]
+    async fn test_http_server_cli_override() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let args = vec![
             "app".to_string(),
@@ -54,7 +54,7 @@ port = 8080
             "--http-port".to_string(),
             "9090".to_string(),
         ];
-        let config = match AppConfig::load(None, args).unwrap() {
+        let config = match AppConfig::load(None, args).await.unwrap() {
             ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
@@ -64,8 +64,8 @@ port = 8080
         assert_eq!(config.http_server.port, 9090);
     }
 
-    #[test]
-    fn test_mcp_events_config_loading() {
+    #[tokio::test]
+    async fn test_mcp_events_config_loading() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
         writeln!(
@@ -77,7 +77,7 @@ mcp_events = ["FolderStateChanged", "DeviceConnected"]
         .unwrap();
         let path = file.path().to_str().unwrap().to_string();
 
-        let config = match AppConfig::load(Some(path), vec![]).unwrap() {
+        let config = match AppConfig::load(Some(path), vec![]).await.unwrap() {
             ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };
@@ -91,10 +91,10 @@ mcp_events = ["FolderStateChanged", "DeviceConnected"]
         assert!(config.mcp_events.contains(&"DeviceConnected".to_string()));
     }
 
-    #[test]
-    fn test_mcp_events_defaults() {
+    #[tokio::test]
+    async fn test_mcp_events_defaults() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        let config = match AppConfig::load(None, vec![]).unwrap() {
+        let config = match AppConfig::load(None, vec![]).await.unwrap() {
             ConfigResult::Config(c) => *c,
             ConfigResult::Exit => panic!("Expected Config, got Exit"),
         };

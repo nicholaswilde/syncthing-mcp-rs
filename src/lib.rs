@@ -55,7 +55,7 @@ pub async fn run_with_args(args: Vec<String>) -> anyhow::Result<()> {
     tracing::info!("Starting SyncThing MCP server...");
 
     // 2. Load config
-    let config = match AppConfig::load(None, args)? {
+    let config = match AppConfig::load(None, args).await? {
         crate::config::ConfigResult::Config(c) => *c,
         crate::config::ConfigResult::Exit => return Ok(()),
     };

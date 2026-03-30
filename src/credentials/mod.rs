@@ -7,15 +7,17 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use lazy_static::lazy_static;
 use tracing::{debug, error, warn};
+use async_trait::async_trait;
 
 /// A backend for managing credentials.
+#[async_trait]
 pub trait CredentialBackend: Send + Sync {
     /// Retrieves the API key for a given service and account.
-    fn get_api_key(&self, service: &str, account: &str) -> Option<String>;
+    async fn get_api_key(&self, service: &str, account: &str) -> Option<String>;
     /// Sets the API key for a given service and account.
-    fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String>;
+    async fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String>;
     /// Deletes the API key for a given service and account.
-    fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String>;
+    async fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String>;
 }
 
 lazy_static! {
@@ -35,8 +37,9 @@ pub fn register_backend(prefix: &str, backend: Box<dyn CredentialBackend>) {
 /// A credential backend that uses the system keyring.
 pub struct KeyringBackend;
 
+#[async_trait]
 impl CredentialBackend for KeyringBackend {
-    fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
+    async fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
         debug!(
             "Looking up API key in keyring for service: {}, account: {}",
             service, account
@@ -56,7 +59,7 @@ impl CredentialBackend for KeyringBackend {
         }
     }
 
-    fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
+    async fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
         debug!(
             "Setting API key in keyring for service: {}, account: {}",
             service, account
@@ -67,7 +70,7 @@ impl CredentialBackend for KeyringBackend {
         }
     }
 
-    fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
+    async fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
         debug!(
             "Deleting API key from keyring for service: {}, account: {}",
             service, account
@@ -79,8 +82,63 @@ impl CredentialBackend for KeyringBackend {
     }
 }
 
+/// A credential backend that uses HashiCorp Vault.
+pub struct VaultBackend {
+    client: vaultrs::client::VaultClient,
+    mount: String,
+}
+
+impl VaultBackend {
+    /// Creates a new Vault backend.
+    pub fn new(address: String, token: String, mount: String) -> Self {
+        use vaultrs::client::VaultClientSettingsBuilder;
+        let client = vaultrs::client::VaultClient::new(
+            VaultClientSettingsBuilder::default()
+                .address(address)
+                .token(token)
+                .build()
+                .expect("Failed to build Vault client settings"),
+        ).expect("Failed to create Vault client");
+        Self { client, mount }
+    }
+}
+
+#[async_trait]
+impl CredentialBackend for VaultBackend {
+    async fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
+        use vaultrs::kv2;
+        let path = format!("{}/{}", service, account);
+        let res: Result<HashMap<String, String>, vaultrs::error::ClientError> = 
+            kv2::read(&self.client, &self.mount, &path).await;
+        match res {
+            Ok(data) => data.get("api_key").cloned(),
+            Err(e) => {
+                warn!("Failed to read secret from Vault at {}: {}", path, e);
+                None
+            }
+        }
+    }
+
+    async fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
+        use vaultrs::kv2;
+        let path = format!("{}/{}", service, account);
+        let mut data = HashMap::new();
+        data.insert("api_key".to_string(), key.to_string());
+        kv2::set(&self.client, &self.mount, &path, &data).await.map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    async fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
+        use vaultrs::kv2;
+        let path = format!("{}/{}", service, account);
+        // KV2 delete deletes the latest version. For full deletion, use metadata delete.
+        kv2::delete_metadata(&self.client, &self.mount, &path).await.map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+
 /// Resolves an API key, potentially from a keyring or encrypted value.
-pub fn resolve_api_key(api_key: Option<String>) -> Option<String> {
+pub async fn resolve_api_key(api_key: Option<String>) -> Option<String> {
     match api_key {
         Some(key) if key.contains(':') => {
             let parts: Vec<&str> = key.split(':').collect();
@@ -95,7 +153,7 @@ pub fn resolve_api_key(api_key: Option<String>) -> Option<String> {
                 if parts.len() == 3 {
                     let service = parts[1];
                     let account = parts[2];
-                    backend.get_api_key(service, account)
+                    backend.get_api_key(service, account).await
                 } else {
                     warn!("Invalid credential format for prefix {}. Expected {}:service:account", prefix, prefix);
                     Some(key)
@@ -175,22 +233,22 @@ pub fn decrypt_value(encrypted: &str) -> Option<String> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_resolve_plain_key() {
+    #[tokio::test]
+    async fn test_resolve_plain_key() {
         let key = Some("plain-key".to_string());
-        assert_eq!(resolve_api_key(key), Some("plain-key".to_string()));
+        assert_eq!(resolve_api_key(key).await, Some("plain-key".to_string()));
     }
 
-    #[test]
-    fn test_resolve_none() {
-        assert_eq!(resolve_api_key(None), None);
+    #[tokio::test]
+    async fn test_resolve_none() {
+        assert_eq!(resolve_api_key(None).await, None);
     }
 
-    #[test]
-    fn test_resolve_invalid_keyring_format() {
+    #[tokio::test]
+    async fn test_resolve_invalid_keyring_format() {
         let key = Some("keyring:too:many:parts".to_string());
         assert_eq!(
-            resolve_api_key(key),
+            resolve_api_key(key).await,
             Some("keyring:too:many:parts".to_string())
         );
     }
@@ -238,3 +296,6 @@ mod tests {
 
 #[cfg(test)]
 mod abstraction_tests;
+
+#[cfg(test)]
+mod vault_tests;

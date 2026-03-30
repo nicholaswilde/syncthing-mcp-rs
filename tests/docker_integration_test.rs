@@ -434,7 +434,7 @@ async fn test_replicate_config_tool() -> Result<()> {
         ],
         ..Default::default()
     };
-    app_config.validate().unwrap();
+    app_config.validate().await.unwrap();
 
     let client = source_container.client();
     let registry = Arc::new(std::sync::Mutex::new(
@@ -499,7 +499,7 @@ async fn test_diff_instance_configs_tool() -> Result<()> {
         ],
         ..Default::default()
     };
-    app_config.validate().unwrap();
+    app_config.validate().await.unwrap();
 
     let source_client = source_container.client();
 
@@ -556,7 +556,7 @@ async fn test_merge_instance_configs_tool() -> Result<()> {
         ],
         ..Default::default()
     };
-    app_config.validate().unwrap();
+    app_config.validate().await.unwrap();
 
     let source_client = source_container.client();
     let dest_client = dest_container.client();

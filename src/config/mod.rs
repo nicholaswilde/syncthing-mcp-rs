@@ -254,7 +254,7 @@ impl AppConfig {
     /// # Errors
     ///
     /// Returns an error if the configuration cannot be loaded or is invalid.
-    pub fn load(
+    pub async fn load(
         file_path: Option<String>,
         cli_args: Vec<String>,
     ) -> Result<ConfigResult, ConfigError> {
@@ -352,12 +352,12 @@ impl AppConfig {
         }
 
         let mut config: AppConfig = builder.build()?.try_deserialize()?;
-        config.validate().map_err(ConfigError::Message)?;
+        config.validate().await.map_err(ConfigError::Message)?;
         Ok(ConfigResult::Config(Box::new(config)))
     }
 
     /// Validates the configuration and ensures at least one instance is configured.
-    pub fn validate(&mut self) -> Result<(), String> {
+    pub async fn validate(&mut self) -> Result<(), String> {
         if self.instances.is_empty() && !self.host.is_empty() {
             let url = if self.host.starts_with("http") {
                 self.host.clone()
@@ -368,7 +368,7 @@ impl AppConfig {
             self.instances.push(InstanceConfig {
                 name: Some("default".to_string()),
                 url,
-                api_key: resolve_api_key(self.api_key.clone()),
+                api_key: resolve_api_key(self.api_key.clone()).await,
                 no_verify_ssl: Some(self.no_verify_ssl),
                 retry_max_attempts: Some(self.retry_max_attempts),
                 retry_initial_backoff_ms: Some(self.retry_initial_backoff_ms),
@@ -385,7 +385,7 @@ impl AppConfig {
                 return Err(format!("Instance {} is missing URL", i));
             }
             // Resolve API key if it's a keyring link
-            inst.api_key = resolve_api_key(inst.api_key.take());
+            inst.api_key = resolve_api_key(inst.api_key.take()).await;
 
             // Propagate global retry settings if not set on instance
             if inst.retry_max_attempts.is_none() {
