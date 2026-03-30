@@ -137,6 +137,69 @@ impl CredentialBackend for VaultBackend {
     }
 }
 
+/// A credential backend that uses AWS Secrets Manager.
+pub struct AwsBackend {
+    client: aws_sdk_secretsmanager::Client,
+}
+
+impl AwsBackend {
+    /// Creates a new AWS backend.
+    pub async fn new(region: String, profile: Option<String>) -> Self {
+        let mut loader = aws_config::defaults(aws_config::BehaviorVersion::latest())
+            .region(aws_config::Region::new(region));
+        
+        if let Some(p) = profile {
+            loader = loader.profile_name(p);
+        }
+        
+        let config = loader.load().await;
+        let client = aws_sdk_secretsmanager::Client::new(&config);
+        Self { client }
+    }
+}
+
+#[async_trait]
+impl CredentialBackend for AwsBackend {
+    async fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
+        let secret_id = format!("{}/{}", service, account);
+        match self.client.get_secret_value().secret_id(secret_id).send().await {
+            Ok(res) => res.secret_string().map(|s| s.to_string()),
+            Err(e) => {
+                warn!("Failed to get secret from AWS: {}", e);
+                None
+            }
+        }
+    }
+
+    async fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
+        let secret_id = format!("{}/{}", service, account);
+        // Try to update first, if fails try to create
+        let res = self.client.update_secret()
+            .secret_id(&secret_id)
+            .secret_string(key)
+            .send().await;
+            
+        if res.is_err() {
+            self.client.create_secret()
+                .name(&secret_id)
+                .secret_string(key)
+                .send().await
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+
+    async fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
+        let secret_id = format!("{}/{}", service, account);
+        self.client.delete_secret()
+            .secret_id(secret_id)
+            .force_delete_without_recovery(true)
+            .send().await
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+
 /// Resolves an API key, potentially from a keyring or encrypted value.
 pub async fn resolve_api_key(api_key: Option<String>) -> Option<String> {
     match api_key {
@@ -299,3 +362,6 @@ mod abstraction_tests;
 
 #[cfg(test)]
 mod vault_tests;
+
+#[cfg(test)]
+mod aws_tests;
