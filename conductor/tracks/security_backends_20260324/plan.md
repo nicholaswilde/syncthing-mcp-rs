@@ -5,7 +5,7 @@
 - [x] Task: Update the core logic to work with the abstracted credential trait. (685dd01)
 
 ## Phase 2: HashiCorp Vault Backend
-- [ ] Task: Research and select a Vault client library for Rust.
+- [x] Task: Research and select a Vault client library for Rust. (192f2ce)
 - [ ] Task: Implement the Vault backend for credential storage and retrieval.
 - [ ] Task: Add configuration options for Vault (e.g., address, token, path).
 
