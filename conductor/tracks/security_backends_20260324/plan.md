@@ -15,6 +15,6 @@
 - [x] Task: Add configuration options for AWS (e.g., region, profile, ARN). (2821996)
 
 ## Phase 4: Integration & Validation
-- [ ] Task: Unit tests for the abstraction layer and each backend.
+- [x] Task: Unit tests for the abstraction layer and each backend. (749824e)
 - [ ] Task: Integration tests with mock/local instances of Vault and AWS.
 - [ ] Task: End-to-end testing of the credential management workflow with each backend.
