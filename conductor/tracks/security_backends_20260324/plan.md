@@ -4,7 +4,7 @@
 - [x] Task: Refactor the existing credentials module to use a trait-based abstraction. (38c8081)
 - [x] Task: Update the core logic to work with the abstracted credential trait. (685dd01)
 
-## Phase 2: HashiCorp Vault Backend
+## Phase 2: HashiCorp Vault Backend [checkpoint: f25a3c4]
 - [x] Task: Research and select a Vault client library for Rust. (192f2ce)
 - [x] Task: Implement the Vault backend for credential storage and retrieval. (413c998)
 - [x] Task: Add configuration options for Vault (e.g., address, token, path). (9504d37)
