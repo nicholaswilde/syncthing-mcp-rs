@@ -1368,6 +1368,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_run_with_notification() {
+        use tokio::time::{Duration, timeout};
         let registry = create_registry();
         let config = AppConfig::default();
         let (server, rx) = McpServer::new(registry, config);
@@ -1376,6 +1377,7 @@ mod tests {
         let (server_writer, mut client_reader) = tokio::io::duplex(1024);
 
         let tx = server.notification_tx.clone();
+        let server_clone = server.clone();
         tokio::spawn(async move {
             tx.send(crate::mcp::Notification {
                 jsonrpc: "2.0".to_string(),
@@ -1387,11 +1389,18 @@ mod tests {
 
             // Give some time for notification to be processed
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            // Close the writer to exit the loop
+            // Signal stop
+            server_clone.stop();
             drop(client_writer);
         });
 
-        server.run(server_reader, server_writer, rx).await.unwrap();
+        timeout(
+            Duration::from_secs(2),
+            server.run(server_reader, server_writer, rx),
+        )
+        .await
+        .unwrap()
+        .unwrap();
 
         let mut output = Vec::new();
         tokio::io::copy(&mut client_reader, &mut output)

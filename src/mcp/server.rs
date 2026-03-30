@@ -18,7 +18,7 @@ use serde_json::Value;
 use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, stdin, stdout};
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, watch};
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::ReceiverStream;
 use uuid::Uuid;
@@ -40,6 +40,8 @@ pub struct McpServer {
     pub notification_tx: mpsc::Sender<Notification>,
     /// Active SSE sessions.
     pub sessions: Arc<DashMap<String, Session>>,
+    /// Shutdown signal.
+    pub shutdown_tx: Arc<watch::Sender<bool>>,
 }
 
 /// Query parameters for session-based messages.
@@ -53,15 +55,22 @@ impl McpServer {
     /// Creates a new MCP server with the given registry and configuration.
     pub fn new(registry: ToolRegistry, config: AppConfig) -> (Self, mpsc::Receiver<Notification>) {
         let (tx, rx) = mpsc::channel(100);
+        let (shutdown_tx, _) = watch::channel(false);
         (
             Self {
                 registry: Arc::new(Mutex::new(registry)),
                 config,
                 notification_tx: tx,
                 sessions: Arc::new(DashMap::new()),
+                shutdown_tx: Arc::new(shutdown_tx),
             },
             rx,
         )
+    }
+
+    /// Stops the server.
+    pub fn stop(&self) {
+        let _ = self.shutdown_tx.send(true);
     }
 
     /// Returns an axum router for the MCP HTTP/SSE transport.
@@ -99,8 +108,13 @@ impl McpServer {
         W: tokio::io::AsyncWrite + Unpin,
     {
         let mut reader = BufReader::new(reader).lines();
+        let mut shutdown_rx = self.shutdown_tx.subscribe();
 
         loop {
+            if *shutdown_rx.borrow() {
+                break;
+            }
+
             tokio::select! {
                 line = reader.next_line() => {
                     let line = line?;
@@ -161,6 +175,11 @@ impl McpServer {
                         }
                     } else {
                         // rx closed
+                        break;
+                    }
+                }
+                _ = shutdown_rx.changed() => {
+                    if *shutdown_rx.borrow() {
                         break;
                     }
                 }

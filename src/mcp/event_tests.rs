@@ -161,8 +161,12 @@ mod tests {
         let (client_writer, server_reader) = tokio::io::duplex(1024);
         let (server_writer, mut client_reader) = tokio::io::duplex(1024);
 
+        let server_clone = server.clone();
         let server_handle = tokio::spawn(async move {
-            server.run(server_reader, server_writer, rx).await.unwrap();
+            server_clone
+                .run(server_reader, server_writer, rx)
+                .await
+                .unwrap();
         });
 
         // Read notification from client side
@@ -193,6 +197,7 @@ mod tests {
         // Cleanup
         event_manager.stop();
         let _ = timeout(Duration::from_secs(1), em_handle).await;
+        server.stop();
         drop(client_writer);
         let _ = timeout(Duration::from_secs(1), server_handle).await;
     }
