@@ -144,12 +144,16 @@ pub struct AwsBackend {
 
 impl AwsBackend {
     /// Creates a new AWS backend.
-    pub async fn new(region: String, profile: Option<String>) -> Self {
+    pub async fn new(region: String, profile: Option<String>, endpoint_url: Option<String>) -> Self {
         let mut loader = aws_config::defaults(aws_config::BehaviorVersion::latest())
             .region(aws_config::Region::new(region));
         
         if let Some(p) = profile {
             loader = loader.profile_name(p);
+        }
+        
+        if let Some(url) = endpoint_url {
+            loader = loader.endpoint_url(url);
         }
         
         let config = loader.load().await;

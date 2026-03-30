@@ -88,6 +88,8 @@ pub struct AwsConfig {
     pub region: String,
     /// The AWS profile name.
     pub profile: Option<String>,
+    /// The AWS endpoint URL (useful for LocalStack).
+    pub endpoint_url: Option<String>,
 }
 
 fn default_aws_region() -> String {
@@ -432,6 +434,7 @@ impl AppConfig {
             let backend = AwsBackend::new(
                 self.aws.region.clone(),
                 self.aws.profile.clone(),
+                self.aws.endpoint_url.clone(),
             ).await;
             register_backend("aws", Box::new(backend));
         }
