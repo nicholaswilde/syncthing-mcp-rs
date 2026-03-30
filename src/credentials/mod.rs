@@ -5,16 +5,20 @@ use keyring::Entry;
 use rand::{Rng, thread_rng};
 use tracing::{debug, error, warn};
 
-/// A provider for retrieving credentials.
-pub trait CredentialProvider {
+/// A backend for managing credentials.
+pub trait CredentialBackend {
     /// Retrieves the API key for a given service and account.
     fn get_api_key(&self, service: &str, account: &str) -> Option<String>;
+    /// Sets the API key for a given service and account.
+    fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String>;
+    /// Deletes the API key for a given service and account.
+    fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String>;
 }
 
-/// A credential provider that uses the system keyring.
-pub struct KeyringProvider;
+/// A credential backend that uses the system keyring.
+pub struct KeyringBackend;
 
-impl CredentialProvider for KeyringProvider {
+impl CredentialBackend for KeyringBackend {
     fn get_api_key(&self, service: &str, account: &str) -> Option<String> {
         debug!(
             "Looking up API key in keyring for service: {}, account: {}",
@@ -34,6 +38,28 @@ impl CredentialProvider for KeyringProvider {
             }
         }
     }
+
+    fn set_api_key(&self, service: &str, account: &str, key: &str) -> Result<(), String> {
+        debug!(
+            "Setting API key in keyring for service: {}, account: {}",
+            service, account
+        );
+        match Entry::new(service, account) {
+            Ok(entry) => entry.set_password(key).map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    fn delete_api_key(&self, service: &str, account: &str) -> Result<(), String> {
+        debug!(
+            "Deleting API key from keyring for service: {}, account: {}",
+            service, account
+        );
+        match Entry::new(service, account) {
+            Ok(entry) => entry.delete_credential().map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
 }
 
 /// Resolves an API key, potentially from a keyring or encrypted value.
@@ -44,7 +70,7 @@ pub fn resolve_api_key(api_key: Option<String>) -> Option<String> {
             if parts.len() == 3 {
                 let service = parts[1];
                 let account = parts[2];
-                KeyringProvider.get_api_key(service, account)
+                KeyringBackend.get_api_key(service, account)
             } else {
                 warn!("Invalid keyring format. Expected keyring:service:account");
                 Some(key)
@@ -182,3 +208,6 @@ mod tests {
         assert_eq!(decrypt_value(encrypted), None);
     }
 }
+
+#[cfg(test)]
+mod abstraction_tests;
