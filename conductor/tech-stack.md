@@ -20,8 +20,8 @@
 
 
 ## Security & Secrets
-- **Secrets Encryption**: OS Keyring integration and authenticated encryption (ChaCha20-Poly1305).
-- **Environment Security**: Secure credential resolution from OS-level secret stores.
+- **Secrets Encryption**: OS Keyring integration, external secret store support (HashiCorp Vault, AWS Secrets Manager), and authenticated encryption (ChaCha20-Poly1305).
+- **Environment Security**: Secure credential resolution from OS-level and external secret stores.
 - **Authentication**: Bearer Token for HTTP transport security; API Key support for SyncThing backend communication.
 
 ## Testing & Quality Assurance
@@ -51,6 +51,9 @@
 - **futures**: Utilities for asynchronous programming.
 - **testcontainers**: Programmatic Docker lifecycle management for tests.
 - **testcontainers-modules**: Ready-to-use Docker images for testcontainers.
+- **vaultrs**: Modern, asynchronous client for HashiCorp Vault.
+- **aws-sdk-secretsmanager**: AWS SDK for interacting with Secrets Manager.
+- **async-trait**: Support for asynchronous functions in traits.
 - **uuid**: Unique identifier generation.
 - **url**: URL parsing and manipulation.
 - **trash**: Cross-platform file deletion to trash.

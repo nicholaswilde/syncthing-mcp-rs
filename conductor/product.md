@@ -13,7 +13,7 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 3. **Protocol Versatility**: Support both `stdio` transport for local integration (e.g., Claude Desktop) and `HTTP/SSE` for remote management.
 4. **Reliability & Performance**: Leverage Rust's safety and performance to ensure stable, low-latency interactions with the SyncThing API.
 5. **End-to-End Verification**: Utilize automated integration tests with real SyncThing Docker instances to guarantee tool correctness and API compatibility.
-6. **Security First**: Implement secure credential handling (supporting API Keys), OS Keyring integration, and authenticated encryption (ChaCha20-Poly1305) for configuration fields.
+6. **Security First**: Implement secure credential handling (supporting API Keys), OS Keyring integration, external secret store support (HashiCorp Vault, AWS Secrets Manager), and authenticated encryption (ChaCha20-Poly1305) for configuration fields.
 
 ## Target Users
 - **Developers & Power Users**: Who want to automate their file synchronization workflows using LLMs.
@@ -34,6 +34,6 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Conflict Management**: Identify, resolve, and clean up SyncThing conflict files with metadata-driven decision support, safe deletion (trash), and advanced intelligence including semantic diffing (JSON/YAML) and resolution previews.
 - **Self-Healing Monitor**: Automatically detect and resolve common SyncThing issues, such as stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
 - Bandwidth Orchestration: Dynamically manage upload and download rate limits across multiple SyncThing instances, with support for scheduled performance profiles (e.g., 'working_hours').
-- Security & Secrets: Secure credential handling with OS Keyring and authenticated encryption.
+- Security & Secrets: Secure credential handling with OS Keyring, external secret stores (Vault, AWS), and authenticated encryption.
 - Version Control Integration: Automatically back up SyncThing configurations to Git with support for diffing and rollbacks to previous versions.
 
