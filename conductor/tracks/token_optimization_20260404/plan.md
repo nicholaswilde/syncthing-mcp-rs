@@ -12,19 +12,24 @@
 - [x] Task: Implement response truncation logic with configurable limits 70d22ac
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Core Utilities' (Protocol in workflow.md) 2370930
 
-## Phase 3: Optimized Folder Management
-- [ ] Task: Write tests for consolidated folder "super-tool"
-- [ ] Task: Implement consolidated folder "super-tool"
-- [ ] Task: Write tests for optimized folder status/stats responses
-- [ ] Task: Implement content filtering and aliasing for folder responses
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Folder Management' (Protocol in workflow.md)
+## Phase 3: Optimized Folder & Conflict Management
+- [x] Task: Write tests for `inspect_folder` (consolidates sync status, conflicts, stats) 052ce81
+- [x] Task: Implement `inspect_folder` "super-tool" 052ce81
+- [ ] Task: Write tests for `batch_manage_folders` (bulk rescan, revert, etc.)
+- [ ] Task: Implement `batch_manage_folders` "super-tool"
+- [ ] Task: Write tests for `summarize_conflicts` (grouped by folder with counts/sizes)
+- [ ] Task: Implement `summarize_conflicts` "super-tool"
+- [ ] Task: Implement content filtering and aliasing for all folder/conflict responses
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Folder & Conflict Management' (Protocol in workflow.md)
 
-## Phase 4: Optimized File Browsing & System Tools
-- [ ] Task: Write tests for optimized `browse_files` tool
+## Phase 4: Optimized System, Device & File Tools
+- [ ] Task: Write tests for `get_instance_overview` (consolidates status, connections, health)
+- [ ] Task: Implement `get_instance_overview` "super-tool"
+- [ ] Task: Write tests for `inspect_device` (consolidates device sync status and statistics)
+- [ ] Task: Implement `inspect_device` "super-tool"
+- [ ] Task: Write tests for optimized `browse_files` tool with stricter limits
 - [ ] Task: Implement stricter depth/item limits and filtering for `browse_files`
-- [ ] Task: Write tests for consolidated system status/stats tool
-- [ ] Task: Implement consolidated system "super-tool"
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: File & System Tools' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: System, Device & File Tools' (Protocol in workflow.md)
 
 ## Phase 5: Verification & Documentation
 - [ ] Task: Write benchmark tests to verify token reduction across all tools
