@@ -23,7 +23,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Folder & Conflict Management' (Protocol in workflow.md) 17e7eca
 
 ## Phase 4: Optimized System, Device & File Tools
-- [ ] Task: Write tests for `get_instance_overview` (consolidates status, connections, health)
+- [~] Task: Write tests for `get_instance_overview` (consolidates status, connections, health)
 - [ ] Task: Implement `get_instance_overview` "super-tool"
 - [ ] Task: Write tests for `inspect_device` (consolidates device sync status and statistics)
 - [ ] Task: Implement `inspect_device` "super-tool"
