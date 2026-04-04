@@ -345,3 +345,54 @@ pub async fn inspect_folder(
     }))
 }
 
+/// Performs bulk actions on multiple folders simultaneously.
+pub async fn batch_manage_folders(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let folder_ids = args["folder_ids"]
+        .as_array()
+        .ok_or_else(|| Error::ValidationError("folder_ids must be an array of strings".to_string()))?;
+    
+    let action = args["action"]
+        .as_str()
+        .ok_or_else(|| Error::ValidationError("action is required".to_string()))?;
+
+    let mut results = Vec::new();
+    let mut success_count = 0;
+
+    for id_val in folder_ids {
+        let id = id_val.as_str().ok_or_else(|| Error::ValidationError("Each folder_id must be a string".to_string()))?;
+        
+        let res = match action {
+            "rescan" => client.rescan(Some(id)).await,
+            "revert" => client.revert_folder(id).await,
+            "pause" => client.patch_folder(id, json!({"paused": true})).await.map(|_| ()),
+            "resume" => client.patch_folder(id, json!({"paused": false})).await.map(|_| ()),
+            _ => return Err(Error::ValidationError(format!("Unsupported batch action: {}", action))),
+        };
+
+        match res {
+            Ok(_) => {
+                results.push(format!("{}: Success", id));
+                success_count += 1;
+            }
+            Err(e) => results.push(format!("{}: Error - {}", id, e)),
+        }
+    }
+
+    let mut text = format!("Successfully triggered {} for {} folder(s):\n\n", action, success_count);
+    for line in results {
+        text.push_str(&format!("- {}\n", line));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }]
+    }))
+}
+
+

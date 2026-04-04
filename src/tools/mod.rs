@@ -51,6 +51,9 @@ mod folders_tests;
 /// Unit tests for the inspect_folder tool.
 #[cfg(test)]
 mod inspect_folder_tests;
+/// Unit tests for the batch_manage_folders tool.
+#[cfg(test)]
+mod batch_folder_tests;
 /// Git-Sync tools for version control.
 pub mod git_sync;
 /// Unit tests for Git-Sync tools.
@@ -317,6 +320,28 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["folder_id"]
         }),
         folders::inspect_folder,
+    );
+
+    registry.register(
+        "batch_manage_folders",
+        "Performs bulk actions (rescan, revert, pause, resume) on multiple folders simultaneously.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_ids": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of folder IDs to apply the action to."
+                },
+                "action": {
+                    "type": "string",
+                    "enum": ["rescan", "revert", "pause", "resume"],
+                    "description": "The action to perform on each folder."
+                }
+            },
+            "required": ["folder_ids", "action"]
+        }),
+        folders::batch_manage_folders,
     );
 
     registry.register(
