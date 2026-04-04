@@ -44,3 +44,25 @@ fn test_filter_fields() {
     assert!(obj.contains_key("label"));
     assert!(!obj.contains_key("path"));
 }
+
+#[test]
+fn test_truncate_array() {
+    let data = json!([1, 2, 3, 4, 5]);
+    let truncated = crate::mcp::optimization::truncate_value(data, 3);
+    
+    assert_eq!(truncated.as_array().unwrap().len(), 3);
+    assert_eq!(truncated[0], 1);
+    assert_eq!(truncated[2], 3);
+}
+
+#[test]
+fn test_truncate_nested_arrays() {
+    let data = json!({
+        "items": [1, 2, 3, 4, 5],
+        "other": "value"
+    });
+    let truncated = crate::mcp::optimization::truncate_value(data, 2);
+    
+    assert_eq!(truncated["items"].as_array().unwrap().len(), 2);
+    assert_eq!(truncated["other"], "value");
+}

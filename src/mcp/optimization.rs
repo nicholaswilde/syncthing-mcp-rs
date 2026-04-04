@@ -36,3 +36,23 @@ pub fn filter_fields(value: Value, allowed: &[String]) -> Value {
         _ => value,
     }
 }
+
+/// Recursively truncates JSON arrays to a maximum size.
+pub fn truncate_value(value: Value, limit: usize) -> Value {
+    match value {
+        Value::Array(mut arr) => {
+            if arr.len() > limit {
+                arr.truncate(limit);
+            }
+            Value::Array(arr.into_iter().map(|v| truncate_value(v, limit)).collect())
+        }
+        Value::Object(map) => {
+            let mut new_map = Map::new();
+            for (k, v) in map {
+                new_map.insert(k, truncate_value(v, limit));
+            }
+            Value::Object(new_map)
+        }
+        _ => value,
+    }
+}
