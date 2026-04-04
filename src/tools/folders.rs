@@ -268,3 +268,80 @@ pub async fn get_folder_stats(
         }]
     }))
 }
+
+/// Provides a comprehensive status overview for a specific folder.
+/// Consolidates sync status, conflicts, and statistics.
+pub async fn inspect_folder(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let folder_id = args["folder_id"]
+        .as_str()
+        .ok_or_else(|| Error::ValidationError("folder_id is required".to_string()))?;
+
+    // 1. Get Folder Config (to get path and label)
+    let folder_config = client.get_folder(folder_id).await?;
+    let path = std::path::Path::new(&folder_config.path);
+
+    // 2. Get Folder Status (sync progress)
+    let status = client.get_folder_status(folder_id).await?;
+    let completion_pct = if status.global_bytes > 0 {
+        (status.in_sync_bytes as f64 / status.global_bytes as f64) * 100.0
+    } else {
+        100.0
+    };
+
+    // 3. Get Folder Stats
+    let all_stats = client.get_folder_stats().await?;
+    let folder_stats = all_stats.get(folder_id);
+
+    // 4. Scan for Conflicts
+    let conflicts = crate::tools::conflicts::scan_conflicts(path).await.unwrap_or_default();
+
+    // 5. Build Combined Report
+    let mut text = format!("### Folder Overview: {} ({})\n\n", folder_config.label, folder_id);
+    
+    text.push_str("#### Sync Status\n");
+    text.push_str(&format!("- **State**: {}\n", status.state));
+    text.push_str(&format!("- **Completion**: {:.2}%\n", completion_pct));
+    text.push_str(&format!("- **Global Data**: {} bytes ({} files)\n", status.global_bytes, status.global_files));
+    text.push_str(&format!("- **Local Data**: {} bytes\n", status.in_sync_bytes));
+    if status.need_bytes > 0 || status.need_files > 0 {
+        text.push_str(&format!("- **Syncing**: {} bytes remaining ({} files)\n", status.need_bytes, status.need_files));
+    }
+    text.push_str("\n");
+
+    text.push_str("#### Statistics\n");
+    if let Some(stats) = folder_stats {
+        text.push_str(&format!("- **Last Scan**: {}\n", stats.last_scan));
+        if let Some(last_file) = &stats.last_file {
+            text.push_str(&format!("- **Last Synced File**: {} (at {})\n", last_file.filename, last_file.at));
+        }
+    } else {
+        text.push_str("- No statistics available.\n");
+    }
+    text.push_str("\n");
+
+    text.push_str("#### Conflicts\n");
+    if conflicts.is_empty() {
+        text.push_str("- No conflicts found.\n");
+    } else {
+        text.push_str(&format!("- **{} conflict(s) found**:\n", conflicts.len()));
+        for conflict in conflicts {
+            let filename = std::path::Path::new(&conflict.conflict_path)
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy();
+            text.push_str(&format!("  - `{}` ({} bytes, from device {})\n", filename, conflict.conflict_size, conflict.device_id));
+        }
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }]
+    }))
+}
+

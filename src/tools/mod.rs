@@ -48,6 +48,9 @@ pub mod folders;
 /// Unit tests for the folders tool.
 #[cfg(test)]
 mod folders_tests;
+/// Unit tests for the inspect_folder tool.
+#[cfg(test)]
+mod inspect_folder_tests;
 /// Git-Sync tools for version control.
 pub mod git_sync;
 /// Unit tests for Git-Sync tools.
@@ -298,6 +301,22 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["action"]
         }),
         folders::manage_folders,
+    );
+
+    registry.register(
+        "inspect_folder",
+        "Provides a comprehensive status overview for a specific folder, consolidating sync status, conflicts, and statistics.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The unique Folder ID to inspect."
+                }
+            },
+            "required": ["folder_id"]
+        }),
+        folders::inspect_folder,
     );
 
     registry.register(
