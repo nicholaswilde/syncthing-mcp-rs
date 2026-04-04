@@ -59,7 +59,9 @@ mod tests {
         // Create a conflict file in the temp dir
         let conflict_name = "test.sync-conflict-20230101-120000-ABCDEFG.txt";
         let conflict_path = folder_path.join(conflict_name);
-        tokio::fs::write(&conflict_path, "conflict content").await.unwrap();
+        tokio::fs::write(&conflict_path, "conflict content")
+            .await
+            .unwrap();
 
         let client = SyncThingClient::new(InstanceConfig {
             url: server.uri(),
@@ -151,4 +153,3 @@ mod tests {
         assert!(json["stats"]["ls"].is_string());
     }
 }
-

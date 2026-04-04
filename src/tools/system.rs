@@ -346,21 +346,25 @@ pub async fn analyze_error(
             "text": text
         }]
     }))
-    }
+}
 
-    /// Provides a top-level health and status report for a SyncThing instance.
-    /// Consolidates system status, connections, and version information.
-    pub async fn get_instance_overview(
+/// Provides a top-level health and status report for a SyncThing instance.
+/// Consolidates system status, connections, and version information.
+pub async fn get_instance_overview(
     client: SyncThingClient,
     _config: AppConfig,
     args: Value,
-    ) -> Result<Value> {
+) -> Result<Value> {
     // 1. Get System Status
     let status = client.get_system_status().await?;
 
     // 2. Get Connections
     let connections = client.get_connections().await?;
-    let connected_count = connections.connections.values().filter(|c| c.connected).count();
+    let connected_count = connections
+        .connections
+        .values()
+        .filter(|c| c.connected)
+        .count();
 
     // 3. Get Version
     let version = client.get_system_version().await?;
@@ -394,14 +398,22 @@ pub async fn analyze_error(
     text.push_str(&format!("- **Uptime**: {}s\n", status.uptime));
     text.push_str(&format!("- **Memory Usage**: {} bytes\n", status.alloc));
     text.push_str(&format!("- **OS/Arch**: {}/{}\n", version.os, version.arch));
-    text.push_str("\n");
+    text.push('\n');
 
     text.push_str("#### Connectivity\n");
-    text.push_str(&format!("- **Connected Peers**: {} / {}\n", connected_count, connections.connections.len()));
+    text.push_str(&format!(
+        "- **Connected Peers**: {} / {}\n",
+        connected_count,
+        connections.connections.len()
+    ));
     if connected_count > 0 {
         text.push_str("- **Active Connections**:\n");
         for (id, conn) in connections.connections.iter().filter(|(_, c)| c.connected) {
-            text.push_str(&format!("  - `{}` ({})\n", id, conn.connection_type.as_deref().unwrap_or("unknown")));
+            text.push_str(&format!(
+                "  - `{}` ({})\n",
+                id,
+                conn.connection_type.as_deref().unwrap_or("unknown")
+            ));
         }
     }
 
@@ -411,5 +423,4 @@ pub async fn analyze_error(
             "text": text.trim_end().to_string()
         }]
     }))
-    }
-
+}

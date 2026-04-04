@@ -24,35 +24,85 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = SyncThingClient::new(app_config.instances[0].clone());
     let registry = create_registry();
 
-    println!("--- Testing list_instances ---");
+    println!("--- Testing get_instance_overview ---");
     let tool = registry
-        .get_tool("list_instances")
-        .expect("Tool list_instances not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+        .get_tool("get_instance_overview")
+        .expect("Tool get_instance_overview not found");
+    let result = (tool.handler)(&client, &app_config, Some(json!({"format": "text"}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
-    println!("\n--- Testing get_instance_health ---");
+    println!("\n--- Testing summarize_conflicts ---");
     let tool = registry
-        .get_tool("get_instance_health")
-        .expect("Tool get_instance_health not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+        .get_tool("summarize_conflicts")
+        .expect("Tool summarize_conflicts not found");
+    let result = (tool.handler)(&client, &app_config, Some(json!({"format": "text"}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
-    println!("\n--- Testing replicate_config (DRY RUN) ---");
-    // We replicate to ourselves as a safe dry run test
-    let tool = registry
-        .get_tool("replicate_config")
-        .expect("Tool replicate_config not found");
-    let result = (tool.handler)(
-        &client,
-        &app_config,
-        Some(json!({
-            "destination": "0", // First instance
-            "dry_run": true
-        })),
-    )
-    .await?;
-    println!("{}", result["content"][0]["text"].as_str().unwrap());
+    let config = client.get_config().await?;
+    if let Some(folder) = config.folders.first() {
+        let folder_id = &folder.id;
+        println!("\n--- Testing inspect_folder on {} ---", folder_id);
+        let tool = registry
+            .get_tool("inspect_folder")
+            .expect("Tool inspect_folder not found");
+        let result = (tool.handler)(
+            &client,
+            &app_config,
+            Some(json!({"folder_id": folder_id, "format": "text"})),
+        )
+        .await?;
+        println!("{}", result["content"][0]["text"].as_str().unwrap());
+
+        println!(
+            "\n--- Testing batch_manage_folders (pause) on {} ---",
+            folder_id
+        );
+        let tool = registry
+            .get_tool("batch_manage_folders")
+            .expect("Tool batch_manage_folders not found");
+        let result = (tool.handler)(
+            &client,
+            &app_config,
+            Some(json!({
+                "folder_ids": [folder_id],
+                "action": "pause",
+                "format": "text"
+            })),
+        )
+        .await?;
+        println!("{}", result["content"][0]["text"].as_str().unwrap());
+
+        println!(
+            "\n--- Testing batch_manage_folders (resume) on {} ---",
+            folder_id
+        );
+        let result = (tool.handler)(
+            &client,
+            &app_config,
+            Some(json!({
+                "folder_ids": [folder_id],
+                "action": "resume",
+                "format": "text"
+            })),
+        )
+        .await?;
+        println!("{}", result["content"][0]["text"].as_str().unwrap());
+    }
+
+    if let Some(device) = config.devices.first() {
+        let device_id = &device.device_id;
+        println!("\n--- Testing inspect_device on {} ---", device_id);
+        let tool = registry
+            .get_tool("inspect_device")
+            .expect("Tool inspect_device not found");
+        let result = (tool.handler)(
+            &client,
+            &app_config,
+            Some(json!({"device_id": device_id, "format": "text"})),
+        )
+        .await?;
+        println!("{}", result["content"][0]["text"].as_str().unwrap());
+    }
 
     Ok(())
 }

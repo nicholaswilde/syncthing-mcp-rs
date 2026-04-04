@@ -11,7 +11,7 @@ mod tests {
     async fn test_summarize_conflicts_success() {
         let server = MockServer::start().await;
         let temp = tempfile::tempdir().unwrap();
-        
+
         let folder1_path = temp.path().join("folder1");
         tokio::fs::create_dir(&folder1_path).await.unwrap();
         let folder2_path = temp.path().join("folder2");
@@ -19,7 +19,9 @@ mod tests {
 
         // Create a conflict in folder1
         let conflict1_name = "test1.sync-conflict-20230101-120000-ABCDEFG.txt";
-        tokio::fs::write(folder1_path.join(conflict1_name), "conflict1").await.unwrap();
+        tokio::fs::write(folder1_path.join(conflict1_name), "conflict1")
+            .await
+            .unwrap();
 
         // Mock list_folders
         Mock::given(method("GET"))
@@ -65,13 +67,15 @@ mod tests {
     async fn test_summarize_conflicts_json_optimized() {
         let server = MockServer::start().await;
         let temp = tempfile::tempdir().unwrap();
-        
+
         let folder1_path = temp.path().join("folder1");
         tokio::fs::create_dir(&folder1_path).await.unwrap();
 
         // Create a conflict in folder1
         let conflict1_name = "test1.sync-conflict-20230101-120000-ABCDEFG.txt";
-        tokio::fs::write(folder1_path.join(conflict1_name), "conflict1").await.unwrap();
+        tokio::fs::write(folder1_path.join(conflict1_name), "conflict1")
+            .await
+            .unwrap();
 
         // Mock list_folders
         Mock::given(method("GET"))
@@ -109,4 +113,3 @@ mod tests {
         assert_eq!(json["folders"][0]["conflicts"].as_array().unwrap().len(), 1);
     }
 }
-

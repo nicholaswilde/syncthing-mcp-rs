@@ -297,7 +297,9 @@ pub async fn inspect_folder(
     let folder_stats = all_stats.get(folder_id);
 
     // 4. Scan for Conflicts
-    let conflicts = crate::tools::conflicts::scan_conflicts(path).await.unwrap_or_default();
+    let conflicts = crate::tools::conflicts::scan_conflicts(path)
+        .await
+        .unwrap_or_default();
 
     // 5. Check if JSON output is requested
     if args.get("format").and_then(|v| v.as_str()) == Some("json") {
@@ -308,9 +310,9 @@ pub async fn inspect_folder(
             "stats": folder_stats,
             "conflicts": conflicts
         });
-        
+
         data = crate::mcp::optimization::optimize_response(data, &args);
-        
+
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -320,28 +322,43 @@ pub async fn inspect_folder(
     }
 
     // 6. Build Combined Report (Text)
-    let mut text = format!("### Folder Overview: {} ({})\n\n", folder_config.label, folder_id);
-    
+    let mut text = format!(
+        "### Folder Overview: {} ({})\n\n",
+        folder_config.label, folder_id
+    );
+
     text.push_str("#### Sync Status\n");
     text.push_str(&format!("- **State**: {}\n", status.state));
     text.push_str(&format!("- **Completion**: {:.2}%\n", completion_pct));
-    text.push_str(&format!("- **Global Data**: {} bytes ({} files)\n", status.global_bytes, status.global_files));
-    text.push_str(&format!("- **Local Data**: {} bytes\n", status.in_sync_bytes));
+    text.push_str(&format!(
+        "- **Global Data**: {} bytes ({} files)\n",
+        status.global_bytes, status.global_files
+    ));
+    text.push_str(&format!(
+        "- **Local Data**: {} bytes\n",
+        status.in_sync_bytes
+    ));
     if status.need_bytes > 0 || status.need_files > 0 {
-        text.push_str(&format!("- **Syncing**: {} bytes remaining ({} files)\n", status.need_bytes, status.need_files));
+        text.push_str(&format!(
+            "- **Syncing**: {} bytes remaining ({} files)\n",
+            status.need_bytes, status.need_files
+        ));
     }
-    text.push_str("\n");
+    text.push('\n');
 
     text.push_str("#### Statistics\n");
     if let Some(stats) = folder_stats {
         text.push_str(&format!("- **Last Scan**: {}\n", stats.last_scan));
         if let Some(last_file) = &stats.last_file {
-            text.push_str(&format!("- **Last Synced File**: {} (at {})\n", last_file.filename, last_file.at));
+            text.push_str(&format!(
+                "- **Last Synced File**: {} (at {})\n",
+                last_file.filename, last_file.at
+            ));
         }
     } else {
         text.push_str("- No statistics available.\n");
     }
-    text.push_str("\n");
+    text.push('\n');
 
     text.push_str("#### Conflicts\n");
     if conflicts.is_empty() {
@@ -353,7 +370,10 @@ pub async fn inspect_folder(
                 .file_name()
                 .unwrap_or_default()
                 .to_string_lossy();
-            text.push_str(&format!("  - `{}` ({} bytes, from device {})\n", filename, conflict.conflict_size, conflict.device_id));
+            text.push_str(&format!(
+                "  - `{}` ({} bytes, from device {})\n",
+                filename, conflict.conflict_size, conflict.device_id
+            ));
         }
     }
 
@@ -371,10 +391,10 @@ pub async fn batch_manage_folders(
     _config: AppConfig,
     args: Value,
 ) -> Result<Value> {
-    let folder_ids = args["folder_ids"]
-        .as_array()
-        .ok_or_else(|| Error::ValidationError("folder_ids must be an array of strings".to_string()))?;
-    
+    let folder_ids = args["folder_ids"].as_array().ok_or_else(|| {
+        Error::ValidationError("folder_ids must be an array of strings".to_string())
+    })?;
+
     let action = args["action"]
         .as_str()
         .ok_or_else(|| Error::ValidationError("action is required".to_string()))?;
@@ -383,14 +403,27 @@ pub async fn batch_manage_folders(
     let mut success_count = 0;
 
     for id_val in folder_ids {
-        let id = id_val.as_str().ok_or_else(|| Error::ValidationError("Each folder_id must be a string".to_string()))?;
-        
+        let id = id_val
+            .as_str()
+            .ok_or_else(|| Error::ValidationError("Each folder_id must be a string".to_string()))?;
+
         let res = match action {
             "rescan" => client.rescan(Some(id)).await,
             "revert" => client.revert_folder(id).await,
-            "pause" => client.patch_folder(id, json!({"paused": true})).await.map(|_| ()),
-            "resume" => client.patch_folder(id, json!({"paused": false})).await.map(|_| ()),
-            _ => return Err(Error::ValidationError(format!("Unsupported batch action: {}", action))),
+            "pause" => client
+                .patch_folder(id, json!({"paused": true}))
+                .await
+                .map(|_| ()),
+            "resume" => client
+                .patch_folder(id, json!({"paused": false}))
+                .await
+                .map(|_| ()),
+            _ => {
+                return Err(Error::ValidationError(format!(
+                    "Unsupported batch action: {}",
+                    action
+                )));
+            }
         };
 
         match res {
@@ -409,9 +442,9 @@ pub async fn batch_manage_folders(
             "success_count": success_count,
             "results": results
         });
-        
+
         data = crate::mcp::optimization::optimize_response(data, &args);
-        
+
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -420,14 +453,21 @@ pub async fn batch_manage_folders(
         }));
     }
 
-    let mut text = format!("Successfully triggered {} for {} folder(s):\n\n", action, success_count);
+    let mut text = format!(
+        "Successfully triggered {} for {} folder(s):\n\n",
+        action, success_count
+    );
     for res in results {
         let id = res["id"].as_str().unwrap();
         let status = res["status"].as_str().unwrap();
         if status == "success" {
             text.push_str(&format!("- {}: Success\n", id));
         } else {
-            text.push_str(&format!("- {}: Error - {}\n", id, res["message"].as_str().unwrap_or("Unknown error")));
+            text.push_str(&format!(
+                "- {}: Error - {}\n",
+                id,
+                res["message"].as_str().unwrap_or("Unknown error")
+            ));
         }
     }
 
@@ -438,5 +478,3 @@ pub async fn batch_manage_folders(
         }]
     }))
 }
-
-

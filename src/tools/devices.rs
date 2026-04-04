@@ -191,7 +191,9 @@ pub async fn inspect_device(
     // 1. Get Device Config (to get name)
     let config = client.get_config().await?;
     let device_config = config.devices.iter().find(|d| d.device_id == device_id);
-    let device_name = device_config.and_then(|d| d.name.as_deref()).unwrap_or("Unknown");
+    let device_name = device_config
+        .and_then(|d| d.name.as_deref())
+        .unwrap_or("Unknown");
 
     // 2. Get Device Completion
     let completion = client.get_device_completion(device_id).await?;
@@ -208,9 +210,9 @@ pub async fn inspect_device(
             "completion": completion,
             "stats": device_stats
         });
-        
+
         data = crate::mcp::optimization::optimize_response(data, &args);
-        
+
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -221,19 +223,31 @@ pub async fn inspect_device(
 
     // 5. Build Combined Report (Text)
     let mut text = format!("### Device Overview: {} ({})\n\n", device_name, device_id);
-    
+
     text.push_str("#### Sync Status\n");
-    text.push_str(&format!("- **Completion**: {:.2}%\n", completion.completion));
-    text.push_str(&format!("- **Global Data**: {} bytes\n", completion.global_bytes));
+    text.push_str(&format!(
+        "- **Completion**: {:.2}%\n",
+        completion.completion
+    ));
+    text.push_str(&format!(
+        "- **Global Data**: {} bytes\n",
+        completion.global_bytes
+    ));
     if completion.need_bytes > 0 {
-        text.push_str(&format!("- **Syncing**: {} bytes remaining ({} files)\n", completion.need_bytes, completion.need_files));
+        text.push_str(&format!(
+            "- **Syncing**: {} bytes remaining ({} files)\n",
+            completion.need_bytes, completion.need_files
+        ));
     }
-    text.push_str("\n");
+    text.push('\n');
 
     text.push_str("#### Statistics\n");
     if let Some(stats) = device_stats {
         text.push_str(&format!("- **Last Seen**: {}\n", stats.last_seen));
-        text.push_str(&format!("- **Last Connection Duration**: {:.2}s\n", stats.last_connection_duration_s));
+        text.push_str(&format!(
+            "- **Last Connection Duration**: {:.2}s\n",
+            stats.last_connection_duration_s
+        ));
     } else {
         text.push_str("- No statistics available.\n");
     }
@@ -245,4 +259,3 @@ pub async fn inspect_device(
         }]
     }))
 }
-

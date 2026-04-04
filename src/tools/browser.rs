@@ -26,4 +26,3 @@ pub async fn browse_folder(
 
     Ok(optimized)
 }
-

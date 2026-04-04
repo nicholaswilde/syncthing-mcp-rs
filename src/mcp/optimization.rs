@@ -57,7 +57,6 @@ pub fn truncate_value(value: Value, limit: usize) -> Value {
     }
 }
 
-
 /// Common aliases for SyncThing field names to reduce token usage.
 pub fn get_standard_aliases() -> HashMap<String, String> {
     let mut m = HashMap::new();
@@ -75,11 +74,11 @@ pub fn get_standard_aliases() -> HashMap<String, String> {
     m.insert("need_files".to_string(), "nf".to_string());
     m.insert("needFiles".to_string(), "nf".to_string());
     m.insert("state".to_string(), "st".to_string());
-    
+
     // Device Status
     m.insert("completion".to_string(), "cp".to_string());
     m.insert("connected".to_string(), "con".to_string());
-    
+
     // Folder Stats
     m.insert("last_scan".to_string(), "ls".to_string());
     m.insert("lastScan".to_string(), "ls".to_string());
@@ -90,20 +89,25 @@ pub fn get_standard_aliases() -> HashMap<String, String> {
     m
 }
 
-
-
 /// Applies standard optimizations to a JSON value based on arguments.
 pub fn optimize_response(mut value: Value, args: &Value) -> Value {
     // 1. Filter fields if requested
     if let Some(fields) = args.get("fields").and_then(|v| v.as_array()) {
-        let allowed: Vec<String> = fields.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+        let allowed: Vec<String> = fields
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect();
         if !allowed.is_empty() {
             value = filter_fields(value, &allowed);
         }
     }
 
     // 2. Alias fields if requested (default: true for token optimization)
-    if args.get("shorten").and_then(|v| v.as_bool()).unwrap_or(true) {
+    if args
+        .get("shorten")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(true)
+    {
         value = alias_fields(value, &get_standard_aliases());
     }
 
@@ -114,4 +118,3 @@ pub fn optimize_response(mut value: Value, args: &Value) -> Value {
 
     value
 }
-

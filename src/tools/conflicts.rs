@@ -188,16 +188,16 @@ pub async fn list_conflicts(
             "text": text
         }]
     }))
-    }
+}
 
-    /// Provides an actionable summary of conflicts across all folders.
-    pub async fn summarize_conflicts(
+/// Provides an actionable summary of conflicts across all folders.
+pub async fn summarize_conflicts(
     client: SyncThingClient,
     _config: AppConfig,
     _args: Value,
-    ) -> Result<Value> {
+) -> Result<Value> {
     let folders = client.list_folders().await?;
-    
+
     // Check if JSON output is requested
     if _args.get("format").and_then(|v| v.as_str()) == Some("json") {
         let mut folder_summaries = Vec::new();
@@ -210,13 +210,13 @@ pub async fn list_conflicts(
                 "conflicts": conflicts
             }));
         }
-        
+
         let mut data = json!({
             "folders": folder_summaries
         });
-        
+
         data = crate::mcp::optimization::optimize_response(data, &_args);
-        
+
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -254,11 +254,14 @@ pub async fn list_conflicts(
             if count > 3 {
                 text.push_str(&format!("  - ... and {} more\n", count - 3));
             }
-            text.push_str("\n");
+            text.push('\n');
         }
     }
 
-    text.push_str(&format!("---\n**Total conflicts across all folders: {}**", total_conflicts));
+    text.push_str(&format!(
+        "---\n**Total conflicts across all folders: {}**",
+        total_conflicts
+    ));
 
     Ok(json!({
         "content": [{
@@ -266,10 +269,9 @@ pub async fn list_conflicts(
             "text": text
         }]
     }))
-    }
+}
 
-    /// Deletes a SyncThing conflict file.
-
+/// Deletes a SyncThing conflict file.
 pub async fn resolve_conflict(
     _client: SyncThingClient,
     _config: AppConfig,

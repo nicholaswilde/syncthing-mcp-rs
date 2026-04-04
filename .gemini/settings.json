@@ -1,12 +1,12 @@
-// {}
-{
-  "mcpServers": {
-    "recipes": {
-        "command": "cargo",
-        "args": [
-          "run"
-        ],
-        "trust": true
-    }
-  }
-}
+{}
+// {
+//   "mcpServers": {
+//     "recipes": {
+//         "command": "cargo",
+//         "args": [
+//           "run"
+//         ],
+//         "trust": true
+//     }
+//   }
+// }

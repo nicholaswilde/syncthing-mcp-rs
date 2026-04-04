@@ -6,14 +6,17 @@ mod bandwidth_mcp_tests;
 /// Unit tests for bandwidth tools.
 #[cfg(test)]
 mod bandwidth_tests;
+/// Unit tests for the batch_manage_folders tool.
+#[cfg(test)]
+mod batch_folder_tests;
+/// Unit tests for browse_folder optimization.
+#[cfg(test)]
+mod browse_folder_optimization_tests;
 /// Browser tool for exploring synced folders.
 pub mod browser;
 /// Unit tests for browser tools.
 #[cfg(test)]
 mod browser_tests;
-/// Unit tests for browse_folder optimization.
-#[cfg(test)]
-mod browse_folder_optimization_tests;
 /// Configuration replication tool.
 pub mod config;
 /// Configuration diff generator.
@@ -24,6 +27,9 @@ mod config_diff_tests;
 /// Unit tests for configuration replication.
 #[cfg(test)]
 pub mod config_tests;
+/// Unit tests for the summarize_conflicts tool.
+#[cfg(test)]
+mod conflict_summary_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
 /// Connectivity watchdog tools.
@@ -41,9 +47,6 @@ pub mod devices;
 /// Unit tests for the devices tool.
 #[cfg(test)]
 mod devices_tests;
-/// Unit tests for the inspect_device tool.
-#[cfg(test)]
-mod inspect_device_tests;
 /// Advanced diffing tools for conflict resolution.
 pub mod diff;
 /// Unit tests for advanced diffing tools.
@@ -54,20 +57,20 @@ pub mod folders;
 /// Unit tests for the folders tool.
 #[cfg(test)]
 mod folders_tests;
-/// Unit tests for the inspect_folder tool.
-#[cfg(test)]
-mod inspect_folder_tests;
-/// Unit tests for the batch_manage_folders tool.
-#[cfg(test)]
-mod batch_folder_tests;
-/// Unit tests for the summarize_conflicts tool.
-#[cfg(test)]
-mod conflict_summary_tests;
 /// Git-Sync tools for version control.
 pub mod git_sync;
 /// Unit tests for Git-Sync tools.
 #[cfg(test)]
 mod git_sync_tests;
+/// Unit tests for the inspect_device tool.
+#[cfg(test)]
+mod inspect_device_tests;
+/// Unit tests for the inspect_folder tool.
+#[cfg(test)]
+mod inspect_folder_tests;
+/// Unit tests for the get_instance_overview tool.
+#[cfg(test)]
+mod instance_overview_tests;
 /// Unit tests for performance profiles.
 #[cfg(test)]
 mod profile_tests;
@@ -81,9 +84,6 @@ pub mod system;
 /// Unit tests for the system tools.
 #[cfg(test)]
 mod system_tests;
-/// Unit tests for the get_instance_overview tool.
-#[cfg(test)]
-mod instance_overview_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;

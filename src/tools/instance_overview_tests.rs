@@ -138,5 +138,3 @@ mod tests {
         assert_eq!(json["connections_summary"]["con"], 1);
     }
 }
-
-

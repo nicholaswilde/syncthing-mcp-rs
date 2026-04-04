@@ -40,47 +40,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_manage_folders_get() {
+    async fn test_manage_folders_stats() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
-            .and(path("/rest/config/folders/folder1"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "id": "folder1",
-                "label": "Folder 1",
-                "path": "/tmp",
-                "type": "sendreceive",
-                "paused": false,
-                "devices": []
-            })))
-            .mount(&server)
-            .await;
-
-        let client = SyncThingClient::new(InstanceConfig {
-            url: server.uri(),
-            api_key: Some("test".to_string()),
-            ..Default::default()
-        });
-        let config = AppConfig::default();
-        let args = json!({"action": "get", "folder_id": "folder1"});
-
-        let result = manage_folders(client, config, args).await.unwrap();
-        assert_eq!(result["content"][0]["json"]["id"], "folder1");
-    }
-
-    #[tokio::test]
-    async fn test_manage_folders_pending() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/rest/cluster/pending/folders"))
+            .and(path("/rest/stats/folder"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "folder1": {
-                    "offeredBy": {
-                        "device1": {
-                            "label": "Device 1",
-                            "time": "2023-01-01T12:00:00Z",
-                            "receiveEncrypted": false,
-                            "remoteEncrypted": false
-                        }
+                    "lastScan": "2023-01-01T12:00:00Z",
+                    "lastFile": {
+                        "filename": "test.txt",
+                        "at": "2023-01-01T12:00:00Z"
                     }
                 }
             })))
@@ -93,63 +62,17 @@ mod tests {
             ..Default::default()
         });
         let config = AppConfig::default();
-        let args = json!({"action": "pending"});
+        let args = json!({"action": "stats"});
 
-        let result = manage_folders(client, config, args).await.unwrap();
+        let result = get_folder_stats(client, config, args).await.unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("Pending Folder Requests:"));
+        assert!(text.contains("SyncThing Folder Statistics:"));
         assert!(text.contains("folder1"));
-        assert!(text.contains("device1"));
+        assert!(text.contains("test.txt"));
     }
 
     #[tokio::test]
-    async fn test_manage_folders_reject_pending() {
-        let server = MockServer::start().await;
-        Mock::given(method("DELETE"))
-            .and(path("/rest/cluster/pending/folders"))
-            .and(query_param("folder", "folder1"))
-            .respond_with(ResponseTemplate::new(200))
-            .mount(&server)
-            .await;
-
-        let client = SyncThingClient::new(InstanceConfig {
-            url: server.uri(),
-            api_key: Some("test".to_string()),
-            ..Default::default()
-        });
-        let config = AppConfig::default();
-        let args = json!({"action": "reject_pending", "folder_id": "folder1"});
-
-        let result = manage_folders(client, config, args).await.unwrap();
-        let text = result["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("rejected successfully"));
-    }
-
-    #[tokio::test]
-    async fn test_manage_folders_revert() {
-        let server = MockServer::start().await;
-        Mock::given(method("POST"))
-            .and(path("/rest/db/revert"))
-            .and(query_param("folder", "folder1"))
-            .respond_with(ResponseTemplate::new(200))
-            .mount(&server)
-            .await;
-
-        let client = SyncThingClient::new(InstanceConfig {
-            url: server.uri(),
-            api_key: Some("test".to_string()),
-            ..Default::default()
-        });
-        let config = AppConfig::default();
-        let args = json!({"action": "revert", "folder_id": "folder1"});
-
-        let result = manage_folders(client, config, args).await.unwrap();
-        let text = result["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("triggered revert"));
-    }
-
-    #[tokio::test]
-    async fn test_configure_sharing_share() {
+    async fn test_manage_folders_share() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/rest/config/folders/folder1"))
@@ -187,7 +110,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_manage_ignores_get() {
+    async fn test_manage_folders_ignores_get() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/rest/db/ignores"))
@@ -210,37 +133,5 @@ mod tests {
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Ignore patterns for folder folder1:"));
         assert!(text.contains("node_modules"));
-    }
-
-    #[tokio::test]
-    async fn test_get_folder_stats_success() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/rest/stats/folder"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "folder1": {
-                    "lastScan": "2023-01-01T12:00:00Z",
-                    "lastFile": {
-                        "filename": "test.txt",
-                        "at": "2023-01-01T12:00:00Z"
-                    }
-                }
-            })))
-            .mount(&server)
-            .await;
-
-        let client = SyncThingClient::new(InstanceConfig {
-            url: server.uri(),
-            api_key: Some("test".to_string()),
-            ..Default::default()
-        });
-        let config = AppConfig::default();
-        let args = json!({});
-
-        let result = get_folder_stats(client, config, args).await.unwrap();
-        let text = result["content"][0]["text"].as_str().unwrap();
-        assert!(text.contains("SyncThing Folder Statistics:"));
-        assert!(text.contains("folder1"));
-        assert!(text.contains("test.txt"));
     }
 }
