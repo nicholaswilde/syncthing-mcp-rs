@@ -17,9 +17,9 @@
 - [x] Task: Implement `inspect_folder` "super-tool" 052ce81
 - [x] Task: Write tests for `batch_manage_folders` (bulk rescan, revert, etc.) 76ccfd1
 - [x] Task: Implement `batch_manage_folders` "super-tool" 76ccfd1
-- [~] Task: Write tests for `summarize_conflicts` (grouped by folder with counts/sizes)
-- [ ] Task: Implement `summarize_conflicts` "super-tool"
-- [ ] Task: Implement content filtering and aliasing for all folder/conflict responses
+- [x] Task: Write tests for `summarize_conflicts` (grouped by folder with counts/sizes) 124709e
+- [x] Task: Implement `summarize_conflicts` "super-tool" 124709e
+- [~] Task: Implement content filtering and aliasing for all folder/conflict responses
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Folder & Conflict Management' (Protocol in workflow.md)
 
 ## Phase 4: Optimized System, Device & File Tools
