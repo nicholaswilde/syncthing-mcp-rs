@@ -22,5 +22,8 @@ pub async fn browse_folder(
 
     let result = client.browse(folder, prefix, levels).await?;
 
-    Ok(result)
+    let optimized = crate::mcp::optimization::optimize_response(result, &params);
+
+    Ok(optimized)
 }
+

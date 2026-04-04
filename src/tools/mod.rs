@@ -8,9 +8,12 @@ mod bandwidth_mcp_tests;
 mod bandwidth_tests;
 /// Browser tool for exploring synced folders.
 pub mod browser;
-/// Unit tests for the browser tool.
+/// Unit tests for browser tools.
 #[cfg(test)]
 mod browser_tests;
+/// Unit tests for browse_folder optimization.
+#[cfg(test)]
+mod browse_folder_optimization_tests;
 /// Configuration replication tool.
 pub mod config;
 /// Configuration diff generator.
@@ -650,6 +653,16 @@ pub fn create_registry() -> ToolRegistry {
                 "levels": {
                     "type": "integer",
                     "description": "How many levels deep to traverse (0 for immediate contents only)."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of items to return in arrays.",
+                    "default": 100
+                },
+                "shorten": {
+                    "type": "boolean",
+                    "description": "If true, use short aliases for fields in JSON output.",
+                    "default": true
                 }
             },
             "required": ["folder_id"]
