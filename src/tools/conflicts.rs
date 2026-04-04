@@ -197,6 +197,34 @@ pub async fn list_conflicts(
     _args: Value,
     ) -> Result<Value> {
     let folders = client.list_folders().await?;
+    
+    // Check if JSON output is requested
+    if _args.get("format").and_then(|v| v.as_str()) == Some("json") {
+        let mut folder_summaries = Vec::new();
+        for folder in folders {
+            let path = Path::new(&folder.path);
+            let conflicts = scan_conflicts(path).await?;
+            folder_summaries.push(json!({
+                "id": folder.id,
+                "label": folder.label,
+                "conflicts": conflicts
+            }));
+        }
+        
+        let mut data = json!({
+            "folders": folder_summaries
+        });
+        
+        data = crate::mcp::optimization::optimize_response(data, &_args);
+        
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": serde_json::to_string_pretty(&data).unwrap()
+            }]
+        }));
+    }
+
     let mut text = String::from("### SyncThing Conflicts Summary\n\n");
     let mut total_conflicts = 0;
 

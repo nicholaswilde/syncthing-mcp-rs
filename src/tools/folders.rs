@@ -299,7 +299,27 @@ pub async fn inspect_folder(
     // 4. Scan for Conflicts
     let conflicts = crate::tools::conflicts::scan_conflicts(path).await.unwrap_or_default();
 
-    // 5. Build Combined Report
+    // 5. Check if JSON output is requested
+    if args.get("format").and_then(|v| v.as_str()) == Some("json") {
+        let mut data = json!({
+            "folder_id": folder_id,
+            "label": folder_config.label,
+            "status": status,
+            "stats": folder_stats,
+            "conflicts": conflicts
+        });
+        
+        data = crate::mcp::optimization::optimize_response(data, &args);
+        
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": serde_json::to_string_pretty(&data).unwrap()
+            }]
+        }));
+    }
+
+    // 6. Build Combined Report (Text)
     let mut text = format!("### Folder Overview: {} ({})\n\n", folder_config.label, folder_id);
     
     text.push_str("#### Sync Status\n");

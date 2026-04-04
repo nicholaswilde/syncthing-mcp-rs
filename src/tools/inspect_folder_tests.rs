@@ -82,4 +82,73 @@ mod tests {
         assert!(text.contains(conflict_name));
         assert!(text.contains("**Last Scan**: 2023-01-01T12:00:00Z"));
     }
+
+    #[tokio::test]
+    async fn test_inspect_folder_json_optimized() {
+        let server = MockServer::start().await;
+        let temp = tempfile::tempdir().unwrap();
+        let folder_path = temp.path();
+
+        // Mock folder config
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/folder1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "folder1",
+                "label": "Folder 1",
+                "path": folder_path.to_string_lossy(),
+                "type": "sendreceive",
+                "devices": []
+            })))
+            .mount(&server)
+            .await;
+
+        // Mock folder status
+        Mock::given(method("GET"))
+            .and(path("/rest/db/status"))
+            .and(query_param("folder", "folder1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "state": "idle",
+                "globalBytes": 2048,
+                "inSyncBytes": 1024
+            })))
+            .mount(&server)
+            .await;
+
+        // Mock folder stats
+        Mock::given(method("GET"))
+            .and(path("/rest/stats/folder"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "folder1": {
+                    "lastScan": "2023-01-01T12:00:00Z"
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = SyncThingClient::new(InstanceConfig {
+            url: server.uri(),
+            api_key: Some("test".to_string()),
+            ..Default::default()
+        });
+        let config = AppConfig::default();
+        let args = json!({
+            "folder_id": "folder1",
+            "format": "json",
+            "shorten": true
+        });
+
+        let result = inspect_folder(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        let json: serde_json::Value = serde_json::from_str(text).unwrap();
+
+        // Check for aliased fields
+        // state -> st
+        assert!(json["status"]["st"].is_string());
+        assert_eq!(json["status"]["st"], "idle");
+        // in_sync_bytes -> isb
+        assert!(json["status"]["isb"].is_number());
+        // last_scan -> ls
+        assert!(json["stats"]["ls"].is_string());
+    }
 }
+
