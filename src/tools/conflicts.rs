@@ -188,9 +188,60 @@ pub async fn list_conflicts(
             "text": text
         }]
     }))
-}
+    }
 
-/// Resolves a SyncThing conflict file.
+    /// Provides an actionable summary of conflicts across all folders.
+    pub async fn summarize_conflicts(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+    ) -> Result<Value> {
+    let folders = client.list_folders().await?;
+    let mut text = String::from("### SyncThing Conflicts Summary\n\n");
+    let mut total_conflicts = 0;
+
+    for folder in folders {
+        let path = Path::new(&folder.path);
+        let conflicts = scan_conflicts(path).await?;
+
+        text.push_str(&format!("#### Folder: {} ({})\n", folder.label, folder.id));
+        if conflicts.is_empty() {
+            text.push_str("- No conflicts found.\n\n");
+        } else {
+            let count = conflicts.len();
+            total_conflicts += count;
+            let total_size: u64 = conflicts.iter().map(|c| c.conflict_size).sum();
+
+            text.push_str(&format!("- **{} conflict(s) found**\n", count));
+            text.push_str(&format!("- **Total size**: {} bytes\n", total_size));
+
+            // List up to 3 conflicts as examples to keep it concise
+            for conflict in conflicts.iter().take(3) {
+                let filename = Path::new(&conflict.conflict_path)
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy();
+                text.push_str(&format!("  - `{}`\n", filename));
+            }
+            if count > 3 {
+                text.push_str(&format!("  - ... and {} more\n", count - 3));
+            }
+            text.push_str("\n");
+        }
+    }
+
+    text.push_str(&format!("---\n**Total conflicts across all folders: {}**", total_conflicts));
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }]
+    }))
+    }
+
+    /// Deletes a SyncThing conflict file.
+
 pub async fn resolve_conflict(
     _client: SyncThingClient,
     _config: AppConfig,

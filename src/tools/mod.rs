@@ -54,6 +54,9 @@ mod inspect_folder_tests;
 /// Unit tests for the batch_manage_folders tool.
 #[cfg(test)]
 mod batch_folder_tests;
+/// Unit tests for the summarize_conflicts tool.
+#[cfg(test)]
+mod conflict_summary_tests;
 /// Git-Sync tools for version control.
 pub mod git_sync;
 /// Unit tests for Git-Sync tools.
@@ -584,8 +587,18 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "summarize_conflicts",
+        "Provides an actionable summary of conflicts across all folders, grouped by folder with counts and sizes.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        conflicts::summarize_conflicts,
+    );
+
+    registry.register(
         "resolve_conflict",
-        "Resolve a SyncThing conflict file by keeping either the original or the conflict version.",
+        "Resolves a SyncThing conflict by keeping either the original or the conflict version.",
         serde_json::json!({
             "type": "object",
             "properties": {
