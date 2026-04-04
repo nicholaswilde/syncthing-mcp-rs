@@ -28,10 +28,12 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 - **Bandwidth Orchestration:** Dynamic upload/download rate limiting across instances with support for scheduled performance profiles (e.g., "working_hours").
 - **Self-Healing Monitor:** Automated detection and resolution of common Syncthing issues, including stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
 - **Version Control Integration (Git-Sync):** Automatically back up Syncthing configurations to a Git repository. Supports sensitive information masking, version diffing, and rolling back to previous configurations.
+- **Token Usage Optimization:** Optimized for LLM context windows with field aliasing, content filtering, and consolidated "super-tools" to reduce the number of turns and token overhead.
 - **Binary Optimization:** Small footprint (approx. 2.4M) for efficient deployment.
   - **Tools:**
     - `analyze_error`: Analyze a technical error message and provide a diagnostic summary with actionable advice.
-    - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix and recursion depth control.
+    - `batch_manage_folders`: Performs bulk actions (rescan, revert, pause, resume) on multiple folders simultaneously.
+    - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix, recursion depth control, and result limiting.
     - `configure_sharing`: Configure folder sharing between devices (share or unshare).
     - `delete_conflict`: Permanently delete a Syncthing conflict file.
     - `diff_conflicts`: Compare the original and conflict versions of a file.
@@ -41,10 +43,13 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
     - `get_global_dashboard`: Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
+    - `get_instance_overview`: Provides a top-level health and status report for a SyncThing instance, consolidating system status, connections, and version information.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
     - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices.
     - `get_system_log`: Get recent log entries from the Syncthing service for troubleshooting.
     - `get_system_status`: Get comprehensive system status information, including version, uptime, memory usage, and the unique device ID.
+    - `inspect_device`: Provides a comprehensive status overview for a specific device, consolidating completion status and statistics.
+    - `inspect_folder`: Provides a comprehensive status overview for a specific folder, consolidating sync status, conflicts, and statistics.
     - `list_conflicts`: List Syncthing conflict files in a specific folder.
     - `list_instances`: List all configured Syncthing instances and their current health status.
     - `maintain_system`: Perform system maintenance: force a rescan of folders, restart the Syncthing service, or shut down the service.
@@ -58,6 +63,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version. Supports a preview mode.
     - `set_bandwidth_limits`: Set the bandwidth limits (upload/download) across one or all SyncThing instances.
     - `set_performance_profile`: Set the active performance profile (e.g., 'working_hours', 'overnight', 'full_speed').
+    - `summarize_conflicts`: Provides an actionable summary of conflicts across all folders, grouped by folder with counts and sizes.
 
 ## :package: Installation
 
