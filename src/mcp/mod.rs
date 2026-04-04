@@ -8,6 +8,10 @@ mod event_tests;
 pub mod events;
 #[cfg(test)]
 mod http_tests;
+/// Token usage optimization utilities.
+pub mod optimization;
+#[cfg(test)]
+mod optimization_tests;
 /// The MCP server implementation.
 pub mod server;
 /// Unit tests for the MCP server.
