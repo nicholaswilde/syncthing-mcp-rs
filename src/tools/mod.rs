@@ -72,9 +72,12 @@ pub mod self_healing;
 mod self_healing_tests;
 /// System status and maintenance tools.
 pub mod system;
-/// Unit tests for system tools.
+/// Unit tests for the system tools.
 #[cfg(test)]
-pub mod system_tests;
+mod system_tests;
+/// Unit tests for the get_instance_overview tool.
+#[cfg(test)]
+mod instance_overview_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
@@ -198,6 +201,33 @@ pub fn create_registry() -> ToolRegistry {
     let mut registry = ToolRegistry::new();
 
     registry.register(
+        "get_instance_overview",
+        "Provides a top-level health and status report for a SyncThing instance, consolidating system status, connections, and version information.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "json"],
+                    "description": "Output format (default: text).",
+                    "default": "text"
+                },
+                "shorten": {
+                    "type": "boolean",
+                    "description": "If true, use short aliases for fields in JSON output.",
+                    "default": true
+                },
+                "fields": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of fields to include in JSON output."
+                }
+            }
+        }),
+        system::get_instance_overview,
+    );
+
+    registry.register(
         "list_instances",
         "List all configured SyncThing instances and their current health status.",
         serde_json::json!({
@@ -318,6 +348,22 @@ pub fn create_registry() -> ToolRegistry {
                 "folder_id": {
                     "type": "string",
                     "description": "The unique Folder ID to inspect."
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "json"],
+                    "description": "Output format (default: text).",
+                    "default": "text"
+                },
+                "shorten": {
+                    "type": "boolean",
+                    "description": "If true, use short aliases for fields in JSON output.",
+                    "default": true
+                },
+                "fields": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of fields to include in JSON output."
                 }
             },
             "required": ["folder_id"]
@@ -340,6 +386,17 @@ pub fn create_registry() -> ToolRegistry {
                     "type": "string",
                     "enum": ["rescan", "revert", "pause", "resume"],
                     "description": "The action to perform on each folder."
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "json"],
+                    "description": "Output format (default: text).",
+                    "default": "text"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of items to return in arrays.",
+                    "default": 20
                 }
             },
             "required": ["folder_ids", "action"]
@@ -591,7 +648,24 @@ pub fn create_registry() -> ToolRegistry {
         "Provides an actionable summary of conflicts across all folders, grouped by folder with counts and sizes.",
         serde_json::json!({
             "type": "object",
-            "properties": {}
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "json"],
+                    "description": "Output format (default: text).",
+                    "default": "text"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of items to return in arrays.",
+                    "default": 20
+                },
+                "shorten": {
+                    "type": "boolean",
+                    "description": "If true, use short aliases for fields in JSON output.",
+                    "default": true
+                }
+            }
         }),
         conflicts::summarize_conflicts,
     );

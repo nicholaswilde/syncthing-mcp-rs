@@ -336,7 +336,7 @@ pub async fn analyze_error(
     };
 
     let text = format!(
-        "### Error Analysis\n\n- **Category**: {}\n- **Explanation**: {}\n- **Advice**: {}",
+        "### Error Analysis Result\n\n- **Category**: {}\n- **Explanation**: {}\n- **Advice**: {}",
         diagnostic.category, diagnostic.explanation, diagnostic.advice
     );
 
@@ -346,4 +346,70 @@ pub async fn analyze_error(
             "text": text
         }]
     }))
-}
+    }
+
+    /// Provides a top-level health and status report for a SyncThing instance.
+    /// Consolidates system status, connections, and version information.
+    pub async fn get_instance_overview(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+    ) -> Result<Value> {
+    // 1. Get System Status
+    let status = client.get_system_status().await?;
+
+    // 2. Get Connections
+    let connections = client.get_connections().await?;
+    let connected_count = connections.connections.values().filter(|c| c.connected).count();
+
+    // 3. Get Version
+    let version = client.get_system_version().await?;
+
+    // 4. Check if JSON output is requested
+    if args.get("format").and_then(|v| v.as_str()) == Some("json") {
+        let mut data = json!({
+            "status": status,
+            "connections_summary": {
+                "total": connections.connections.len(),
+                "connected": connected_count
+            },
+            "version": version
+        });
+
+        data = crate::mcp::optimization::optimize_response(data, &args);
+
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": serde_json::to_string_pretty(&data).unwrap()
+            }]
+        }));
+    }
+
+    // 5. Build Combined Report (Text)
+    let mut text = format!("### Instance Overview: {}\n\n", status.my_id);
+
+    text.push_str("#### System Status\n");
+    text.push_str(&format!("- **Version**: {}\n", version.version));
+    text.push_str(&format!("- **Uptime**: {}s\n", status.uptime));
+    text.push_str(&format!("- **Memory Usage**: {} bytes\n", status.alloc));
+    text.push_str(&format!("- **OS/Arch**: {}/{}\n", version.os, version.arch));
+    text.push_str("\n");
+
+    text.push_str("#### Connectivity\n");
+    text.push_str(&format!("- **Connected Peers**: {} / {}\n", connected_count, connections.connections.len()));
+    if connected_count > 0 {
+        text.push_str("- **Active Connections**:\n");
+        for (id, conn) in connections.connections.iter().filter(|(_, c)| c.connected) {
+            text.push_str(&format!("  - `{}` ({})\n", id, conn.connection_type.as_deref().unwrap_or("unknown")));
+        }
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }]
+    }))
+    }
+

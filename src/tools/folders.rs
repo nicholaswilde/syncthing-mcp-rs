@@ -395,16 +395,40 @@ pub async fn batch_manage_folders(
 
         match res {
             Ok(_) => {
-                results.push(format!("{}: Success", id));
+                results.push(json!({"id": id, "status": "success"}));
                 success_count += 1;
             }
-            Err(e) => results.push(format!("{}: Error - {}", id, e)),
+            Err(e) => results.push(json!({"id": id, "status": "error", "message": e.to_string()})),
         }
     }
 
+    // Check if JSON output is requested
+    if args.get("format").and_then(|v| v.as_str()) == Some("json") {
+        let mut data = json!({
+            "action": action,
+            "success_count": success_count,
+            "results": results
+        });
+        
+        data = crate::mcp::optimization::optimize_response(data, &args);
+        
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": serde_json::to_string_pretty(&data).unwrap()
+            }]
+        }));
+    }
+
     let mut text = format!("Successfully triggered {} for {} folder(s):\n\n", action, success_count);
-    for line in results {
-        text.push_str(&format!("- {}\n", line));
+    for res in results {
+        let id = res["id"].as_str().unwrap();
+        let status = res["status"].as_str().unwrap();
+        if status == "success" {
+            text.push_str(&format!("- {}: Success\n", id));
+        } else {
+            text.push_str(&format!("- {}: Error - {}\n", id, res["message"].as_str().unwrap_or("Unknown error")));
+        }
     }
 
     Ok(json!({
