@@ -25,9 +25,9 @@
 ## Phase 4: Optimized System, Device & File Tools
 - [x] Task: Write tests for `get_instance_overview` (consolidates status, connections, health) f6c7361
 - [x] Task: Implement `get_instance_overview` "super-tool" f6c7361
-- [~] Task: Write tests for `inspect_device` (consolidates device sync status and statistics)
-- [ ] Task: Implement `inspect_device` "super-tool"
-- [ ] Task: Write tests for optimized `browse_files` tool with stricter limits
+- [x] Task: Write tests for `inspect_device` (consolidates device sync status and statistics) f225262
+- [x] Task: Implement `inspect_device` "super-tool" f225262
+- [~] Task: Write tests for optimized `browse_files` tool with stricter limits
 - [ ] Task: Implement stricter depth/item limits and filtering for `browse_files`
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: System, Device & File Tools' (Protocol in workflow.md)
 
