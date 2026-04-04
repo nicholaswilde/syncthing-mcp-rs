@@ -20,7 +20,7 @@
 - [x] Task: Write tests for `summarize_conflicts` (grouped by folder with counts/sizes) 124709e
 - [x] Task: Implement `summarize_conflicts` "super-tool" 124709e
 - [x] Task: Implement content filtering and aliasing for all folder/conflict responses 19e20fd
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Folder & Conflict Management' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Folder & Conflict Management' (Protocol in workflow.md) 17e7eca
 
 ## Phase 4: Optimized System, Device & File Tools
 - [ ] Task: Write tests for `get_instance_overview` (consolidates status, connections, health)
