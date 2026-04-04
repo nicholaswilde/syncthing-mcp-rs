@@ -46,9 +46,17 @@ pub fn truncate_value(value: Value, limit: usize) -> Value {
             }
             Value::Array(arr.into_iter().map(|v| truncate_value(v, limit)).collect())
         }
+        Value::Object(map) => {
+            let mut new_map = Map::new();
+            for (k, v) in map {
+                new_map.insert(k, truncate_value(v, limit));
+            }
+            Value::Object(new_map)
+        }
         _ => value,
     }
 }
+
 
 /// Common aliases for SyncThing field names to reduce token usage.
 pub fn get_standard_aliases() -> HashMap<String, String> {
@@ -75,10 +83,13 @@ pub fn get_standard_aliases() -> HashMap<String, String> {
     // Folder Stats
     m.insert("last_scan".to_string(), "ls".to_string());
     m.insert("lastScan".to_string(), "ls".to_string());
+    m.insert("last_seen".to_string(), "ls".to_string());
+    m.insert("lastSeen".to_string(), "ls".to_string());
     m.insert("last_file".to_string(), "lf".to_string());
     m.insert("lastFile".to_string(), "lf".to_string());
     m
 }
+
 
 
 /// Applies standard optimizations to a JSON value based on arguments.

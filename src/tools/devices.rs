@@ -176,3 +176,73 @@ pub async fn get_device_stats(
         }]
     }))
 }
+
+/// Provides a comprehensive status overview for a specific device.
+/// Consolidates device completion status and statistics.
+pub async fn inspect_device(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let device_id = args["device_id"]
+        .as_str()
+        .ok_or_else(|| crate::error::Error::ValidationError("device_id is required".to_string()))?;
+
+    // 1. Get Device Config (to get name)
+    let config = client.get_config().await?;
+    let device_config = config.devices.iter().find(|d| d.device_id == device_id);
+    let device_name = device_config.and_then(|d| d.name.as_deref()).unwrap_or("Unknown");
+
+    // 2. Get Device Completion
+    let completion = client.get_device_completion(device_id).await?;
+
+    // 3. Get Device Stats
+    let all_stats = client.get_device_stats().await?;
+    let device_stats = all_stats.get(device_id);
+
+    // 4. Check if JSON output is requested
+    if args.get("format").and_then(|v| v.as_str()) == Some("json") {
+        let mut data = json!({
+            "device_id": device_id,
+            "name": device_name,
+            "completion": completion,
+            "stats": device_stats
+        });
+        
+        data = crate::mcp::optimization::optimize_response(data, &args);
+        
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": serde_json::to_string_pretty(&data).unwrap()
+            }]
+        }));
+    }
+
+    // 5. Build Combined Report (Text)
+    let mut text = format!("### Device Overview: {} ({})\n\n", device_name, device_id);
+    
+    text.push_str("#### Sync Status\n");
+    text.push_str(&format!("- **Completion**: {:.2}%\n", completion.completion));
+    text.push_str(&format!("- **Global Data**: {} bytes\n", completion.global_bytes));
+    if completion.need_bytes > 0 {
+        text.push_str(&format!("- **Syncing**: {} bytes remaining ({} files)\n", completion.need_bytes, completion.need_files));
+    }
+    text.push_str("\n");
+
+    text.push_str("#### Statistics\n");
+    if let Some(stats) = device_stats {
+        text.push_str(&format!("- **Last Seen**: {}\n", stats.last_seen));
+        text.push_str(&format!("- **Last Connection Duration**: {:.2}s\n", stats.last_connection_duration_s));
+    } else {
+        text.push_str("- No statistics available.\n");
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }]
+    }))
+}
+

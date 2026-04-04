@@ -38,6 +38,9 @@ pub mod devices;
 /// Unit tests for the devices tool.
 #[cfg(test)]
 mod devices_tests;
+/// Unit tests for the inspect_device tool.
+#[cfg(test)]
+mod inspect_device_tests;
 /// Advanced diffing tools for conflict resolution.
 pub mod diff;
 /// Unit tests for advanced diffing tools.
@@ -455,6 +458,33 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["folder_id", "action"]
         }),
         folders::manage_ignores,
+    );
+
+    registry.register(
+        "inspect_device",
+        "Provides a comprehensive status overview for a specific device, consolidating completion status and statistics.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "string",
+                    "description": "The unique Device ID to inspect."
+                },
+                "format": {
+                    "type": "string",
+                    "enum": ["text", "json"],
+                    "description": "Output format (default: text).",
+                    "default": "text"
+                },
+                "shorten": {
+                    "type": "boolean",
+                    "description": "If true, use short aliases for fields in JSON output.",
+                    "default": true
+                }
+            },
+            "required": ["device_id"]
+        }),
+        devices::inspect_device,
     );
 
     registry.register(
