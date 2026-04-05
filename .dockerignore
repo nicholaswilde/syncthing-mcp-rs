@@ -1,0 +1,28 @@
+# Source Control
+.git
+.gitignore
+
+# Build Artifacts
+target/
+**/*.rs.bk
+
+# Documentation and Project Management
+conductor/
+.gemini/
+Taskfile.yml
+README.md
+LICENSE
+.github/
+
+# Security
+.sops.yaml
+.env.enc
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Test Data and Mounted Volumes
+syncthing/
+data/

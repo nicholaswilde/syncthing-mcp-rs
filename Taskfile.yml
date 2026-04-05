@@ -179,3 +179,16 @@ tasks:
     cmds:
       - coveralls report lcov.info  -n -r {{ .COVERALLS_REPO_TOKEN }}
     silent: true
+
+  docker:build:
+    desc: Build the Docker image
+    cmds:
+      - docker build -t syncthing-mcp-rs .
+
+  docker:run:
+    desc: Run the Docker image (requires .env)
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doesn't exist"
+    cmds:
+      - docker run --rm --env-file .env syncthing-mcp-rs

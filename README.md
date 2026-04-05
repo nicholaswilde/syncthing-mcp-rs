@@ -73,6 +73,35 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 brew install nicholaswilde/tap/syncthing-mcp-rs
 ```
 
+### :whale: Docker
+
+You can run the MCP server using Docker.
+
+#### Build the Image
+
+```bash
+task docker:build
+```
+
+#### Run the Server
+
+```bash
+# Using environment variables
+docker run --rm -e SYNCTHING_API_KEY="your-api-key" syncthing-mcp-rs
+
+# Using an .env file
+task docker:run
+```
+
+#### Docker Compose
+
+A `docker-compose.yml` is provided for quick setup with a local SyncThing instance:
+
+```bash
+export SYNCTHING_API_KEY="your-api-key"
+docker-compose up -d
+```
+
 ## :hammer_and_wrench: Build
 
 To build the project, you need a Rust toolchain installed. For cross-compilation, [cross](https://github.com/cross-rs/cross) is used.
