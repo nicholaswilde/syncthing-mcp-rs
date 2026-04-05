@@ -11,7 +11,7 @@
 - [x] Task 2.2: Create new tool `get_folder_needs` in `src/tools/` 933f6ec
 - [x] Task 2.3: Register tools in `src/tools/mod.rs` 933f6ec
 
-## Phase 3: Testing & Documentation
-- [ ] Task 3.1: Write unit tests for new API methods
-- [ ] Task 3.2: Write Docker integration tests for new MCP tools
-- [ ] Task 3.3: Update `README.md` with new tool documentation
+## Phase 3: Testing & Documentation [checkpoint: afcef08]
+- [x] Task 3.1: Write unit tests for new API methods afcef08
+- [x] Task 3.2: Write Docker integration tests for new MCP tools afcef08
+- [x] Task 3.3: Update `README.md` with new tool documentation afcef08
