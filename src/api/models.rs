@@ -409,3 +409,147 @@ pub struct HealthCheck {
     /// Error message if any.
     pub error: Option<String>,
 }
+
+/// Detailed information about a file.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FileInfoResponse {
+    /// List of devices having the file.
+    pub availability: Vec<FileAvailability>,
+    /// Global state of the file.
+    pub global: FileMetadata,
+    /// Local state of the file.
+    pub local: FileMetadata,
+    /// Modification time information.
+    pub mtime: MtimeInfo,
+}
+
+/// Information about a device having a file.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FileAvailability {
+    /// The device identifier.
+    pub id: String,
+    /// Whether the file is from a temporary location.
+    #[serde(rename = "fromTemporary")]
+    pub from_temporary: bool,
+}
+
+/// Metadata for a file.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FileMetadata {
+    /// The file name.
+    pub name: String,
+    /// The file type.
+    #[serde(rename = "type")]
+    pub file_type: String,
+    /// The file size in bytes.
+    pub size: u64,
+    /// The file permissions.
+    pub permissions: u32,
+    /// Modified time in seconds.
+    #[serde(rename = "modifiedS")]
+    pub modified_s: i64,
+    /// Modified time in nanoseconds.
+    #[serde(rename = "modifiedNs")]
+    pub modified_ns: u32,
+    /// The ID of the device that last modified the file.
+    #[serde(rename = "modifiedBy")]
+    pub modified_by: String,
+    /// The file version (vector clock).
+    pub version: FileVersion,
+    /// The sequence number.
+    pub sequence: u64,
+    /// The list of file blocks.
+    pub blocks: Option<Vec<FileBlock>>,
+    /// Whether the file has no permissions.
+    #[serde(rename = "noPermissions")]
+    pub no_permissions: bool,
+    /// Whether the file is invalid.
+    pub invalid: bool,
+    /// Whether the file is deleted.
+    pub deleted: bool,
+    /// Whether the file is ignored.
+    pub ignored: bool,
+    /// Whether the file must be rescanned.
+    #[serde(rename = "mustRescan")]
+    pub must_rescan: bool,
+}
+
+/// Vector clock versioning for a file.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FileVersion {
+    /// The list of version counters.
+    pub counters: Vec<VersionCounter>,
+}
+
+/// A single counter in a vector clock.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct VersionCounter {
+    /// The device identifier.
+    pub id: String,
+    /// The counter value.
+    pub value: u64,
+}
+
+/// A block of a file.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FileBlock {
+    /// The offset of the block.
+    pub offset: i64,
+    /// The size of the block.
+    pub size: u32,
+    /// The hash of the block.
+    pub hash: String,
+}
+
+/// Modification time information.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct MtimeInfo {
+    /// Error message if any.
+    pub err: Option<String>,
+    /// The modification time values.
+    pub value: MtimeValue,
+}
+
+/// Actual modification time values.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct MtimeValue {
+    /// The real modification time.
+    pub real: String,
+    /// The virtual modification time.
+    #[serde(rename = "virtual")]
+    pub virtual_time: String,
+}
+
+/// Response from /rest/db/need.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct FolderNeedResponse {
+    /// Files currently in progress.
+    pub progress: Vec<NeedFile>,
+    /// Files queued for synchronization.
+    pub queued: Vec<NeedFile>,
+    /// Other needed files.
+    pub rest: Vec<NeedFile>,
+    /// Current page number.
+    pub page: u32,
+    /// Files per page.
+    pub perpage: u32,
+    /// Total number of needed files.
+    pub total: u32,
+}
+
+/// A file that is needed for synchronization.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct NeedFile {
+    /// The file flags.
+    pub flags: String,
+    /// The sequence number.
+    pub sequence: u64,
+    /// The last modification time.
+    pub modified: String,
+    /// The file name.
+    pub name: String,
+    /// The file size in bytes.
+    pub size: u64,
+    /// The file version.
+    pub version: Vec<String>,
+}
