@@ -4,8 +4,9 @@
 - [x] Task 1.1: Define response models for `/rest/db/file` and `/rest/db/needs` in `src/api/models.rs` f3f7476
 - [x] Task 1.2: Implement `get_file_info` method in `src/api/client.rs` 12276a4
 - [x] Task 1.3: Implement `get_folder_needs` method in `src/api/client.rs` 3c1e27f
+- [x] Task 1.4: Add live API verification script and task e55feab
 
-## Phase 2: MCP Tools Implementation
+## Phase 2: MCP Tools Implementation [checkpoint: e55feab]
 - [ ] Task 2.1: Create new tool `get_file_info` in `src/tools/`
 - [ ] Task 2.2: Create new tool `get_folder_needs` in `src/tools/`
 - [ ] Task 2.3: Register tools in `src/tools/mod.rs`
