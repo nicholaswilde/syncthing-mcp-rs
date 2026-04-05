@@ -3,10 +3,6 @@
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
 ---
-## [x] Track: File & Sync Diagnostics endpoints
-- **Folder:** [./tracks/file_and_sync_diagnostics_20260405/index.md]
-
----
 ## [ ] Track: Network & Discovery Troubleshooting endpoints
 - **Folder:** [./tracks/network_and_discovery_troubleshooting_20260405/index.md]
 
