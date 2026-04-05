@@ -2,7 +2,7 @@
 mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::AppConfig;
-    use crate::tools::file_diagnostics::*;
+    use crate::tools::diagnostics::*;
     use crate::config::InstanceConfig;
     use wiremock::matchers::{header, method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -131,5 +131,39 @@ mod tests {
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Folder Needs: default"));
         assert!(text.contains("need.txt"));
+    }
+
+    #[tokio::test]
+    async fn test_get_discovery_status_tool() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/discovery"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "device1": {
+                    "addresses": ["tcp://1.2.3.4:22000"]
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.clone());
+        let app_config = AppConfig {
+            instances: vec![config],
+            ..Default::default()
+        };
+
+        let params = json!({});
+
+        let result = get_discovery_status(client, app_config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Discovery Status (1 devices)"));
+        assert!(text.contains("device1"));
     }
 }
