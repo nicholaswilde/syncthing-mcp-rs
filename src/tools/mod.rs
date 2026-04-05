@@ -36,6 +36,9 @@ pub mod conflicts;
 pub mod connectivity_watchdog;
 /// File diagnostics tools.
 pub mod file_diagnostics;
+/// Unit tests for file diagnostics tools.
+#[cfg(test)]
+mod file_diagnostics_tests;
 /// Unit tests for connectivity watchdog tools.
 #[cfg(test)]
 mod connectivity_watchdog_tests;

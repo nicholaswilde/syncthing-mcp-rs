@@ -40,6 +40,8 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `diff_instance_configs`: Returns a detailed difference report between two SyncThing instance configurations.
     - `get_bandwidth_status`: Get current bandwidth limits and active profiles for all SyncThing instances.
     - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
+    - `get_file_info`: Get detailed metadata and availability information for a specific file in a folder.
+    - `get_folder_needs`: Get the list of files that are needed to bring a folder up to date.
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
     - `get_global_dashboard`: Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
