@@ -1133,4 +1133,48 @@ mod tests {
         assert_eq!(info.global.name, "test.txt");
         assert_eq!(info.availability.len(), 1);
     }
+
+    #[tokio::test]
+    async fn test_get_folder_needs() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/need"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "progress": [],
+                "queued": [],
+                "rest": [
+                    {
+                        "flags": "0644",
+                        "sequence": 1,
+                        "modified": "2023-01-01T00:00:00Z",
+                        "name": "need.txt",
+                        "size": 100,
+                        "version": ["device1:1"]
+                    }
+                ],
+                "page": 1,
+                "perpage": 100,
+                "total": 1
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let needs = client
+            .get_folder_needs("default", None, None)
+            .await
+            .unwrap();
+
+        assert_eq!(needs.total, 1);
+        assert_eq!(needs.rest[0].name, "need.txt");
+    }
 }

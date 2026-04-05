@@ -443,6 +443,28 @@ impl SyncThingClient {
         Ok(response.json::<FileInfoResponse>().await?)
     }
 
+    /// Returns the list of files needed to bring a folder up to date.
+    pub async fn get_folder_needs(
+        &self,
+        folder_id: &str,
+        page: Option<u32>,
+        per_page: Option<u32>,
+    ) -> Result<FolderNeedResponse> {
+        tracing::debug!("Fetching SyncThing folder needs: {}", folder_id);
+        let url = format!("{}/rest/db/need", self.config.url);
+        let mut request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+
+        if let Some(p) = page {
+            request = request.query(&[("page", p)]);
+        }
+        if let Some(pp) = per_page {
+            request = request.query(&[("perpage", pp)]);
+        }
+
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<FolderNeedResponse>().await?)
+    }
+
     /// Performs a health check on the SyncThing instance.
     pub async fn health_check(&self) -> Result<HealthCheck> {
         tracing::debug!(
