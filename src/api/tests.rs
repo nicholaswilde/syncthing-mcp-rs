@@ -1147,7 +1147,7 @@ mod tests {
                 "queued": [],
                 "rest": [
                     {
-                        "flags": "0644",
+                        "type": "FILE_INFO_TYPE_FILE",
                         "sequence": 1,
                         "modified": "2023-01-01T00:00:00Z",
                         "name": "need.txt",
@@ -1174,7 +1174,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(needs.total, 1);
+        assert_eq!(needs.total.unwrap(), 1);
         assert_eq!(needs.rest[0].name, "need.txt");
     }
 }

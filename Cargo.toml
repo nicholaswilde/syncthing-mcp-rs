@@ -61,6 +61,10 @@ path = "scripts/verify_health_check.rs"
 name = "test_live_bandwidth_tools"
 path = "scripts/test_live_bandwidth_tools.rs"
 
+[[example]]
+name = "verify_api_live"
+path = "scripts/verify_api_live.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"

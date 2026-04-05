@@ -534,14 +534,12 @@ pub struct FolderNeedResponse {
     /// Files per page.
     pub perpage: u32,
     /// Total number of needed files.
-    pub total: u32,
+    pub total: Option<u32>,
 }
 
 /// A file that is needed for synchronization.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct NeedFile {
-    /// The file flags.
-    pub flags: String,
     /// The sequence number.
     pub sequence: u64,
     /// The last modification time.
@@ -552,4 +550,9 @@ pub struct NeedFile {
     pub size: u64,
     /// The file version.
     pub version: Vec<String>,
+    /// The file type.
+    #[serde(rename = "type")]
+    pub file_type: String,
+    /// The file permissions.
+    pub permissions: Option<String>,
 }
