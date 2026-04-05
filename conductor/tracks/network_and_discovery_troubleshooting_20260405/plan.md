@@ -8,7 +8,7 @@
 - [x] Task 2.1: Create new tool `get_discovery_status` in `src/tools/` 6d99d26
 - [x] Task 2.2: Register tool in `src/tools/mod.rs` 6d99d26
 
-## Phase 3: Testing & Documentation
-- [ ] Task 3.1: Write unit tests for new API method
-- [ ] Task 3.2: Write Docker integration tests for new MCP tool
-- [ ] Task 3.3: Update `README.md` with new tool documentation
+## Phase 3: Testing & Documentation [checkpoint: 5cb0e2c]
+- [x] Task 3.1: Write unit tests for new API method 5cb0e2c
+- [x] Task 3.2: Write Docker integration tests for new MCP tool 5cb0e2c
+- [x] Task 3.3: Update `README.md` with new tool documentation 5cb0e2c
