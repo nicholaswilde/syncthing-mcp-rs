@@ -34,11 +34,11 @@ mod conflict_summary_tests;
 pub mod conflicts;
 /// Connectivity watchdog tools.
 pub mod connectivity_watchdog;
-/// File diagnostics tools.
-pub mod file_diagnostics;
-/// Unit tests for file diagnostics tools.
+/// Diagnostics tools.
+pub mod diagnostics;
+/// Unit tests for diagnostics tools.
 #[cfg(test)]
-mod file_diagnostics_tests;
+mod diagnostics_tests;
 /// Unit tests for connectivity watchdog tools.
 #[cfg(test)]
 mod connectivity_watchdog_tests;
@@ -557,7 +557,7 @@ pub fn create_registry() -> ToolRegistry {
             },
             "required": ["folder_id", "file_path"]
         }),
-        file_diagnostics::get_file_info,
+        diagnostics::get_file_info,
     );
 
     registry.register(
@@ -581,7 +581,17 @@ pub fn create_registry() -> ToolRegistry {
             },
             "required": ["folder_id"]
         }),
-        file_diagnostics::get_folder_needs,
+        diagnostics::get_folder_needs,
+    );
+
+    registry.register(
+        "get_discovery_status",
+        "Get the current status of the local and global discovery mechanisms, listing announced addresses for all known devices.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        diagnostics::get_discovery_status,
     );
 
     registry.register(

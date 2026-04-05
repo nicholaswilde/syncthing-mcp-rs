@@ -1,0 +1,135 @@
+#[cfg(test)]
+mod tests {
+    use crate::api::client::SyncThingClient;
+    use crate::config::AppConfig;
+    use crate::tools::file_diagnostics::*;
+    use crate::config::InstanceConfig;
+    use wiremock::matchers::{header, method, path, query_param};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+    use serde_json::json;
+
+    #[tokio::test]
+    async fn test_get_file_info_tool() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/file"))
+            .and(query_param("folder", "default"))
+            .and(query_param("file", "test.txt"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "availability": [],
+                "global": {
+                    "name": "test.txt",
+                    "type": "FILE_INFO_TYPE_FILE",
+                    "size": 100,
+                    "permissions": 420,
+                    "modifiedS": 123456789,
+                    "modifiedNs": 0,
+                    "modifiedBy": "device1",
+                    "version": {"counters": []},
+                    "sequence": 1,
+                    "noPermissions": false,
+                    "invalid": false,
+                    "deleted": false,
+                    "ignored": false,
+                    "mustRescan": false
+                },
+                "local": {
+                    "name": "test.txt",
+                    "type": "FILE_INFO_TYPE_FILE",
+                    "size": 100,
+                    "permissions": 420,
+                    "modifiedS": 123456789,
+                    "modifiedNs": 0,
+                    "modifiedBy": "device1",
+                    "version": {"counters": []},
+                    "sequence": 1,
+                    "noPermissions": false,
+                    "invalid": false,
+                    "deleted": false,
+                    "ignored": false,
+                    "mustRescan": false
+                },
+                "mtime": {
+                    "err": null,
+                    "value": {
+                        "real": "2023-01-01T00:00:00Z",
+                        "virtual": "2023-01-01T00:00:00Z"
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.clone());
+        let app_config = AppConfig {
+            instances: vec![config],
+            ..Default::default()
+        };
+
+        let params = json!({
+            "folder_id": "default",
+            "file_path": "test.txt"
+        });
+
+        let result = get_file_info(client, app_config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("File Info for 'test.txt'"));
+    }
+
+    #[tokio::test]
+    async fn test_get_folder_needs_tool() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/need"))
+            .and(query_param("folder", "default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "progress": [],
+                "queued": [],
+                "rest": [
+                    {
+                        "type": "FILE_INFO_TYPE_FILE",
+                        "sequence": 1,
+                        "modified": "2023-01-01T00:00:00Z",
+                        "name": "need.txt",
+                        "size": 100,
+                        "version": []
+                    }
+                ],
+                "page": 1,
+                "perpage": 100,
+                "total": 1
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.clone());
+        let app_config = AppConfig {
+            instances: vec![config],
+            ..Default::default()
+        };
+
+        let params = json!({
+            "folder_id": "default"
+        });
+
+        let result = get_folder_needs(client, app_config, params).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Folder Needs: default"));
+        assert!(text.contains("need.txt"));
+    }
+}

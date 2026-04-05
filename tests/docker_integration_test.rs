@@ -818,3 +818,18 @@ async fn test_get_folder_needs_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_get_discovery_status_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_discovery_status", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Discovery Status"));
+
+    Ok(())
+}
