@@ -3,7 +3,7 @@
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
 ---
-## [ ] Track: Network & Discovery Troubleshooting endpoints
+## [x] Track: Network & Discovery Troubleshooting endpoints
 - **Folder:** [./tracks/network_and_discovery_troubleshooting_20260405/index.md]
 
 ---
