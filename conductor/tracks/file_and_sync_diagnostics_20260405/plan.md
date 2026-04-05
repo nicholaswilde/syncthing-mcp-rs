@@ -3,7 +3,7 @@
 ## Phase 1: API Client Implementation
 - [x] Task 1.1: Define response models for `/rest/db/file` and `/rest/db/needs` in `src/api/models.rs` f3f7476
 - [x] Task 1.2: Implement `get_file_info` method in `src/api/client.rs` 12276a4
-- [ ] Task 1.3: Implement `get_folder_needs` method in `src/api/client.rs`
+- [x] Task 1.3: Implement `get_folder_needs` method in `src/api/client.rs` 3c1e27f
 
 ## Phase 2: MCP Tools Implementation
 - [ ] Task 2.1: Create new tool `get_file_info` in `src/tools/`
