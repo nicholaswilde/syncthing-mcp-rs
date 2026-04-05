@@ -1177,4 +1177,33 @@ mod tests {
         assert_eq!(needs.total.unwrap(), 1);
         assert_eq!(needs.rest[0].name, "need.txt");
     }
+
+    #[tokio::test]
+    async fn test_get_discovery_status() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/discovery"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "device1": {
+                    "addresses": ["tcp://1.2.3.4:22000"]
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let status = client.get_discovery_status().await.unwrap();
+
+        assert_eq!(status.len(), 1);
+        assert_eq!(status["device1"].addresses[0], "tcp://1.2.3.4:22000");
+    }
 }

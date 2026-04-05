@@ -74,6 +74,15 @@ impl SyncThingClient {
         Ok(response.json::<SystemStatus>().await?)
     }
 
+    /// Returns the discovery status.
+    pub async fn get_discovery_status(&self) -> Result<DiscoveryResponse> {
+        tracing::debug!("Fetching SyncThing discovery status");
+        let url = format!("{}/rest/system/discovery", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<DiscoveryResponse>().await?)
+    }
+
     /// Returns the system version.
     pub async fn get_system_version(&self) -> Result<SystemVersion> {
         tracing::debug!("Fetching SyncThing system version");
