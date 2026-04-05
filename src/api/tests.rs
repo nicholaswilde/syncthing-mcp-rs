@@ -1048,4 +1048,89 @@ mod tests {
 
         assert_eq!(resp.error.unwrap(), "device ID invalid: incorrect length");
     }
+
+    #[tokio::test]
+    async fn test_get_file_info() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/db/file"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "availability": [
+                    {
+                        "id": "device1",
+                        "fromTemporary": false
+                    }
+                ],
+                "global": {
+                    "name": "test.txt",
+                    "type": "FILE_INFO_TYPE_FILE",
+                    "size": 100,
+                    "permissions": 420,
+                    "modifiedS": 123456789,
+                    "modifiedNs": 0,
+                    "modifiedBy": "device1",
+                    "version": {
+                        "counters": [
+                            {
+                                "id": "device1",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    "sequence": 1,
+                    "noPermissions": false,
+                    "invalid": false,
+                    "deleted": false,
+                    "ignored": false,
+                    "mustRescan": false
+                },
+                "local": {
+                    "name": "test.txt",
+                    "type": "FILE_INFO_TYPE_FILE",
+                    "size": 100,
+                    "permissions": 420,
+                    "modifiedS": 123456789,
+                    "modifiedNs": 0,
+                    "modifiedBy": "device1",
+                    "version": {
+                        "counters": [
+                            {
+                                "id": "device1",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    "sequence": 1,
+                    "noPermissions": false,
+                    "invalid": false,
+                    "deleted": false,
+                    "ignored": false,
+                    "mustRescan": false
+                },
+                "mtime": {
+                    "err": null,
+                    "value": {
+                        "real": "2023-01-01T00:00:00Z",
+                        "virtual": "2023-01-01T00:00:00Z"
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let info = client.get_file_info("default", "test.txt").await.unwrap();
+
+        assert_eq!(info.global.name, "test.txt");
+        assert_eq!(info.availability.len(), 1);
+    }
 }

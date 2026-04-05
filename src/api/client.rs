@@ -432,6 +432,17 @@ impl SyncThingClient {
         Ok(response.json::<HashMap<String, FolderStats>>().await?)
     }
 
+    /// Returns detailed information about a specific file.
+    pub async fn get_file_info(&self, folder_id: &str, file_path: &str) -> Result<FileInfoResponse> {
+        tracing::debug!("Fetching SyncThing file info: {}/{}", folder_id, file_path);
+        let url = format!("{}/rest/db/file", self.config.url);
+        let request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("folder", folder_id), ("file", file_path)]);
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<FileInfoResponse>().await?)
+    }
+
     /// Performs a health check on the SyncThing instance.
     pub async fn health_check(&self) -> Result<HealthCheck> {
         tracing::debug!(
