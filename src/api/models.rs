@@ -556,3 +556,13 @@ pub struct NeedFile {
     /// The file permissions.
     pub permissions: Option<String>,
 }
+
+/// Discovery information for a device.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct DiscoveryInfo {
+    /// List of announced addresses.
+    pub addresses: Vec<String>,
+}
+
+/// Response from /rest/system/discovery.
+pub type DiscoveryResponse = HashMap<String, DiscoveryInfo>;
