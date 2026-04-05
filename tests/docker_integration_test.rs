@@ -751,3 +751,70 @@ async fn test_bandwidth_tools() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_get_file_info_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    
+    // Ensure we have at least one folder
+    let folders = ctx.client.list_folders().await?;
+    let folder_id = if let Some(f) = folders.first() {
+        f.id.clone()
+    } else {
+        ctx.client.add_folder("default", "Default", "/var/syncthing/default").await?;
+        "default".to_string()
+    };
+
+    let result = ctx
+        .call_tool(
+            "get_file_info",
+            json!({
+                "folder_id": folder_id,
+                "file_path": "nonexistent.txt"
+            }),
+        )
+        .await;
+
+    // It should return a 404 error because the file doesn't exist
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(err.contains("404") || err.contains("Not Found"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_folder_needs_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // Ensure we have at least one folder
+    let folders = ctx.client.list_folders().await?;
+    let folder_id = if let Some(f) = folders.first() {
+        f.id.clone()
+    } else {
+        ctx.client.add_folder("default", "Default", "/var/syncthing/default").await?;
+        "default".to_string()
+    };
+
+    let result = ctx
+        .call_tool(
+            "get_folder_needs",
+            json!({
+                "folder_id": folder_id
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains(&format!("Folder Needs: {}", folder_id)));
+
+    Ok(())
+}

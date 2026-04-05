@@ -34,6 +34,8 @@ mod conflict_summary_tests;
 pub mod conflicts;
 /// Connectivity watchdog tools.
 pub mod connectivity_watchdog;
+/// File diagnostics tools.
+pub mod file_diagnostics;
 /// Unit tests for connectivity watchdog tools.
 #[cfg(test)]
 mod connectivity_watchdog_tests;
@@ -533,6 +535,50 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {}
         }),
         folders::get_folder_stats,
+    );
+
+    registry.register(
+        "get_file_info",
+        "Get detailed metadata and availability information for a specific file in a folder.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder containing the file."
+                },
+                "file_path": {
+                    "type": "string",
+                    "description": "The relative path to the file within the folder."
+                }
+            },
+            "required": ["folder_id", "file_path"]
+        }),
+        file_diagnostics::get_file_info,
+    );
+
+    registry.register(
+        "get_folder_needs",
+        "Get the list of files that are needed to bring a folder up to date.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder to query."
+                },
+                "page": {
+                    "type": "integer",
+                    "description": "The page number to retrieve (optional)."
+                },
+                "per_page": {
+                    "type": "integer",
+                    "description": "The number of items per page (optional)."
+                }
+            },
+            "required": ["folder_id"]
+        }),
+        file_diagnostics::get_folder_needs,
     );
 
     registry.register(
