@@ -241,7 +241,7 @@ impl McpServer {
                 };
 
                 if let Some(handler) = handler {
-                    handler(&client, &self.config, args).await
+                    handler(client, self.config.clone(), args).await
                 } else {
                     Err(Error::Internal(format!("Tool not found: {}", tool_name)))
                 }

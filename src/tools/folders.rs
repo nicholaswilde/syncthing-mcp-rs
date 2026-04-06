@@ -478,3 +478,27 @@ pub async fn batch_manage_folders(
         }]
     }))
 }
+
+/// Sets the synchronization priority for a specific file.
+pub async fn set_file_priority(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let folder_id = args["folder_id"]
+        .as_str()
+        .ok_or_else(|| Error::ValidationError("folder_id is required".to_string()))?;
+    let file_path = args["file_path"]
+        .as_str()
+        .ok_or_else(|| Error::ValidationError("file_path is required".to_string()))?;
+
+    let needs = client.set_file_priority(folder_id, file_path).await?;
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": format!("Priority set successfully for '{}' in folder '{}'.", file_path, folder_id)
+        }],
+        "data": needs
+    }))
+}

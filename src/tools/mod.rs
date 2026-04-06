@@ -9,17 +9,17 @@ mod bandwidth_tests;
 /// Unit tests for the batch_manage_folders tool.
 #[cfg(test)]
 mod batch_folder_tests;
-/// Unit tests for browse_folder optimization.
-#[cfg(test)]
-mod browse_folder_optimization_tests;
-/// Browser tool for exploring synced folders.
+/// Browser tools.
 pub mod browser;
 /// Unit tests for browser tools.
 #[cfg(test)]
 mod browser_tests;
-/// Configuration replication tool.
+/// Unit tests for browse_folder optimization.
+#[cfg(test)]
+mod browse_folder_optimization_tests;
+/// Configuration tools.
 pub mod config;
-/// Configuration diff generator.
+/// Configuration diffing tools.
 pub mod config_diff;
 /// Unit tests for configuration diffing.
 #[cfg(test)]
@@ -40,9 +40,9 @@ pub mod connectivity_watchdog;
 /// Unit tests for connectivity watchdog tools.
 #[cfg(test)]
 mod connectivity_watchdog_tests;
-/// Global dashboard tool.
+/// Dashboard tools.
 pub mod dashboard;
-/// Unit tests for the dashboard tool.
+/// Unit tests for dashboard tools.
 #[cfg(test)]
 mod dashboard_tests;
 /// Device management tools.
@@ -65,11 +65,11 @@ pub mod folders;
 /// Unit tests for the folders tool.
 #[cfg(test)]
 mod folders_tests;
-/// Git-Sync tools for version control.
-pub mod git_sync;
-/// Unit tests for Git-Sync tools.
+/// Unit tests for the git_sync tool.
 #[cfg(test)]
 mod git_sync_tests;
+/// Tool for backing up and restoring configurations to Git.
+pub mod git_sync;
 /// Unit tests for the inspect_device tool.
 #[cfg(test)]
 mod inspect_device_tests;
@@ -85,13 +85,16 @@ mod lifecycle_tests;
 /// Unit tests for performance profiles.
 #[cfg(test)]
 mod profile_tests;
-/// Self-healing monitor tools.
+/// Self-healing tools.
 pub mod self_healing;
 /// Unit tests for self-healing tools.
 #[cfg(test)]
 mod self_healing_tests;
 /// System status and maintenance tools.
 pub mod system;
+/// Unit tests for synchronization operation MCP tools.
+#[cfg(test)]
+mod sync_ops_mcp_tests;
 /// Unit tests for the system tools.
 #[cfg(test)]
 mod system_tests;
@@ -99,19 +102,10 @@ mod system_tests;
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::Result;
+use futures::future::BoxFuture;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
-use std::pin::Pin;
 use std::sync::Arc;
-
-/// A type alias for tool handler functions.
-pub type ToolHandler = dyn Fn(
-        &SyncThingClient,
-        &AppConfig,
-        Option<Value>,
-    ) -> Pin<Box<dyn std::future::Future<Output = Result<Value>> + Send>>
-    + Send
-    + Sync;
 
 /// Represents an MCP tool.
 #[derive(Clone)]
@@ -120,14 +114,17 @@ pub struct Tool {
     pub name: String,
     /// A description of what the tool does.
     pub description: String,
-    /// The JSON schema for the tool's input.
+    /// The input schema for the tool (JSON Schema).
     pub input_schema: Value,
     /// The handler function for the tool.
-    pub handler: Arc<ToolHandler>,
+    pub handler: Arc<
+        dyn Fn(SyncThingClient, AppConfig, Option<Value>) -> BoxFuture<'static, Result<Value>>
+            + Send
+            + Sync,
+    >,
 }
 
 /// A registry of available MCP tools.
-#[derive(Clone)]
 pub struct ToolRegistry {
     tools: HashMap<String, Tool>,
     enabled_tools: HashSet<String>,
@@ -382,8 +379,7 @@ pub fn create_registry() -> ToolRegistry {
                     "items": { "type": "string" },
                     "description": "List of fields to include in JSON output."
                 }
-            },
-            "required": ["folder_id"]
+            }
         }),
         folders::inspect_folder,
     );
@@ -669,6 +665,26 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {}
         }),
         system::get_system_errors,
+    );
+
+    registry.register(
+        "set_file_priority",
+        "Moves a specific file to the top of the download queue for a folder.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder containing the file."
+                },
+                "file_path": {
+                    "type": "string",
+                    "description": "The relative path to the file within the folder."
+                }
+            },
+            "required": ["folder_id", "file_path"]
+        }),
+        folders::set_file_priority,
     );
 
     registry.register(
