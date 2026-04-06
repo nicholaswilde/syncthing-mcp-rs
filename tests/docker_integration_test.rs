@@ -898,3 +898,99 @@ async fn test_get_system_errors_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_set_file_priority_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // Ensure we have at least one folder
+    let folders = ctx.client.list_folders().await?;
+    let folder_id = if let Some(f) = folders.first() {
+        f.id.clone()
+    } else {
+        ctx.client
+            .add_folder("default", "Default", "/var/syncthing/default")
+            .await?;
+        "default".to_string()
+    };
+
+    let result = ctx
+        .call_tool(
+            "set_file_priority",
+            json!({
+                "folder_id": folder_id,
+                "file_path": "test.txt"
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Priority set successfully"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_device_sync_status_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let status = ctx.client.get_system_status().await?;
+    let my_id = status.my_id;
+
+    let result = ctx
+        .call_tool(
+            "get_device_sync_status",
+            json!({
+                "device_id": my_id
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains(&my_id));
+    assert!(text.contains("Completion:"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_inspect_folder_with_devices_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // Ensure we have at least one folder
+    let folders = ctx.client.list_folders().await?;
+    let folder_id = if let Some(f) = folders.first() {
+        f.id.clone()
+    } else {
+        ctx.client
+            .add_folder("default", "Default", "/var/syncthing/default")
+            .await?;
+        "default".to_string()
+    };
+
+    let result = ctx
+        .call_tool(
+            "inspect_folder",
+            json!({
+                "folder_id": folder_id,
+                "include_devices": true
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Per-Device Completion"));
+
+    Ok(())
+}
