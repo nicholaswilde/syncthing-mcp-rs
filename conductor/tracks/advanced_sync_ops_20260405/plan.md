@@ -12,5 +12,5 @@
 - [x] Register tools in `src/tools/mod.rs`. [119c098]
 
 ## Phase 3: Verification
-- [ ] Write unit and integration tests.
-- [ ] Update documentation.
+- [x] Write unit and integration tests. [be381e4]
+- [x] Update documentation. [ce50e35]
