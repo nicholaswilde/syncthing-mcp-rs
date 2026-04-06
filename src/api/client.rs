@@ -319,7 +319,7 @@ impl SyncThingClient {
 
     /// Reverts local changes in a Receive Only folder.
     pub async fn revert_folder(&self, folder_id: &str) -> Result<()> {
-        tracing::debug!("Reverting folder: {}", folder_id);
+        tracing::debug!("Reverting local changes in folder: {}", folder_id);
         let url = format!("{}/rest/db/revert", self.config.url);
         let request = self
             .add_auth(self.client.post(&url))
@@ -327,6 +327,18 @@ impl SyncThingClient {
         self.send_with_retry(request).await?;
         Ok(())
     }
+
+    /// Moves a specific file to the top of the download queue.
+    pub async fn set_file_priority(&self, folder_id: &str, file_path: &str) -> Result<FolderNeedResponse> {
+        tracing::debug!("Setting file priority for '{}' in folder '{}'", file_path, folder_id);
+        let url = format!("{}/rest/db/prio", self.config.url);
+        let request = self
+            .add_auth(self.client.post(&url))
+            .query(&[("folder", folder_id), ("file", file_path)]);
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<FolderNeedResponse>().await?)
+    }
+
 
     /// Restarts SyncThing.
     pub async fn restart(&self) -> Result<()> {
