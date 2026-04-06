@@ -1,7 +1,7 @@
 # Implementation Plan: Advanced Sync Operations
 
 ## Phase 1: API Client Implementation
-- [ ] Define response models for `/rest/db/completion` in `src/api/models.rs`.
+- [x] Define response models for `/rest/db/completion` in `src/api/models.rs`. [61d10c0]
 - [ ] Implement `set_file_priority()` method in `src/api/client.rs`.
 - [ ] Implement `get_device_completion()` method in `src/api/client.rs`.
 
