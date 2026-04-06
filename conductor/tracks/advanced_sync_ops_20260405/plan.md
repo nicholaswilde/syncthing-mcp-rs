@@ -3,7 +3,7 @@
 ## Phase 1: API Client Implementation
 - [x] Define response models for `/rest/db/completion` in `src/api/models.rs`. [61d10c0]
 - [x] Implement `set_file_priority()` method in `src/api/client.rs`. [e5a6333]
-- [ ] Implement `get_device_completion()` method in `src/api/client.rs`.
+- [x] Implement `get_device_completion()` method in `src/api/client.rs`. [5a44d1f]
 
 ## Phase 2: MCP Tools Implementation
 - [ ] Create new tool `set_file_priority`.
