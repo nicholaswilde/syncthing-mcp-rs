@@ -1,6 +1,6 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use serde_json::{Value, json};
 
 /// Manages SyncThing devices (list, add, remove, pause, resume, discover, approve).
@@ -186,7 +186,7 @@ pub async fn inspect_device(
 ) -> Result<Value> {
     let device_id = args["device_id"]
         .as_str()
-        .ok_or_else(|| crate::error::Error::ValidationError("device_id is required".to_string()))?;
+        .ok_or_else(|| Error::ValidationError("device_id is required".to_string()))?;
 
     // 1. Get Device Config (to get name)
     let config = client.get_config().await?;
@@ -257,5 +257,42 @@ pub async fn inspect_device(
             "type": "text",
             "text": text.trim_end().to_string()
         }]
+    }))
+}
+
+/// Retrieves synchronization completion status for a specific device.
+pub async fn get_device_sync_status(
+    client: SyncThingClient,
+    _config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let device_id = args["device_id"]
+        .as_str()
+        .ok_or_else(|| Error::ValidationError("device_id is required".to_string()))?;
+    let folder_id = args["folder_id"].as_str();
+
+    let completion = client.get_device_completion(device_id, folder_id).await?;
+
+    let mut text = format!("### Device Sync Status: {}\n", device_id);
+    if let Some(fid) = folder_id {
+        text.push_str(&format!("Folder: {}\n", fid));
+    }
+    text.push_str(&format!("Completion: {:.2}%\n", completion.completion));
+    text.push_str(&format!("Global Data: {} bytes\n", completion.global_bytes));
+    if completion.need_bytes > 0 {
+        text.push_str(&format!(
+            "Remaining: {} bytes ({} items)\n",
+            completion.need_bytes, completion.need_items
+        ));
+    } else {
+        text.push_str("Status: Fully Synchronized\n");
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }],
+        "data": completion
     }))
 }

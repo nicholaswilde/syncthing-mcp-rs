@@ -41,4 +41,41 @@ mod tests {
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Priority set successfully"));
     }
+
+    #[tokio::test]
+    async fn test_get_device_sync_status_tool() {
+        use crate::tools::devices::get_device_sync_status;
+        let mock_server = MockServer::start().await;
+        
+        Mock::given(method("GET"))
+            .and(path("/rest/db/completion"))
+            .and(query_param("device", "device1"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "completion": 75.5,
+                "globalBytes": 2000,
+                "needBytes": 500,
+                "globalItems": 20,
+                "needItems": 5,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 200
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config);
+        let app_config = AppConfig::default();
+        let args = json!({
+            "device_id": "device1"
+        });
+
+        let result = get_device_sync_status(client, app_config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("device1"));
+        assert!(text.contains("75.50%"));
+    }
 }

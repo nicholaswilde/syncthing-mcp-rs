@@ -498,6 +498,20 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "get_device_sync_status",
+        "Retrieves synchronization completion status for a specific device, optionally filtered by folder.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "device_id": { "type": "string" },
+                "folder_id": { "type": "string" }
+            },
+            "required": ["device_id"]
+        }),
+        devices::get_device_sync_status,
+    );
+
+    registry.register(
         "manage_devices",
         "Manage SyncThing devices: list, add, remove, pause, resume, approve pending devices, or validate device IDs.",
         serde_json::json!({
