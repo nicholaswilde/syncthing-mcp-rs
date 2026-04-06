@@ -1260,4 +1260,28 @@ mod tests {
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("upgrade unsupported"));
     }
+
+    #[tokio::test]
+    async fn test_perform_upgrade() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("POST"))
+            .and(path("/rest/system/upgrade"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.perform_upgrade().await;
+
+        assert!(result.is_ok());
+    }
 }

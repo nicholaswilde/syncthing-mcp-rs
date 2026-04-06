@@ -109,6 +109,15 @@ impl SyncThingClient {
         Ok(serde_json::from_str::<UpgradeResponse>(&text)?)
     }
 
+    /// Performs an upgrade to the latest version of Syncthing.
+    pub async fn perform_upgrade(&self) -> Result<()> {
+        tracing::debug!("Performing Syncthing upgrade");
+        let url = format!("{}/rest/system/upgrade", self.config.url);
+        let request = self.add_auth(self.client.post(&url));
+        self.send_with_retry(request).await?;
+        Ok(())
+    }
+
     /// Returns the full configuration.
     pub async fn get_config(&self) -> Result<Config> {
         tracing::debug!("Fetching full SyncThing configuration");
