@@ -92,6 +92,23 @@ impl SyncThingClient {
         Ok(response.json::<SystemVersion>().await?)
     }
 
+    /// Checks for a newer version of Syncthing.
+    pub async fn check_upgrade(&self) -> Result<UpgradeResponse> {
+        tracing::debug!("Checking for Syncthing upgrade");
+        let url = format!("{}/rest/system/upgrade", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+
+        let text = response.text().await?;
+        if text.trim() == "upgrade unsupported" {
+            return Err(crate::error::Error::SyncThing(
+                "upgrade unsupported".to_string(),
+            ));
+        }
+
+        Ok(serde_json::from_str::<UpgradeResponse>(&text)?)
+    }
+
     /// Returns the full configuration.
     pub async fn get_config(&self) -> Result<Config> {
         tracing::debug!("Fetching full SyncThing configuration");

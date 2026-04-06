@@ -1206,4 +1206,58 @@ mod tests {
         assert_eq!(status.len(), 1);
         assert_eq!(status["device1"].addresses[0], "tcp://1.2.3.4:22000");
     }
+
+    #[tokio::test]
+    async fn test_check_upgrade() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/upgrade"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "latest": "v1.2.0",
+                "newer": true,
+                "majorNewer": false,
+                "running": "v1.1.0"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let upgrade = client.check_upgrade().await.unwrap();
+
+        assert!(upgrade.newer);
+        assert_eq!(upgrade.latest, "v1.2.0");
+    }
+
+    #[tokio::test]
+    async fn test_check_upgrade_unsupported() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/upgrade"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("upgrade unsupported"))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.check_upgrade().await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("upgrade unsupported"));
+    }
 }
