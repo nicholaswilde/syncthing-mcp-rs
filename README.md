@@ -70,6 +70,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `replicate_config`: Replicate configuration (folders and devices) from one Syncthing instance to another. Optionally perform a dry run or select specific folders/devices.
     - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version. Supports a preview mode.
     - `set_bandwidth_limits`: Set the bandwidth limits (upload/download) across one or all SyncThing instances.
+    - `set_file_priority`: Moves a specific file to the top of the download queue for a folder.
     - `set_performance_profile`: Set the active performance profile (e.g., 'working_hours', 'overnight', 'full_speed').
     - `summarize_conflicts`: Provides an actionable summary of conflicts across all folders, grouped by folder with counts and sizes.
 
@@ -317,3 +318,4 @@ Contributions are welcome! Please follow standard Rust coding conventions and en
 This project was started in 2026 by [Nicholas Wilde][2].
 
 [2]: <https://github.com/nicholaswilde/>
+ttps://github.com/nicholaswilde/>
