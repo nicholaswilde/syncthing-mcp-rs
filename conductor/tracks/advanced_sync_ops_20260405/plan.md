@@ -6,8 +6,8 @@
 - [x] Implement `get_device_completion()` method in `src/api/client.rs`. [5a44d1f]
 
 ## Phase 2: MCP Tools Implementation
-- [ ] Create new tool `set_file_priority`.
-- [ ] Create new tool `get_device_sync_status` (per-device).
+- [x] Create new tool `set_file_priority`. [119c098]
+- [~] Create new tool `get_device_sync_status` (per-device).
 - [ ] Update `inspect_folder` to optionally include per-device completion if requested.
 - [ ] Register tools in `src/tools/mod.rs`.
 
