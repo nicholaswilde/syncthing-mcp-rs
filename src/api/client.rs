@@ -344,6 +344,24 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Returns whether the running configuration is in sync with the on-disk configuration.
+    pub async fn is_config_insync(&self) -> Result<ConfigInSync> {
+        tracing::debug!("Checking if SyncThing configuration is in sync");
+        let url = format!("{}/rest/system/config/insync", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<ConfigInSync>().await?)
+    }
+
+    /// Returns the current list of active system GUI errors.
+    pub async fn get_errors(&self) -> Result<SystemErrors> {
+        tracing::debug!("Fetching SyncThing system errors");
+        let url = format!("{}/rest/system/error", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<SystemErrors>().await?)
+    }
+
     /// Clears SyncThing errors.
     pub async fn clear_errors(&self) -> Result<()> {
         tracing::debug!("Clearing SyncThing errors");
