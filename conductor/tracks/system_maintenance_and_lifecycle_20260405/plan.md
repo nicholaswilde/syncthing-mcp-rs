@@ -12,7 +12,7 @@
 - [x] Task 2.3: Create new tool `ping_instance` in `src/tools/` 8b3575b
 - [x] Task 2.4: Register tools in `src/tools/mod.rs` 8b3575b
 
-## Phase 3: Testing & Documentation
-- [ ] Task 3.1: Write unit tests for new API methods
-- [ ] Task 3.2: Write Docker integration tests for new MCP tools
-- [ ] Task 3.3: Update `README.md` with new tool documentation
+## Phase 3: Testing & Documentation [checkpoint: 9fe6ca0]
+- [x] Task 3.1: Write unit tests for new API methods 9fe6ca0
+- [x] Task 3.2: Write Docker integration tests for new MCP tools 9fe6ca0
+- [x] Task 3.3: Update `README.md` with new tool documentation 9fe6ca0
