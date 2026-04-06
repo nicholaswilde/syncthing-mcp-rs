@@ -566,3 +566,24 @@ pub struct DiscoveryInfo {
 
 /// Response from /rest/system/discovery.
 pub type DiscoveryResponse = HashMap<String, DiscoveryInfo>;
+
+/// Upgrade information for the SyncThing instance.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct UpgradeResponse {
+    /// The latest available version.
+    pub latest: String,
+    /// Whether a newer version is available.
+    pub newer: bool,
+    /// Whether a major newer version is available.
+    #[serde(rename = "majorNewer")]
+    pub major_newer: bool,
+    /// The currently running version.
+    pub running: String,
+}
+
+/// Response from /rest/system/ping.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct PingResponse {
+    /// Should be "pong".
+    pub ping: String,
+}
