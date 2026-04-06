@@ -78,4 +78,75 @@ mod tests {
         assert!(text.contains("device1"));
         assert!(text.contains("75.50%"));
     }
+
+    #[tokio::test]
+    async fn test_inspect_folder_with_devices() {
+        use crate::tools::folders::inspect_folder;
+        let mock_server = MockServer::start().await;
+        
+        // Mock folder config
+        Mock::given(method("GET"))
+            .and(path("/rest/config/folders/default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": "default",
+                "label": "Default",
+                "path": "/tmp",
+                "type": "sendreceive",
+                "devices": [{"deviceID": "device1"}]
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock folder status
+        Mock::given(method("GET"))
+            .and(path("/rest/db/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "state": "idle",
+                "globalBytes": 1000,
+                "inSyncBytes": 1000
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock folder stats
+        Mock::given(method("GET"))
+            .and(path("/rest/stats/folder"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&mock_server)
+            .await;
+
+        // Mock device completion
+        Mock::given(method("GET"))
+            .and(path("/rest/db/completion"))
+            .and(query_param("device", "device1"))
+            .and(query_param("folder", "default"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "completion": 100.0,
+                "globalBytes": 1000,
+                "needBytes": 0,
+                "globalItems": 10,
+                "needItems": 0,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 100
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config);
+        let app_config = AppConfig::default();
+        let args = json!({
+            "folder_id": "default",
+            "include_devices": true
+        });
+
+        let result = inspect_folder(client, app_config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Per-Device Completion"));
+        assert!(text.contains("device1"));
+    }
 }

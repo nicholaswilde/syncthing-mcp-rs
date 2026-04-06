@@ -355,13 +355,18 @@ pub fn create_registry() -> ToolRegistry {
 
     registry.register(
         "inspect_folder",
-        "Provides a comprehensive status overview for a specific folder, consolidating sync status, conflicts, and statistics.",
+        "Provides a comprehensive status overview for a specific folder, consolidating sync status, conflicts, and statistics. Optionally includes per-device completion status.",
         serde_json::json!({
             "type": "object",
             "properties": {
                 "folder_id": {
                     "type": "string",
                     "description": "The unique Folder ID to inspect."
+                },
+                "include_devices": {
+                    "type": "boolean",
+                    "description": "If true, include completion status for each device shared with this folder.",
+                    "default": false
                 },
                 "format": {
                     "type": "string",
@@ -379,7 +384,8 @@ pub fn create_registry() -> ToolRegistry {
                     "items": { "type": "string" },
                     "description": "List of fields to include in JSON output."
                 }
-            }
+            },
+            "required": ["folder_id"]
         }),
         folders::inspect_folder,
     );

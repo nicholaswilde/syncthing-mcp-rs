@@ -301,7 +301,20 @@ pub async fn inspect_folder(
         .await
         .unwrap_or_default();
 
-    // 5. Check if JSON output is requested
+    // 5. Get Device Completion (optional)
+    let include_devices = args.get("include_devices").and_then(|v| v.as_bool()).unwrap_or(false);
+    let mut device_completions = Vec::new();
+    if include_devices {
+        for device in &folder_config.devices {
+            let completion = client.get_device_completion(&device.device_id, Some(folder_id)).await?;
+            device_completions.push(json!({
+                "device_id": device.device_id,
+                "completion": completion
+            }));
+        }
+    }
+
+    // 6. Check if JSON output is requested
     if args.get("format").and_then(|v| v.as_str()) == Some("json") {
         let mut data = json!({
             "folder_id": folder_id,
@@ -310,6 +323,10 @@ pub async fn inspect_folder(
             "stats": folder_stats,
             "conflicts": conflicts
         });
+
+        if include_devices {
+            data["device_completions"] = json!(device_completions);
+        }
 
         data = crate::mcp::optimization::optimize_response(data, &args);
 
@@ -321,7 +338,7 @@ pub async fn inspect_folder(
         }));
     }
 
-    // 6. Build Combined Report (Text)
+    // 7. Build Combined Report (Text)
     let mut text = format!(
         "### Folder Overview: {} ({})\n\n",
         folder_config.label, folder_id
@@ -345,6 +362,16 @@ pub async fn inspect_folder(
         ));
     }
     text.push('\n');
+
+    if include_devices && !device_completions.is_empty() {
+        text.push_str("#### Per-Device Completion\n");
+        for dev_comp in device_completions {
+            let device_id = dev_comp["device_id"].as_str().unwrap();
+            let completion = dev_comp["completion"]["completion"].as_f64().unwrap();
+            text.push_str(&format!("- **{}**: {:.2}%\n", device_id, completion));
+        }
+        text.push('\n');
+    }
 
     text.push_str("#### Statistics\n");
     if let Some(stats) = folder_stats {
