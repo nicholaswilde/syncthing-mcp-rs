@@ -138,21 +138,32 @@ pub struct FolderStatus {
     pub local_files: u64,
 }
 
-/// Device completion status.
+/// Folder or device completion status.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
-pub struct DeviceCompletion {
+pub struct FolderCompletion {
     /// Completion percentage (0.0 to 100.0).
-    #[serde(default)]
     pub completion: f64,
-    /// Number of bytes needed by the device.
-    #[serde(rename = "needBytes", default)]
-    pub need_bytes: u64,
-    /// Number of files needed by the device.
-    #[serde(rename = "needFiles", default)]
-    pub need_files: u64,
-    /// Global total bytes.
-    #[serde(rename = "globalBytes", default)]
+    /// Total size of the folder in bytes (global state).
+    #[serde(rename = "globalBytes")]
     pub global_bytes: u64,
+    /// Number of bytes still needed to reach 100% completion.
+    #[serde(rename = "needBytes")]
+    pub need_bytes: u64,
+    /// Total number of files, directories, and symlinks in the folder.
+    #[serde(rename = "globalItems")]
+    pub global_items: u64,
+    /// Number of items still needed to be downloaded/updated.
+    #[serde(rename = "needItems")]
+    pub need_items: u64,
+    /// Number of items that need to be deleted.
+    #[serde(rename = "needDeletes")]
+    pub need_deletes: u64,
+    /// State of the remote device.
+    #[serde(rename = "remoteState", default)]
+    pub remote_state: String,
+    /// Current internal sequence number.
+    #[serde(default)]
+    pub sequence: u64,
 }
 
 /// An event from the SyncThing event API.

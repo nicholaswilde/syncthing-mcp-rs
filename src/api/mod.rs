@@ -6,6 +6,9 @@ pub mod config_error_tests;
 /// Unit tests for configuration and error management client methods.
 #[cfg(test)]
 pub mod config_sync_error_client_tests;
+/// Unit tests for synchronization operation models.
+#[cfg(test)]
+pub mod sync_ops_models_tests;
 /// Unit tests for event parsing and summaries.
 #[cfg(test)]
 pub mod event_tests;

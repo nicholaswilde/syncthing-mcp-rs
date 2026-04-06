@@ -236,7 +236,7 @@ pub async fn inspect_device(
     if completion.need_bytes > 0 {
         text.push_str(&format!(
             "- **Syncing**: {} bytes remaining ({} files)\n",
-            completion.need_bytes, completion.need_files
+            completion.need_bytes, completion.need_items
         ));
     }
     text.push('\n');
