@@ -424,3 +424,76 @@ pub async fn get_instance_overview(
         }]
     }))
 }
+
+/// Checks if a newer version of SyncThing is available.
+pub async fn check_upgrade(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    match client.check_upgrade().await {
+        Ok(upgrade) => {
+            let mut text = format!("SyncThing Upgrade Check:\nRunning Version: {}\nLatest Version: {}\nNewer Available: {}\n", 
+                upgrade.running, upgrade.latest, upgrade.newer);
+            if upgrade.major_newer {
+                text.push_str("⚠️ A major version update is available!\n");
+            }
+            Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": text
+                }],
+                "data": upgrade
+            }))
+        }
+        Err(e) => {
+            if e.to_string().contains("upgrade unsupported") {
+                Ok(json!({
+                    "content": [{
+                        "type": "text",
+                        "text": "Internal SyncThing upgrades are not supported on this instance (likely managed by Docker or a package manager)."
+                    }]
+                }))
+            } else {
+                Err(e)
+            }
+        }
+    }
+}
+
+/// Triggers an upgrade to the latest version of SyncThing.
+pub async fn perform_upgrade(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    client.perform_upgrade().await?;
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": "Successfully triggered SyncThing upgrade. The instance will restart shortly."
+        }]
+    }))
+}
+
+/// Pings the SyncThing instance to verify API responsiveness.
+pub async fn ping_instance(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let start = std::time::Instant::now();
+    let resp = client.ping().await?;
+    let latency = start.elapsed().as_millis();
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": format!("Ping response: {} (latency: {}ms)", resp.ping, latency)
+        }],
+        "data": {
+            "ping": resp.ping,
+            "latency_ms": latency
+        }
+    }))
+}

@@ -833,3 +833,34 @@ async fn test_get_discovery_status_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_check_upgrade_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("check_upgrade", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    // In Docker, it should return "upgrade unsupported" handled gracefully
+    assert!(text.contains("SyncThing Upgrade Check") || text.contains("not supported"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_ping_instance_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("ping_instance", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Ping response: pong"));
+
+    Ok(())
+}

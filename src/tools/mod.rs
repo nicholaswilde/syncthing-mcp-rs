@@ -616,6 +616,36 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "check_upgrade",
+        "Check if a newer version of Syncthing is available for the instance.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::check_upgrade,
+    );
+
+    registry.register(
+        "perform_upgrade",
+        "Trigger an upgrade to the latest available version of Syncthing.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::perform_upgrade,
+    );
+
+    registry.register(
+        "ping_instance",
+        "Ping the SyncThing instance to verify API responsiveness and measure latency.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::ping_instance,
+    );
+
+    registry.register(
         "replicate_config",
         "Replicate configuration (folders and devices) from one SyncThing instance to another. Optionally perform a dry run or select specific folders/devices.",
         serde_json::json!({
