@@ -89,6 +89,9 @@ pub mod system;
 /// Unit tests for the system tools.
 #[cfg(test)]
 mod system_tests;
+/// Unit tests for lifecycle tools.
+#[cfg(test)]
+mod lifecycle_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;

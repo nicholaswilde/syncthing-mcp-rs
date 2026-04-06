@@ -33,6 +33,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
   - **Tools:**
     - `analyze_error`: Analyze a technical error message and provide a diagnostic summary with actionable advice.
     - `batch_manage_folders`: Performs bulk actions (rescan, revert, pause, resume) on multiple folders simultaneously.
+    - `check_upgrade`: Check if a newer version of Syncthing is available for the instance.
     - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix, recursion depth control, and result limiting.
     - `configure_sharing`: Configure folder sharing between devices (share or unshare).
     - `delete_conflict`: Permanently delete a Syncthing conflict file.
@@ -61,6 +62,8 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `manage_ignores`: Manage folder ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
     - `merge_instance_configs`: Merges configuration from one SyncThing instance into another. This appends/updates folders and devices instead of replacing the entire configuration.
     - `monitor_self_healing`: Monitor tool that checks for stuck folders and disconnected devices, and triggers self-healing actions.
+    - `perform_upgrade`: Trigger an upgrade to the latest available version of Syncthing.
+    - `ping_instance`: Ping the Syncthing instance to verify API responsiveness and measure latency.
     - `preview_conflict_resolution`: Show what the file will look like after a proposed resolution.
     - `replicate_config`: Replicate configuration (folders and devices) from one Syncthing instance to another. Optionally perform a dry run or select specific folders/devices.
     - `resolve_conflict`: Resolve a Syncthing conflict file by keeping either the original or the conflict version. Supports a preview mode.
