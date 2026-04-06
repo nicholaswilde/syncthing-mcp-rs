@@ -196,7 +196,7 @@ pub async fn inspect_device(
         .unwrap_or("Unknown");
 
     // 2. Get Device Completion
-    let completion = client.get_device_completion(device_id).await?;
+    let completion = client.get_device_completion(device_id, None).await?;
 
     // 3. Get Device Stats
     let all_stats = client.get_device_stats().await?;

@@ -55,7 +55,7 @@ pub async fn get_sync_status(
             )
         }
         "device" => {
-            let completion = client.get_device_completion(id).await?;
+            let completion = client.get_device_completion(id, None).await?;
             format!(
                 "Device: {}\nCompletion: {:.2}%\nBytes Remaining: {}\nFiles Remaining: {}",
                 id, completion.completion, completion.need_bytes, completion.need_items

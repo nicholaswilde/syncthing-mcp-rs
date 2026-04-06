@@ -294,13 +294,26 @@ impl SyncThingClient {
         Ok(response.json::<FolderStatus>().await?)
     }
 
-    /// Returns the completion status for a specific device.
-    pub async fn get_device_completion(&self, device_id: &str) -> Result<FolderCompletion> {
-        tracing::debug!("Fetching SyncThing device completion: {}", device_id);
+    /// Returns the completion status for a specific device and optionally a specific folder.
+    pub async fn get_device_completion(
+        &self,
+        device_id: &str,
+        folder_id: Option<&str>,
+    ) -> Result<FolderCompletion> {
+        tracing::debug!(
+            "Fetching SyncThing device completion: {} (folder: {:?})",
+            device_id,
+            folder_id
+        );
         let url = format!("{}/rest/db/completion", self.config.url);
-        let request = self
+        let mut request = self
             .add_auth(self.client.get(&url))
             .query(&[("device", device_id)]);
+
+        if let Some(id) = folder_id {
+            request = request.query(&[("folder", id)]);
+        }
+
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<FolderCompletion>().await?)
     }

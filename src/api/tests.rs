@@ -469,10 +469,15 @@ mod tests {
             .and(header("X-API-Key", api_key))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "completion": 100.0,
+                "globalBytes": 1000,
                 "needBytes": 0,
-                "needFiles": 0,
-                "globalBytes": 1000
+                "globalItems": 10,
+                "needItems": 0,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 100
             })))
+
             .mount(&mock_server)
             .await;
 
@@ -483,7 +488,7 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let completion = client.get_device_completion("test-device").await.unwrap();
+        let completion = client.get_device_completion("test-device", None).await.unwrap();
 
         assert_eq!(completion.completion, 100.0);
         assert_eq!(completion.global_bytes, 1000);
