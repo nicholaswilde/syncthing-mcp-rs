@@ -39,5 +39,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("No folders found to test.");
     }
 
+    println!("\nTesting get_discovery_status...");
+    let discovery = client.get_discovery_status().await?;
+    println!("Found discovery info for {} devices", discovery.len());
+    if let Some((id, info)) = discovery.iter().next() {
+        println!("Sample device: {} -> {:?}", id, info.addresses);
+    }
+
+    println!("\nTesting check_upgrade...");
+    match client.check_upgrade().await {
+        Ok(upgrade) => println!("Upgrade check: newer={}, latest={}", upgrade.newer, upgrade.latest),
+        Err(e) => println!("Upgrade check failed: {}", e),
+    }
+
+    println!("\nTesting ping...");
+    let ping = client.ping().await?;
+    println!("Ping response: {}", ping.ping);
+
     Ok(())
 }

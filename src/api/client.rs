@@ -54,7 +54,13 @@ impl SyncThingClient {
                 let response = rb.send().await.map_err(Error::from)?;
 
                 if response.status().is_server_error() {
-                    return Err(Error::from(response.error_for_status().unwrap_err()));
+                    let status = response.status();
+                    if status == reqwest::StatusCode::BAD_GATEWAY
+                        || status == reqwest::StatusCode::SERVICE_UNAVAILABLE
+                        || status == reqwest::StatusCode::GATEWAY_TIMEOUT
+                    {
+                        return Err(Error::from(response.error_for_status().unwrap_err()));
+                    }
                 }
 
                 Ok(response)
@@ -97,7 +103,19 @@ impl SyncThingClient {
         tracing::debug!("Checking for Syncthing upgrade");
         let url = format!("{}/rest/system/upgrade", self.config.url);
         let request = self.add_auth(self.client.get(&url));
-        let response = self.send_with_retry(request).await?;
+        let response = match self.send_with_retry(request).await {
+            Ok(r) => r,
+            Err(e) => {
+                if let crate::error::Error::Api(ref re) = e {
+                    if re.status() == Some(reqwest::StatusCode::NOT_IMPLEMENTED) {
+                        return Err(crate::error::Error::SyncThing(
+                            "upgrade unsupported".to_string(),
+                        ));
+                    }
+                }
+                return Err(e);
+            }
+        };
 
         let text = response.text().await?;
         if text.trim() == "upgrade unsupported" {
