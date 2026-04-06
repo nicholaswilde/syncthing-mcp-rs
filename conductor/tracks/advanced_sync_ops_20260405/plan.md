@@ -8,8 +8,8 @@
 ## Phase 2: MCP Tools Implementation
 - [x] Create new tool `set_file_priority`. [119c098]
 - [x] Create new tool `get_device_sync_status` (per-device). [0ac5900]
-- [~] Update `inspect_folder` to optionally include per-device completion if requested.
-- [ ] Register tools in `src/tools/mod.rs`.
+- [x] Update `inspect_folder` to optionally include per-device completion if requested. [0ac215c]
+- [~] Register tools in `src/tools/mod.rs`.
 
 ## Phase 3: Verification
 - [ ] Write unit and integration tests.
