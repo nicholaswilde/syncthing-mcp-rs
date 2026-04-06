@@ -2,11 +2,11 @@
 mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::AppConfig;
-    use crate::tools::diagnostics::*;
     use crate::config::InstanceConfig;
+    use crate::tools::diagnostics::*;
+    use serde_json::json;
     use wiremock::matchers::{header, method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
-    use serde_json::json;
 
     #[tokio::test]
     async fn test_get_file_info_tool() {
@@ -161,7 +161,9 @@ mod tests {
 
         let params = json!({});
 
-        let result = get_discovery_status(client, app_config, params).await.unwrap();
+        let result = get_discovery_status(client, app_config, params)
+            .await
+            .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Discovery Status (1 devices)"));
         assert!(text.contains("device1"));

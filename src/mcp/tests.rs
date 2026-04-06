@@ -77,6 +77,14 @@ mod tests {
             .await;
 
         Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
+            })))
+            .mount(&mock_server1)
+            .await;
+
+        Mock::given(method("GET"))
             .and(path("/rest/system/version"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "version": "v1.27.1",
@@ -98,6 +106,14 @@ mod tests {
                 "sys": 4000,
                 "goroutines": 10,
                 "pathSeparator": "/"
+            })))
+            .mount(&mock_server2)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
             })))
             .mount(&mock_server2)
             .await;
@@ -173,6 +189,22 @@ mod tests {
             .mount(&mock_server)
             .await;
 
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
+            })))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
+            })))
+            .mount(&mock_server)
+            .await;
+
         let registry = create_registry();
         let config = AppConfig {
             host: "localhost".to_string(),
@@ -233,6 +265,14 @@ mod tests {
                 "sys": 2000,
                 "goroutines": 10,
                 "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
             })))
             .mount(&mock_server)
             .await;

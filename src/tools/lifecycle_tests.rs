@@ -2,11 +2,11 @@
 mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::AppConfig;
-    use crate::tools::system::*;
     use crate::config::InstanceConfig;
+    use crate::tools::system::*;
+    use serde_json::json;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
-    use serde_json::json;
 
     #[tokio::test]
     async fn test_check_upgrade_tool() {
@@ -57,7 +57,9 @@ mod tests {
             ..Default::default()
         };
 
-        let result = perform_upgrade(client, app_config, json!({})).await.unwrap();
+        let result = perform_upgrade(client, app_config, json!({}))
+            .await
+            .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Successfully triggered SyncThing upgrade"));
     }

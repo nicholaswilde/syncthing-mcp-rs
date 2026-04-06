@@ -14,7 +14,7 @@ mod tests {
             .and(path("/rest/system/config/insync"))
             .and(header("X-API-Key", api_key))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "insync": true
+                "configInSync": true
             })))
             .mount(&mock_server)
             .await;
@@ -59,7 +59,10 @@ mod tests {
         let client = SyncThingClient::new(config);
         let errors = client.get_errors().await.unwrap();
 
-        assert_eq!(errors.errors.len(), 1);
-        assert_eq!(errors.errors[0].message, "test error message");
+        assert_eq!(errors.errors.as_ref().unwrap().len(), 1);
+        assert_eq!(
+            errors.errors.as_ref().unwrap()[0].message,
+            "test error message"
+        );
     }
 }

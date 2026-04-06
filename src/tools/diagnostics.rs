@@ -1,7 +1,7 @@
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
 use crate::error::{Error, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Handler for the get_file_info tool.
 pub async fn get_file_info(
@@ -22,8 +22,8 @@ pub async fn get_file_info(
         "content": [
             {
                 "type": "text",
-                "text": format!("File Info for '{}' in folder '{}':\nState: {}\nSize: {} bytes\nModified: {} (by {})\nAvailability: {} devices", 
-                    file_path, 
+                "text": format!("File Info for '{}' in folder '{}':\nState: {}\nSize: {} bytes\nModified: {} (by {})\nAvailability: {} devices",
+                    file_path,
                     folder_id,
                     info.global.file_type,
                     info.global.size,
@@ -46,7 +46,7 @@ pub async fn get_folder_needs(
     let folder_id = params["folder_id"]
         .as_str()
         .ok_or_else(|| Error::ValidationError("folder_id is required".to_string()))?;
-    
+
     let page = params["page"].as_u64().map(|v| v as u32);
     let per_page = params["per_page"].as_u64().map(|v| v as u32);
 
@@ -61,7 +61,10 @@ pub async fn get_folder_needs(
     if !needs.rest.is_empty() {
         summary.push_str("\nRemaining items (first 10):\n");
         for file in needs.rest.iter().take(10) {
-            summary.push_str(&format!("- {} ({} bytes, modified: {})\n", file.name, file.size, file.modified));
+            summary.push_str(&format!(
+                "- {} ({} bytes, modified: {})\n",
+                file.name, file.size, file.modified
+            ));
         }
     }
 
@@ -85,7 +88,7 @@ pub async fn get_discovery_status(
     let discovery = client.get_discovery_status().await?;
 
     let mut summary = format!("Discovery Status ({} devices):\n", discovery.len());
-    
+
     if discovery.is_empty() {
         summary.push_str("No discovery information available.");
     } else {

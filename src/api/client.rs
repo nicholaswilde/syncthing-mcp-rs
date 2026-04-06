@@ -55,7 +55,8 @@ impl SyncThingClient {
 
                 if response.status().is_server_error() {
                     let status = response.status();
-                    if status == reqwest::StatusCode::BAD_GATEWAY
+                    if status == reqwest::StatusCode::INTERNAL_SERVER_ERROR
+                        || status == reqwest::StatusCode::BAD_GATEWAY
                         || status == reqwest::StatusCode::SERVICE_UNAVAILABLE
                         || status == reqwest::StatusCode::GATEWAY_TIMEOUT
                     {
@@ -106,18 +107,19 @@ impl SyncThingClient {
         let response = match self.send_with_retry(request).await {
             Ok(r) => r,
             Err(e) => {
-                if let crate::error::Error::Api(ref re) = e {
-                    if re.status() == Some(reqwest::StatusCode::NOT_IMPLEMENTED) {
-                        return Err(crate::error::Error::SyncThing(
-                            "upgrade unsupported".to_string(),
-                        ));
-                    }
+                if let crate::error::Error::Api(ref re) = e
+                    && re.status() == Some(reqwest::StatusCode::NOT_IMPLEMENTED)
+                {
+                    return Err(crate::error::Error::SyncThing(
+                        "upgrade unsupported".to_string(),
+                    ));
                 }
                 return Err(e);
             }
         };
 
-        let text = response.text().await?;
+        let text: String = response.text().await?;
+
         if text.trim() == "upgrade unsupported" {
             return Err(crate::error::Error::SyncThing(
                 "upgrade unsupported".to_string(),
@@ -513,7 +515,11 @@ impl SyncThingClient {
     }
 
     /// Returns detailed information about a specific file.
-    pub async fn get_file_info(&self, folder_id: &str, file_path: &str) -> Result<FileInfoResponse> {
+    pub async fn get_file_info(
+        &self,
+        folder_id: &str,
+        file_path: &str,
+    ) -> Result<FileInfoResponse> {
         tracing::debug!("Fetching SyncThing file info: {}/{}", folder_id, file_path);
         let url = format!("{}/rest/db/file", self.config.url);
         let request = self
@@ -532,7 +538,9 @@ impl SyncThingClient {
     ) -> Result<FolderNeedResponse> {
         tracing::debug!("Fetching SyncThing folder needs: {}", folder_id);
         let url = format!("{}/rest/db/need", self.config.url);
-        let mut request = self.add_auth(self.client.get(&url)).query(&[("folder", folder_id)]);
+        let mut request = self
+            .add_auth(self.client.get(&url))
+            .query(&[("folder", folder_id)]);
 
         if let Some(p) = page {
             request = request.query(&[("page", p)]);

@@ -1258,7 +1258,12 @@ mod tests {
         let result = client.check_upgrade().await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("upgrade unsupported"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("upgrade unsupported")
+        );
     }
 
     #[tokio::test]

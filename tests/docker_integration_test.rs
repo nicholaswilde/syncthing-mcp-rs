@@ -759,13 +759,15 @@ async fn test_get_file_info_tool() -> Result<()> {
     }
 
     let ctx = TestContext::new().await?;
-    
+
     // Ensure we have at least one folder
     let folders = ctx.client.list_folders().await?;
     let folder_id = if let Some(f) = folders.first() {
         f.id.clone()
     } else {
-        ctx.client.add_folder("default", "Default", "/var/syncthing/default").await?;
+        ctx.client
+            .add_folder("default", "Default", "/var/syncthing/default")
+            .await?;
         "default".to_string()
     };
 
@@ -800,7 +802,9 @@ async fn test_get_folder_needs_tool() -> Result<()> {
     let folder_id = if let Some(f) = folders.first() {
         f.id.clone()
     } else {
-        ctx.client.add_folder("default", "Default", "/var/syncthing/default").await?;
+        ctx.client
+            .add_folder("default", "Default", "/var/syncthing/default")
+            .await?;
         "default".to_string()
     };
 

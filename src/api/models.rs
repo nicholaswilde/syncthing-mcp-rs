@@ -310,7 +310,7 @@ pub struct SystemLog {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct SystemErrors {
     /// The list of system errors.
-    pub errors: Vec<LogEntry>,
+    pub errors: Option<Vec<LogEntry>>,
 }
 
 /// Statistics for a device.
@@ -402,6 +402,7 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct ConfigInSync {
     /// Whether the configuration is in sync.
+    #[serde(rename = "configInSync")]
     pub insync: bool,
 }
 

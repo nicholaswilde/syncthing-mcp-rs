@@ -228,10 +228,10 @@ pub async fn list_instances(
         if let Some(alloc) = health.memory_alloc {
             text.push_str(&format!("- **Memory Alloc**: {} bytes\n", alloc));
         }
-        if let Some(insync) = health.config_insync {
-            if !insync {
-                text.push_str("- **⚠️ Configuration NOT in sync with on-disk (restart required)**\n");
-            }
+        if let Some(insync) = health.config_insync
+            && !insync
+        {
+            text.push_str("- **⚠️ Configuration NOT in sync with on-disk (restart required)**\n");
         }
         if let Some(error) = health.error {
             text.push_str(&format!("- **Error**: {}\n", error));
@@ -282,10 +282,10 @@ pub async fn get_instance_health(
     if let Some(sys) = health.memory_sys {
         text.push_str(&format!("Memory Total: {} bytes\n", sys));
     }
-    if let Some(insync) = health.config_insync {
-        if !insync {
-            text.push_str("⚠️ Configuration NOT in sync with on-disk (restart required)\n");
-        }
+    if let Some(insync) = health.config_insync
+        && !insync
+    {
+        text.push_str("⚠️ Configuration NOT in sync with on-disk (restart required)\n");
     }
     if let Some(error) = health.error {
         text.push_str(&format!("Error: {}\n", error));
@@ -450,8 +450,10 @@ pub async fn check_upgrade(
 ) -> Result<Value> {
     match client.check_upgrade().await {
         Ok(upgrade) => {
-            let mut text = format!("SyncThing Upgrade Check:\nRunning Version: {}\nLatest Version: {}\nNewer Available: {}\n", 
-                upgrade.running, upgrade.latest, upgrade.newer);
+            let mut text = format!(
+                "SyncThing Upgrade Check:\nRunning Version: {}\nLatest Version: {}\nNewer Available: {}\n",
+                upgrade.running, upgrade.latest, upgrade.newer
+            );
             if upgrade.major_newer {
                 text.push_str("⚠️ A major version update is available!\n");
             }
@@ -546,7 +548,9 @@ pub async fn get_system_errors(
 ) -> Result<Value> {
     let errors = client.get_errors().await?;
 
-    if errors.errors.is_empty() {
+    let error_list = errors.errors.as_ref().filter(|v| !v.is_empty());
+
+    if error_list.is_none() {
         return Ok(json!({
             "content": [{
                 "type": "text",
@@ -556,7 +560,7 @@ pub async fn get_system_errors(
     }
 
     let mut text = String::from("### SyncThing System Errors\n\n");
-    for error in &errors.errors {
+    for error in error_list.unwrap() {
         text.push_str(&format!("- **[{}]** {}\n", error.when, error.message));
     }
 

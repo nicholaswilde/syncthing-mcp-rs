@@ -67,6 +67,14 @@ mod tests {
             .mount(&mock_server)
             .await;
 
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "configInSync": true
+            })))
+            .mount(&mock_server)
+            .await;
+
         let config = AppConfig {
             instances: vec![InstanceConfig {
                 name: Some("Instance 1".to_string()),

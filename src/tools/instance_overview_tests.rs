@@ -57,7 +57,7 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/rest/system/config/insync"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "insync": true
+                "configInSync": true
             })))
             .mount(&server)
             .await;
@@ -129,7 +129,7 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/rest/system/config/insync"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "insync": true
+                "configInSync": true
             })))
             .mount(&server)
             .await;

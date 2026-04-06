@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(folder) = folders.first() {
         let folder_id = &folder.id;
         println!("Using folder: {}", folder_id);
-        
+
         // List some files first to find a valid one
         let browse = client.browse(folder_id, None, Some(1)).await?;
         if let Some(file_name) = browse.as_object().and_then(|o| o.keys().next()) {
@@ -48,7 +48,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\nTesting check_upgrade...");
     match client.check_upgrade().await {
-        Ok(upgrade) => println!("Upgrade check: newer={}, latest={}", upgrade.newer, upgrade.latest),
+        Ok(upgrade) => println!(
+            "Upgrade check: newer={}, latest={}",
+            upgrade.newer, upgrade.latest
+        ),
         Err(e) => println!("Upgrade check failed: {}", e),
     }
 

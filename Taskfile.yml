@@ -93,6 +93,14 @@ tasks:
     cmds:
       - cargo run --example verify_api_live
 
+  run:config-error-tests:
+    desc: Run config and error tools against a live SyncThing instance (requires .env)
+    preconditions:
+      - sh: test -f .env
+        msg: ".env file doesn't exist"
+    cmds:
+      - cargo run --example test_live_config_error
+
   check:
     desc: Check code for errors without generating binary
     cmds:

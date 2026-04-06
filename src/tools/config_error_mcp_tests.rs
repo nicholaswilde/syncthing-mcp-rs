@@ -3,18 +3,18 @@ mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::{AppConfig, InstanceConfig};
     use crate::tools::system::{get_system_errors, is_config_insync};
+    use serde_json::json;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
-    use serde_json::json;
 
     #[tokio::test]
     async fn test_is_config_insync_tool() {
         let mock_server = MockServer::start().await;
-        
+
         Mock::given(method("GET"))
             .and(path("/rest/system/config/insync"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "insync": true
+                "configInSync": true
             })))
             .mount(&mock_server)
             .await;
@@ -35,7 +35,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_system_errors_tool() {
         let mock_server = MockServer::start().await;
-        
+
         Mock::given(method("GET"))
             .and(path("/rest/system/error"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({

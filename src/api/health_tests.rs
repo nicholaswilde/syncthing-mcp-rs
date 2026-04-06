@@ -38,7 +38,7 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/rest/system/config/insync"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "insync": true
+                "configInSync": true
             })))
             .mount(&mock_server)
             .await;
@@ -58,7 +58,7 @@ mod tests {
         assert_eq!(health.uptime.unwrap(), 100);
         assert_eq!(health.memory_alloc.unwrap(), 1000);
         assert_eq!(health.memory_sys.unwrap(), 2000);
-        assert_eq!(health.config_insync.unwrap(), true);
+        assert!(health.config_insync.unwrap());
         assert!(health.error.is_none());
     }
 

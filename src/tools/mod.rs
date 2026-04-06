@@ -24,6 +24,9 @@ pub mod config_diff;
 /// Unit tests for configuration diffing.
 #[cfg(test)]
 mod config_diff_tests;
+/// Unit tests for configuration and error management MCP tools.
+#[cfg(test)]
+mod config_error_mcp_tests;
 /// Unit tests for configuration replication.
 #[cfg(test)]
 pub mod config_tests;
@@ -32,16 +35,8 @@ pub mod config_tests;
 mod conflict_summary_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
-/// Unit tests for configuration and error management MCP tools.
-#[cfg(test)]
-mod config_error_mcp_tests;
 /// Connectivity watchdog tools.
 pub mod connectivity_watchdog;
-/// Diagnostics tools.
-pub mod diagnostics;
-/// Unit tests for diagnostics tools.
-#[cfg(test)]
-mod diagnostics_tests;
 /// Unit tests for connectivity watchdog tools.
 #[cfg(test)]
 mod connectivity_watchdog_tests;
@@ -55,6 +50,11 @@ pub mod devices;
 /// Unit tests for the devices tool.
 #[cfg(test)]
 mod devices_tests;
+/// Diagnostics tools.
+pub mod diagnostics;
+/// Unit tests for diagnostics tools.
+#[cfg(test)]
+mod diagnostics_tests;
 /// Advanced diffing tools for conflict resolution.
 pub mod diff;
 /// Unit tests for advanced diffing tools.
@@ -79,6 +79,9 @@ mod inspect_folder_tests;
 /// Unit tests for the get_instance_overview tool.
 #[cfg(test)]
 mod instance_overview_tests;
+/// Unit tests for lifecycle tools.
+#[cfg(test)]
+mod lifecycle_tests;
 /// Unit tests for performance profiles.
 #[cfg(test)]
 mod profile_tests;
@@ -92,9 +95,6 @@ pub mod system;
 /// Unit tests for the system tools.
 #[cfg(test)]
 mod system_tests;
-/// Unit tests for lifecycle tools.
-#[cfg(test)]
-mod lifecycle_tests;
 
 use crate::api::SyncThingClient;
 use crate::config::AppConfig;
