@@ -864,3 +864,33 @@ async fn test_ping_instance_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_is_config_insync_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("is_config_insync", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Configuration is in sync") || text.contains("NOT in sync"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_system_errors_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_system_errors", json!({})).await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("No active system GUI errors found") || text.contains("System Errors"));
+
+    Ok(())
+}

@@ -5,7 +5,7 @@
 [![ci](https://img.shields.io/github/actions/workflow/status/nicholaswilde/syncthing-mcp-rs/ci.yml?label=ci&style=for-the-badge&branch=main&logo=github-actions)](https://github.com/nicholaswilde/syncthing-mcp-rs/actions/workflows/ci.yml)
 
 > [!WARNING]
-> This project is currently in active development (v0.1.15) and is **not production-ready**.
+> This project is currently in active development (v0.1.16) and is **not production-ready**.
  Features may change, and breaking changes may occur without notice. **Use this MCP server at your own risk.**
 
 A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Context Protocol) server](https://modelcontextprotocol.io/docs/getting-started/intro). This server connects to one or more Syncthing instances and exposes tools to monitor and manage file synchronization via the Model Context Protocol.
@@ -50,10 +50,12 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `get_instance_overview`: Provides a top-level health and status report for a SyncThing instance, consolidating system status, connections, and version information.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
     - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices.
+    - `get_system_errors`: Retrieves the current list of active system GUI errors from the SyncThing instance.
     - `get_system_log`: Get recent log entries from the Syncthing service for troubleshooting.
     - `get_system_status`: Get comprehensive system status information, including version, uptime, memory usage, and the unique device ID.
     - `inspect_device`: Provides a comprehensive status overview for a specific device, consolidating completion status and statistics.
     - `inspect_folder`: Provides a comprehensive status overview for a specific folder, consolidating sync status, conflicts, and statistics.
+    - `is_config_insync`: Checks if the running SyncThing configuration is in sync with the on-disk configuration. Returns true if in sync, false if a restart might be required.
     - `list_conflicts`: List Syncthing conflict files in a specific folder.
     - `list_instances`: List all configured Syncthing instances and their current health status.
     - `maintain_system`: Perform system maintenance: force a rescan of folders, restart the Syncthing service, or shut down the service.
