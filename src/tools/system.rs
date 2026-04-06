@@ -228,6 +228,11 @@ pub async fn list_instances(
         if let Some(alloc) = health.memory_alloc {
             text.push_str(&format!("- **Memory Alloc**: {} bytes\n", alloc));
         }
+        if let Some(insync) = health.config_insync {
+            if !insync {
+                text.push_str("- **⚠️ Configuration NOT in sync with on-disk (restart required)**\n");
+            }
+        }
         if let Some(error) = health.error {
             text.push_str(&format!("- **Error**: {}\n", error));
         }
@@ -276,6 +281,11 @@ pub async fn get_instance_health(
     }
     if let Some(sys) = health.memory_sys {
         text.push_str(&format!("Memory Total: {} bytes\n", sys));
+    }
+    if let Some(insync) = health.config_insync {
+        if !insync {
+            text.push_str("⚠️ Configuration NOT in sync with on-disk (restart required)\n");
+        }
     }
     if let Some(error) = health.error {
         text.push_str(&format!("Error: {}\n", error));
@@ -369,7 +379,10 @@ pub async fn get_instance_overview(
     // 3. Get Version
     let version = client.get_system_version().await?;
 
-    // 4. Check if JSON output is requested
+    // 4. Get Config In Sync
+    let config_insync = client.is_config_insync().await?;
+
+    // 5. Check if JSON output is requested
     if args.get("format").and_then(|v| v.as_str()) == Some("json") {
         let mut data = json!({
             "status": status,
@@ -377,7 +390,8 @@ pub async fn get_instance_overview(
                 "total": connections.connections.len(),
                 "connected": connected_count
             },
-            "version": version
+            "version": version,
+            "config_insync": config_insync.insync
         });
 
         data = crate::mcp::optimization::optimize_response(data, &args);
@@ -390,7 +404,7 @@ pub async fn get_instance_overview(
         }));
     }
 
-    // 5. Build Combined Report (Text)
+    // 6. Build Combined Report (Text)
     let mut text = format!("### Instance Overview: {}\n\n", status.my_id);
 
     text.push_str("#### System Status\n");
@@ -398,6 +412,9 @@ pub async fn get_instance_overview(
     text.push_str(&format!("- **Uptime**: {}s\n", status.uptime));
     text.push_str(&format!("- **Memory Usage**: {} bytes\n", status.alloc));
     text.push_str(&format!("- **OS/Arch**: {}/{}\n", version.os, version.arch));
+    if !config_insync.insync {
+        text.push_str("- **⚠️ Configuration NOT in sync with on-disk (restart required)**\n");
+    }
     text.push('\n');
 
     text.push_str("#### Connectivity\n");
@@ -495,5 +512,59 @@ pub async fn ping_instance(
             "ping": resp.ping,
             "latency_ms": latency
         }
+    }))
+}
+
+/// Checks if the running configuration is in sync with the on-disk configuration.
+pub async fn is_config_insync(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let status = client.is_config_insync().await?;
+
+    let text = if status.insync {
+        "Configuration is in sync with the on-disk configuration."
+    } else {
+        "⚠️ Configuration is NOT in sync with the on-disk configuration. A restart might be required to apply changes."
+    };
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }],
+        "data": status
+    }))
+}
+
+/// Retrieves the current list of active system GUI errors from SyncThing.
+pub async fn get_system_errors(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _args: Value,
+) -> Result<Value> {
+    let errors = client.get_errors().await?;
+
+    if errors.errors.is_empty() {
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": "No active system GUI errors found."
+            }]
+        }));
+    }
+
+    let mut text = String::from("### SyncThing System Errors\n\n");
+    for error in &errors.errors {
+        text.push_str(&format!("- **[{}]** {}\n", error.when, error.message));
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end().to_string()
+        }],
+        "data": errors
     }))
 }

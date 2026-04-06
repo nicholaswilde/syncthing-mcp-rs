@@ -53,6 +53,15 @@ mod tests {
             .mount(&server)
             .await;
 
+        // Mock config insync
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "insync": true
+            })))
+            .mount(&server)
+            .await;
+
         let client = SyncThingClient::new(InstanceConfig {
             url: server.uri(),
             api_key: Some("test".to_string()),
@@ -112,6 +121,15 @@ mod tests {
                 "isRelease": true,
                 "isBeta": false,
                 "isCandidate": false
+            })))
+            .mount(&server)
+            .await;
+
+        // Mock config insync
+        Mock::given(method("GET"))
+            .and(path("/rest/system/config/insync"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "insync": true
             })))
             .mount(&server)
             .await;

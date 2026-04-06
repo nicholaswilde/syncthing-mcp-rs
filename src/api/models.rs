@@ -306,6 +306,13 @@ pub struct SystemLog {
     pub messages: Vec<LogEntry>,
 }
 
+/// Response from /rest/system/error.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct SystemErrors {
+    /// The list of system errors.
+    pub errors: Vec<LogEntry>,
+}
+
 /// Statistics for a device.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct DeviceStats {
@@ -391,6 +398,13 @@ pub struct Config {
     pub defaults: serde_json::Value,
 }
 
+/// Response from /rest/system/config/insync.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct ConfigInSync {
+    /// Whether the configuration is in sync.
+    pub insync: bool,
+}
+
 /// Health check result for a SyncThing instance.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct HealthCheck {
@@ -406,6 +420,8 @@ pub struct HealthCheck {
     pub memory_alloc: Option<u64>,
     /// Total system memory in bytes.
     pub memory_sys: Option<u64>,
+    /// Whether the configuration is in sync with on-disk.
+    pub config_insync: Option<bool>,
     /// Error message if any.
     pub error: Option<String>,
 }

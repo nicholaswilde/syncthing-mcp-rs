@@ -554,26 +554,29 @@ impl SyncThingClient {
         let start = std::time::Instant::now();
         let version_res = self.get_system_version().await;
         let status_res = self.get_system_status().await;
+        let insync_res = self.is_config_insync().await;
 
         let latency = start.elapsed().as_millis();
 
-        match (version_res, status_res) {
-            (Ok(version), Ok(status)) => Ok(HealthCheck {
+        match (version_res, status_res, insync_res) {
+            (Ok(version), Ok(status), Ok(insync)) => Ok(HealthCheck {
                 status: "Online".to_string(),
                 latency_ms: latency,
                 version: Some(version.version),
                 uptime: Some(status.uptime),
                 memory_alloc: Some(status.alloc),
                 memory_sys: Some(status.total_memory),
+                config_insync: Some(insync.insync),
                 error: None,
             }),
-            (Err(e), _) | (_, Err(e)) => Ok(HealthCheck {
+            (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => Ok(HealthCheck {
                 status: "Offline".to_string(),
                 latency_ms: latency,
                 version: None,
                 uptime: None,
                 memory_alloc: None,
                 memory_sys: None,
+                config_insync: None,
                 error: Some(e.to_string()),
             }),
         }

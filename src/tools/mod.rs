@@ -32,6 +32,9 @@ pub mod config_tests;
 mod conflict_summary_tests;
 /// Sync conflict management tools.
 pub mod conflicts;
+/// Unit tests for configuration and error management MCP tools.
+#[cfg(test)]
+mod config_error_mcp_tests;
 /// Connectivity watchdog tools.
 pub mod connectivity_watchdog;
 /// Diagnostics tools.
@@ -646,6 +649,26 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {}
         }),
         system::ping_instance,
+    );
+
+    registry.register(
+        "is_config_insync",
+        "Checks if the running SyncThing configuration is in sync with the on-disk configuration. Returns true if in sync, false if a restart might be required.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::is_config_insync,
+    );
+
+    registry.register(
+        "get_system_errors",
+        "Retrieves the current list of active system GUI errors from the SyncThing instance.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        system::get_system_errors,
     );
 
     registry.register(
