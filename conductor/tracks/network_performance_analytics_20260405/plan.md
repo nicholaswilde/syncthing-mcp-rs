@@ -1,7 +1,7 @@
 # Implementation Plan: Network Performance Analytics
 
 ## Phase 1: Data Model Enhancements
-- [ ] Refine `SystemConnections` and related models in `src/api/models.rs` to capture more granular data (types, address, etc.).
+- [x] Refine `SystemConnections` and related models in `src/api/models.rs` to capture more granular data (types, address, etc.). [a50c50f]
 - [ ] Ensure backward compatibility with existing summary tools.
 
 ## Phase 2: Tool Implementation
