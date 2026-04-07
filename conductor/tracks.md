@@ -7,7 +7,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Folder:** [./tracks/system_maintenance_and_lifecycle_20260405/index.md]
 
 ---
-## [ ] Track: Granular Configuration Patching
+## [x] Track: Granular Configuration Patching
 - **Folder:** [./tracks/granular_config_patching_20260405/index.md]
 
 ---
