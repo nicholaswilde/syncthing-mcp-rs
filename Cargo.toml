@@ -73,6 +73,10 @@ path = "scripts/test_live_config_error.rs"
 name = "verify_sync_ops_live"
 path = "scripts/verify_sync_ops_live.rs"
 
+[[example]]
+name = "verify_gui_api_live"
+path = "scripts/verify_gui_api_live.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"
