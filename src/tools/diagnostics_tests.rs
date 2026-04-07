@@ -168,4 +168,87 @@ mod tests {
         assert!(text.contains("Discovery Status (1 devices)"));
         assert!(text.contains("device1"));
     }
+
+    #[tokio::test]
+    async fn test_diagnose_network_issues_tool() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+
+        // Mock discovery
+        Mock::given(method("GET"))
+            .and(path("/rest/system/discovery"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "DEVICE-1": {
+                    "addresses": ["tcp://192.168.1.100:22000"]
+                },
+                "DEVICE-2": {
+                    "addresses": ["relay://1.2.3.4:22067"]
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock connections
+        Mock::given(method("GET"))
+            .and(path("/rest/system/connections"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "total": {
+                    "inBytesTotal": 0,
+                    "outBytesTotal": 0
+                },
+                "connections": {
+                    "DEVICE-1": {
+                        "connected": false,
+                        "paused": false,
+                    },
+                    "DEVICE-2": {
+                        "connected": true,
+                        "type": "relay-client",
+                        "paused": false,
+                    }
+                }
+            })))
+            .mount(&mock_server)
+            .await;
+
+        // Mock system status to get "my ID" so we don't flag ourselves
+        Mock::given(method("GET"))
+            .and(path("/rest/system/status"))
+            .and(header("X-API-Key", api_key))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "myID": "MY-DEVICE-ID",
+                "uptime": 1234,
+                "alloc": 1024,
+                "sys": 2048,
+                "goroutines": 10,
+                "pathSeparator": "/"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config.clone());
+        let app_config = AppConfig {
+            instances: vec![config],
+            ..Default::default()
+        };
+
+        let params = json!({});
+
+        let result = diagnose_network_issues(client, app_config, params)
+            .await
+            .unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Network Diagnostics Report"));
+        assert!(text.contains("DEVICE: DEVICE-1"));
+        assert!(text.contains("Status: Offline"));
+        assert!(text.contains("DEVICE: DEVICE-2"));
+        assert!(text.contains("Status: Connected (Degraded via Relay)"));
+    }
 }

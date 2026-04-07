@@ -110,3 +110,59 @@ pub async fn get_discovery_status(
         "data": discovery
     }))
 }
+
+/// Analyzes discovery and connection states to report network issues.
+pub async fn diagnose_network_issues(
+    client: SyncThingClient,
+    _config: AppConfig,
+    _params: Value,
+) -> Result<Value> {
+    let connections_resp = client.get_connections().await?;
+    let discovery = client.get_discovery_status().await?;
+    let status = client.get_system_status().await?;
+
+    let my_id = status.my_id.clone();
+    let mut text = String::from("Network Diagnostics Report\n");
+    text.push_str("==========================\n\n");
+
+    for (device_id, conn) in connections_resp.connections {
+        if device_id == my_id {
+            continue;
+        }
+
+        text.push_str(&format!("DEVICE: {}\n", device_id));
+        
+        if conn.connected {
+            let conn_type = conn.connection_type.as_deref().unwrap_or("unknown");
+            if conn_type.contains("relay") {
+                text.push_str(&format!("  Status: Connected (Degraded via Relay)\n"));
+                text.push_str("  Recommendation: Check port forwarding (22000/TCP) and local firewalls to allow direct connections.\n");
+            } else {
+                text.push_str(&format!("  Status: Connected ({})\n", conn_type));
+            }
+        } else {
+            text.push_str("  Status: Offline\n");
+            if let Some(disco_info) = discovery.get(&device_id) {
+                if disco_info.addresses.is_empty() {
+                    text.push_str("  Discovery: Device is not announcing any addresses. It may be offline or completely disconnected from the discovery servers.\n");
+                } else {
+                    text.push_str("  Discovery: Found addresses, but cannot connect.\n");
+                    for addr in &disco_info.addresses {
+                        text.push_str(&format!("    - {}\n", addr));
+                    }
+                    text.push_str("  Recommendation: Device is likely blocked by a firewall or network routing issue. Verify it is reachable on these addresses.\n");
+                }
+            } else {
+                text.push_str("  Discovery: No discovery information available. Device may be off or ignoring discovery.\n");
+            }
+        }
+        text.push('\n');
+    }
+
+    Ok(json!({
+        "content": [{
+            "type": "text",
+            "text": text.trim_end()
+        }]
+    }))
+}

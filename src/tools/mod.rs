@@ -623,6 +623,16 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "diagnose_network_issues",
+        "Analyze network connection and discovery states to troubleshoot disconnected or degraded devices.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        diagnostics::diagnose_network_issues,
+    );
+
+    registry.register(
         "maintain_system",
         "Perform system maintenance: force a rescan of folders, restart the SyncThing service, or shut down the service.",
         serde_json::json!({
