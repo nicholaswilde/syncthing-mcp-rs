@@ -9,6 +9,6 @@
 - [x] Create new tool `update_gui_settings`. 1e2b652
 - [x] Register tools in `src/tools/mod.rs`. 50887b8
 
-## Phase 3: Verification
+## Phase 3: Verification [checkpoint: 66b3e96]
 - [x] Write unit and integration tests. 0928ea8
 - [x] Update documentation. 5df9406
