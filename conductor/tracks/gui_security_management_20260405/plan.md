@@ -7,7 +7,7 @@
 ## Phase 2: MCP Tools Implementation
 - [x] Create new tool `get_gui_settings`. 1ca82d2
 - [x] Create new tool `update_gui_settings`. 1e2b652
-- [ ] Register tools in `src/tools/mod.rs`.
+- [x] Register tools in `src/tools/mod.rs`. 50887b8
 
 ## Phase 3: Verification
 - [ ] Write unit and integration tests.
