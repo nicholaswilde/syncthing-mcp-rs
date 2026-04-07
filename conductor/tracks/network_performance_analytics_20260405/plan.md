@@ -5,7 +5,7 @@
 - [x] Ensure backward compatibility with existing summary tools. [a50c50f]
 
 ## Phase 2: Tool Implementation
-- [ ] Update `get_system_connections` tool to provide a more detailed "Analytics" mode.
+- [x] Update `get_system_connections` tool to provide a more detailed "Analytics" mode. [61000d3]
 - [ ] Create a new diagnostic tool `diagnose_network_issues` that analyzes discovery vs. connection states.
 - [ ] Register tools in `src/tools/mod.rs`.
 
