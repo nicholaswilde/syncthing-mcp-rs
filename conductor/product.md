@@ -31,6 +31,7 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Error Diagnostics**: Analyze and diagnose common SyncThing errors, providing actionable advice.
 - **System Maintenance**: Trigger rescans, restart or shut down SyncThing, and clear system errors.
 - **Instance Configuration Management**: Generate detailed difference reports between instances; perform additive merges of folders and devices from a source to a target; synchronize configurations with granular control and safety previews.
+- **GUI & Security Management**: Retrieve and update Syncthing GUI settings, including HTTPS/TLS, authentication, and themes, with automatic masking of sensitive credentials.
 - **Granular Configuration Patching**: Update specific folder or device settings using partial JSON patches with dry-run support and semantic diff previews.
 - **Conflict Management**: Identify, resolve, and clean up SyncThing conflict files with metadata-driven decision support, safe deletion (trash), and advanced intelligence including semantic diffing (JSON/YAML) and resolution previews.
 - **Self-Healing Monitor**: Automatically detect and resolve common SyncThing issues, such as stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
