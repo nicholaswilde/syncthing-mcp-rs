@@ -327,16 +327,54 @@ pub async fn patch_instance_config(
     };
 
     if dry_run {
-        let mut text = String::from("Dry Run: Proposed changes\n=========================\n\n");
-        if let Some(fid) = folder_id {
-            text.push_str(&format!("Target: Folder {}\n", fid));
+        let current_val = if let Some(fid) = folder_id {
+            serde_json::to_value(target_client.get_folder(fid).await?)
+                .map_err(|e| Error::Internal(format!("Failed to serialize folder: {}", e)))?
         } else if let Some(did) = device_id {
-            text.push_str(&format!("Target: Device {}\n", did));
+            serde_json::to_value(target_client.get_device(did).await?)
+                .map_err(|e| Error::Internal(format!("Failed to serialize device: {}", e)))?
         } else if let Some(sp) = subpath {
+            // For subpath, we don't have a direct getter yet, so we'll just show the patch
+            let mut text =
+                String::from("Dry Run: Proposed changes (Subpath)\n===================================\n\n");
             text.push_str(&format!("Target: Config subpath {}\n", sp));
+            text.push_str(&format!(
+                "Patch: {}\n\n",
+                serde_json::to_string_pretty(patch).unwrap()
+            ));
+            text.push_str("Use 'dry_run': false to apply these changes.");
+
+            return Ok(json!({
+                "content": [{
+                    "type": "text",
+                    "text": text
+                }]
+            }));
+        } else {
+            return Err(Error::ValidationError(
+                "One of folder_id, device_id, or subpath must be provided".to_string(),
+            ));
+        };
+
+        // Apply patch locally (simulate JSON merge patch)
+        let mut patched_val = current_val.clone();
+        if let Some(obj) = patch.as_object() {
+            if let Some(patched_obj) = patched_val.as_object_mut() {
+                for (k, v) in obj {
+                    patched_obj.insert(k.clone(), v.clone());
+                }
+            }
         }
-        text.push_str(&format!("Patch: {}\n\n", serde_json::to_string_pretty(patch).unwrap()));
-        text.push_str("Use 'dry_run': false to apply these changes.");
+
+        let diff_text = if let Some(diff) = serde_json_diff::values(current_val, patched_val) {
+            serde_json::to_string_pretty(&diff).unwrap()
+        } else {
+            "No changes detected.".to_string()
+        };
+
+        let mut text = String::from("Dry Run: Proposed changes\n=========================\n\n");
+        text.push_str(&diff_text);
+        text.push_str("\n\nUse 'dry_run': false to apply these changes.");
 
         return Ok(json!({
             "content": [{

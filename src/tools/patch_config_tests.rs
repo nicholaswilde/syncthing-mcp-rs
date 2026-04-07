@@ -52,4 +52,49 @@ mod tests {
         assert!(text.contains("Successfully patched folder: folder1"));
         assert!(text.contains("Updated Label"));
     }
+
+    #[tokio::test]
+    async fn test_patch_instance_config_dry_run() {
+        let mock_server = MockServer::start().await;
+        let folder_id = "folder1";
+        let patch = json!({
+            "label": "New Label"
+        });
+
+        // Mock GET for current state
+        Mock::given(method("GET"))
+            .and(path(format!("/rest/config/folders/{}", folder_id)))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "id": folder_id,
+                "label": "Old Label",
+                "path": "/tmp/folder1",
+                "type": "sendreceive",
+                "devices": []
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = AppConfig {
+            instances: vec![InstanceConfig {
+                name: Some("default".to_string()),
+                url: mock_server.uri(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config.instances[0].clone());
+        let args = json!({
+            "folder_id": folder_id,
+            "patch": patch,
+            "dry_run": true
+        });
+
+        let result = patch_instance_config(client, config, args).await.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        
+        assert!(text.contains("Dry Run: Proposed changes"));
+        assert!(text.contains("\"label\""));
+        assert!(text.contains("\"New Label\""));
+    }
 }
