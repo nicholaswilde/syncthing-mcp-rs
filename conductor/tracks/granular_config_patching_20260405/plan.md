@@ -6,8 +6,8 @@
 - [x] Add generic `patch_config` method to support future patching needs. [f9640f4]
 
 ## Phase 2: MCP Tools Implementation
-- [~] Create new tool `patch_instance_config`.
-- [ ] Integrate with `config_diff` logic to provide previews before applying changes.
+- [x] Create new tool `patch_instance_config`. [5e9b448]
+- [~] Integrate with `config_diff` logic to provide previews before applying changes.
 - [ ] Register tools in `src/tools/mod.rs`.
 
 ## Phase 3: Verification
