@@ -6,8 +6,8 @@
 
 ## Phase 2: Tool Implementation
 - [x] Update `get_system_connections` tool to provide a more detailed "Analytics" mode. [61000d3]
-- [ ] Create a new diagnostic tool `diagnose_network_issues` that analyzes discovery vs. connection states.
-- [ ] Register tools in `src/tools/mod.rs`.
+- [x] Create a new diagnostic tool `diagnose_network_issues` that analyzes discovery vs. connection states. [06364dd]
+- [x] Register tools in `src/tools/mod.rs`. [06364dd]
 
 ## Phase 3: Verification
 - [ ] Write unit and integration tests.
