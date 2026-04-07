@@ -2,7 +2,7 @@
 
 ## Phase 1: Data Model Enhancements
 - [x] Refine `SystemConnections` and related models in `src/api/models.rs` to capture more granular data (types, address, etc.). [a50c50f]
-- [ ] Ensure backward compatibility with existing summary tools.
+- [x] Ensure backward compatibility with existing summary tools. [a50c50f]
 
 ## Phase 2: Tool Implementation
 - [ ] Update `get_system_connections` tool to provide a more detailed "Analytics" mode.
