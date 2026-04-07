@@ -42,7 +42,10 @@ mod tests {
             },
         );
 
-        ConnectionsResponse { connections }
+        ConnectionsResponse {
+            connections,
+            ..Default::default()
+        }
     }
 
     #[tokio::test]

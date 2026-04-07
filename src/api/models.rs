@@ -292,6 +292,24 @@ pub struct ConnectionStatus {
     /// Whether the connection is paused.
     #[serde(default)]
     pub paused: bool,
+    /// Cryptographic suite used for the connection.
+    pub crypto: Option<String>,
+    /// Whether the connection is local (vs remote/relay).
+    #[serde(rename = "isLocal")]
+    pub is_local: Option<bool>,
+    /// The MAC address (if available on local network).
+    pub mac: Option<String>,
+}
+
+/// Total connection statistics.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct ConnectionsTotal {
+    /// Total bytes received across all connections.
+    #[serde(rename = "inBytesTotal", default)]
+    pub in_bytes_total: u64,
+    /// Total bytes sent across all connections.
+    #[serde(rename = "outBytesTotal", default)]
+    pub out_bytes_total: u64,
 }
 
 /// Response from /rest/system/connections.
@@ -299,6 +317,9 @@ pub struct ConnectionStatus {
 pub struct ConnectionsResponse {
     /// Map of device IDs to connection status.
     pub connections: HashMap<String, ConnectionStatus>,
+    /// Total connection statistics.
+    #[serde(default)]
+    pub total: ConnectionsTotal,
 }
 
 /// A single log entry from Syncthing.
