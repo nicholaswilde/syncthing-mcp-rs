@@ -5,7 +5,7 @@
 - [x] Implement `get_gui_config()` and `set_gui_config()` methods in `src/api/client.rs`. d09f8c3
 
 ## Phase 2: MCP Tools Implementation
-- [ ] Create new tool `get_gui_settings`.
+- [x] Create new tool `get_gui_settings`. 1ca82d2
 - [ ] Create new tool `update_gui_settings`.
 - [ ] Register tools in `src/tools/mod.rs`.
 
