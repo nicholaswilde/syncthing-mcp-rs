@@ -131,11 +131,11 @@ pub async fn diagnose_network_issues(
         }
 
         text.push_str(&format!("DEVICE: {}\n", device_id));
-        
+
         if conn.connected {
             let conn_type = conn.connection_type.as_deref().unwrap_or("unknown");
             if conn_type.contains("relay") {
-                text.push_str(&format!("  Status: Connected (Degraded via Relay)\n"));
+                text.push_str("  Status: Connected (Degraded via Relay)\n");
                 text.push_str("  Recommendation: Check port forwarding (22000/TCP) and local firewalls to allow direct connections.\n");
             } else {
                 text.push_str(&format!("  Status: Connected ({})\n", conn_type));

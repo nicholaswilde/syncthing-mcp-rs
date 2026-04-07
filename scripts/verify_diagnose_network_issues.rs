@@ -1,10 +1,10 @@
-use std::env;
 use serde_json::json;
+use std::env;
 use syncthing_mcp_rs::api::client::SyncThingClient;
 use syncthing_mcp_rs::config::AppConfig;
 use syncthing_mcp_rs::config::InstanceConfig;
-use syncthing_mcp_rs::tools::system::get_system_connections;
 use syncthing_mcp_rs::tools::diagnostics::diagnose_network_issues;
+use syncthing_mcp_rs::tools::system::get_system_connections;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
