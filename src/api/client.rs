@@ -147,6 +147,24 @@ impl SyncThingClient {
         Ok(response.json::<Config>().await?)
     }
 
+    /// Returns the GUI configuration.
+    pub async fn get_gui_config(&self) -> Result<GuiConfig> {
+        tracing::debug!("Fetching GUI configuration");
+        let url = format!("{}/rest/config/gui", self.config.url);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<GuiConfig>().await?)
+    }
+
+    /// Sets the GUI configuration.
+    pub async fn set_gui_config(&self, gui_config: &GuiConfig) -> Result<()> {
+        tracing::debug!("Setting GUI configuration");
+        let url = format!("{}/rest/config/gui", self.config.url);
+        let request = self.add_auth(self.client.put(&url).json(gui_config));
+        self.send_with_retry(request).await?;
+        Ok(())
+    }
+
     /// Sets the full configuration.
     pub async fn set_config(&self, config: Config) -> Result<()> {
         tracing::debug!("Setting full SyncThing configuration");
