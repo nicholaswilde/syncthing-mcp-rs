@@ -453,8 +453,8 @@ async fn test_replicate_config_tool() -> Result<()> {
     };
 
     let result = handler(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "source": "source",
             "destination": "dest"
@@ -748,6 +748,21 @@ async fn test_bandwidth_tools() -> Result<()> {
     let text = result["content"][0]["text"].as_str().unwrap();
     assert!(text.contains("9999"));
     assert!(text.contains("8888"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_diagnose_network_issues_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    let result = ctx.call_tool("diagnose_network_issues", json!({})).await?;
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Network Diagnostics Report"));
 
     Ok(())
 }
