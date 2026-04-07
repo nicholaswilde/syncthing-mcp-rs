@@ -64,6 +64,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `manage_ignores`: Manage folder ignore patterns (.stignore). Supports getting current patterns, setting a new list, or appending to the existing list.
     - `merge_instance_configs`: Merges configuration from one SyncThing instance into another. This appends/updates folders and devices instead of replacing the entire configuration.
     - `monitor_self_healing`: Monitor tool that checks for stuck folders and disconnected devices, and triggers self-healing actions.
+    - `patch_instance_config`: Update the configuration of a folder, device, or other configuration element using a partial (patch) JSON object. Supports dry run previews with semantic diffing.
     - `perform_upgrade`: Trigger an upgrade to the latest available version of Syncthing.
     - `ping_instance`: Ping the Syncthing instance to verify API responsiveness and measure latency.
     - `preview_conflict_resolution`: Show what the file will look like after a proposed resolution.

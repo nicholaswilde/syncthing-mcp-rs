@@ -1009,3 +1009,62 @@ async fn test_inspect_folder_with_devices_tool() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_patch_instance_config_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+
+    // 1. Ensure we have at least one folder
+    let folders = ctx.client.list_folders().await?;
+    let folder_id = if let Some(f) = folders.first() {
+        f.id.clone()
+    } else {
+        ctx.client
+            .add_folder("default", "Default", "/var/syncthing/default")
+            .await?;
+        "default".to_string()
+    };
+
+    // 2. Test Dry Run
+    let result = ctx
+        .call_tool(
+            "patch_instance_config",
+            json!({
+                "folder_id": folder_id,
+                "patch": { "label": "Integration-Dry-Run" },
+                "dry_run": true
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Dry Run: Proposed changes"));
+    assert!(text.contains("label"));
+
+    // 3. Test Apply
+    let new_label = format!("Integration-Apply-{}", uuid::Uuid::new_v4());
+    let result = ctx
+        .call_tool(
+            "patch_instance_config",
+            json!({
+                "folder_id": folder_id,
+                "patch": { "label": new_label },
+                "dry_run": false
+            }),
+        )
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Successfully patched folder"));
+    assert!(text.contains(&new_label));
+
+    // 4. Verify via client
+    let updated_folder = ctx.client.get_folder(&folder_id).await?;
+    assert_eq!(updated_folder.label, new_label);
+
+    Ok(())
+}

@@ -312,10 +312,13 @@ pub async fn patch_instance_config(
     let folder_id = args.get("folder_id").and_then(|v| v.as_str());
     let device_id = args.get("device_id").and_then(|v| v.as_str());
     let subpath = args.get("subpath").and_then(|v| v.as_str());
-    let patch = args.get("patch").ok_or_else(|| {
-        Error::ValidationError("patch is required".to_string())
-    })?;
-    let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(false);
+    let patch = args
+        .get("patch")
+        .ok_or_else(|| Error::ValidationError("patch is required".to_string()))?;
+    let dry_run = args
+        .get("dry_run")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
     let target_client = if let Some(name) = instance_name {
         let inst_config = config
@@ -335,8 +338,9 @@ pub async fn patch_instance_config(
                 .map_err(|e| Error::Internal(format!("Failed to serialize device: {}", e)))?
         } else if let Some(sp) = subpath {
             // For subpath, we don't have a direct getter yet, so we'll just show the patch
-            let mut text =
-                String::from("Dry Run: Proposed changes (Subpath)\n===================================\n\n");
+            let mut text = String::from(
+                "Dry Run: Proposed changes (Subpath)\n===================================\n\n",
+            );
             text.push_str(&format!("Target: Config subpath {}\n", sp));
             text.push_str(&format!(
                 "Patch: {}\n\n",
@@ -358,11 +362,11 @@ pub async fn patch_instance_config(
 
         // Apply patch locally (simulate JSON merge patch)
         let mut patched_val = current_val.clone();
-        if let Some(obj) = patch.as_object() {
-            if let Some(patched_obj) = patched_val.as_object_mut() {
-                for (k, v) in obj {
-                    patched_obj.insert(k.clone(), v.clone());
-                }
+        if let Some(obj) = patch.as_object()
+            && let Some(patched_obj) = patched_val.as_object_mut()
+        {
+            for (k, v) in obj {
+                patched_obj.insert(k.clone(), v.clone());
             }
         }
 
@@ -385,11 +389,27 @@ pub async fn patch_instance_config(
     }
 
     let (result, resource_type, resource_id) = if let Some(fid) = folder_id {
-        (target_client.patch_folder_config(fid, patch.clone()).await?, "folder", fid)
+        (
+            target_client
+                .patch_folder_config(fid, patch.clone())
+                .await?,
+            "folder",
+            fid,
+        )
     } else if let Some(did) = device_id {
-        (target_client.patch_device_config(did, patch.clone()).await?, "device", did)
+        (
+            target_client
+                .patch_device_config(did, patch.clone())
+                .await?,
+            "device",
+            did,
+        )
     } else if let Some(sp) = subpath {
-        (target_client.patch_config(sp, patch.clone()).await?, "config subpath", sp)
+        (
+            target_client.patch_config(sp, patch.clone()).await?,
+            "config subpath",
+            sp,
+        )
     } else {
         return Err(Error::ValidationError(
             "One of folder_id, device_id, or subpath must be provided".to_string(),
