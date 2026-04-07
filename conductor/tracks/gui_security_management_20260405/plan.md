@@ -2,7 +2,7 @@
 
 ## Phase 1: API Client Implementation
 - [x] Define `GuiConfig` response models in `src/api/models.rs`. b6aa630
-- [ ] Implement `get_gui_config()` and `set_gui_config()` methods in `src/api/client.rs`.
+- [x] Implement `get_gui_config()` and `set_gui_config()` methods in `src/api/client.rs`. d09f8c3
 
 ## Phase 2: MCP Tools Implementation
 - [ ] Create new tool `get_gui_settings`.
