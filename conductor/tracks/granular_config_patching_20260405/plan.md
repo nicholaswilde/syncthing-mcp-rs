@@ -3,10 +3,10 @@
 ## Phase 1: API Client Implementation
 - [x] Implement `patch_folder_config()` in `src/api/client.rs`. [193cdfa]
 - [x] Implement `patch_device_config()` in `src/api/client.rs`. [74af92d]
-- [~] Add generic `patch_config` method to support future patching needs.
+- [x] Add generic `patch_config` method to support future patching needs. [f9640f4]
 
 ## Phase 2: MCP Tools Implementation
-- [ ] Create new tool `patch_instance_config`.
+- [~] Create new tool `patch_instance_config`.
 - [ ] Integrate with `config_diff` logic to provide previews before applying changes.
 - [ ] Register tools in `src/tools/mod.rs`.
 
