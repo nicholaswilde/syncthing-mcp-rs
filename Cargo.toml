@@ -114,3 +114,7 @@ path = "scripts/verify_network_models.rs"
 [[example]]
 name = "verify_diagnose_network_issues"
 path = "scripts/verify_diagnose_network_issues.rs"
+
+[[example]]
+name = "verify_phase1"
+path = "scripts/verify_phase1.rs"
