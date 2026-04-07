@@ -8,7 +8,10 @@ fn test_export_config_to_json() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({"enabled": true}),
+        gui: crate::api::models::GuiConfig {
+            enabled: true,
+            ..Default::default()
+        },
         ldap: json!({}),
         options: json!({"listenAddresses": ["default"]}),
         remote_ignored_devices: json!([]),
@@ -29,7 +32,10 @@ fn test_export_config_to_yaml() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({"enabled": true}),
+        gui: crate::api::models::GuiConfig {
+            enabled: true,
+            ..Default::default()
+        },
         ldap: json!({}),
         options: json!({"listenAddresses": ["default"]}),
         remote_ignored_devices: json!([]),
@@ -51,12 +57,13 @@ fn test_mask_sensitive_info() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({
-            "enabled": true,
-            "user": "admin",
-            "password": "secret_password",
-            "apiKey": "very_secret_api_key"
-        }),
+        gui: crate::api::models::GuiConfig {
+            enabled: true,
+            user: Some("admin".to_string()),
+            password: Some("secret_password".to_string()),
+            api_key: Some("very_secret_api_key".to_string()),
+            ..Default::default()
+        },
         ldap: json!({
             "enabled": true,
             "password": "ldap_password"
@@ -122,7 +129,11 @@ async fn test_backup_config() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({"enabled": true, "password": "secret"}),
+        gui: crate::api::models::GuiConfig {
+            enabled: true,
+            password: Some("secret".to_string()),
+            ..Default::default()
+        },
         ldap: json!({}),
         options: json!({}),
         remote_ignored_devices: json!([]),

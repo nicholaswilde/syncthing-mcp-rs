@@ -24,7 +24,12 @@ async fn test_e2e_backup_and_rollback() {
     // 1. Initial State (v1)
     let config1 = Config {
         version: 1,
-        gui: json!({"enabled": true, "user": "admin", "password": "p1"}),
+        gui: syncthing_mcp_rs::api::models::GuiConfig {
+            enabled: true,
+            user: Some("admin".to_string()),
+            password: Some("p1".to_string()),
+            ..Default::default()
+        },
         ..Default::default()
     };
     let hash1 = manager
@@ -35,7 +40,12 @@ async fn test_e2e_backup_and_rollback() {
     // 2. Updated State (v2)
     let config2 = Config {
         version: 2,
-        gui: json!({"enabled": true, "user": "admin", "password": "p2"}),
+        gui: syncthing_mcp_rs::api::models::GuiConfig {
+            enabled: true,
+            user: Some("admin".to_string()),
+            password: Some("p2".to_string()),
+            ..Default::default()
+        },
         ..Default::default()
     };
     let hash2 = manager
@@ -55,14 +65,8 @@ async fn test_e2e_backup_and_rollback() {
     let restored1 = manager.restore_config(&hash1).await.unwrap();
     let restored2 = manager.restore_config(&hash2).await.unwrap();
 
-    assert_eq!(
-        restored1.gui.get("password").unwrap().as_str().unwrap(),
-        "********"
-    );
-    assert_eq!(
-        restored2.gui.get("password").unwrap().as_str().unwrap(),
-        "********"
-    );
+    assert_eq!(restored1.gui.password.as_deref().unwrap(), "********");
+    assert_eq!(restored2.gui.password.as_deref().unwrap(), "********");
 
     // 5. Rollback to v1
     let rolled_back = manager

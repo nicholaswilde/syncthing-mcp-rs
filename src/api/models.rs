@@ -408,6 +408,48 @@ pub struct DeviceIdResponse {
     pub error: Option<String>,
 }
 
+/// Configuration for the Syncthing GUI/Web UI.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct GuiConfig {
+    /// Whether the GUI is enabled.
+    #[serde(default)]
+    pub enabled: bool,
+    /// The address the GUI should listen on (e.g., "127.0.0.1:8384").
+    #[serde(default)]
+    pub address: String,
+    /// The username for GUI authentication.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user: Option<String>,
+    /// The hashed password for GUI authentication.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    /// Whether to use HTTPS for the GUI.
+    #[serde(rename = "useTLS", default)]
+    pub use_tls: bool,
+    /// The API key for accessing the REST API.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    /// The active theme (e.g., "default", "dark").
+    #[serde(default)]
+    pub theme: String,
+    /// The debugging/profiling setting.
+    #[serde(default)]
+    pub debugging: bool,
+    /// Whether to allow insecure admin access over HTTP.
+    #[serde(default)]
+    pub insecure_admin_access: bool,
+    /// Whether to skip the host check.
+    #[serde(default)]
+    pub insecure_skip_hostcheck: bool,
+    /// Whether to allow frame authentication (embedding in iframes).
+    #[serde(default)]
+    pub insecure_allow_frame_auth: bool,
+    /// The UI language.
+    #[serde(default)]
+    pub send_basic_stats: bool,
+}
+
 /// The root configuration structure.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct Config {
@@ -418,7 +460,7 @@ pub struct Config {
     /// List of devices.
     pub devices: Vec<DeviceConfig>,
     /// GUI configuration.
-    pub gui: serde_json::Value,
+    pub gui: GuiConfig,
     /// LDAP configuration.
     pub ldap: serde_json::Value,
     /// Global options.

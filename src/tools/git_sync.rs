@@ -21,25 +21,14 @@ impl ConfigExporter {
     /// - LDAP password
     pub fn mask_sensitive(&mut self) {
         // Mask GUI sensitive fields
-        if let Some(gui) = self.config.gui.as_object_mut() {
-            if gui.contains_key("user") {
-                gui.insert(
-                    "user".to_string(),
-                    serde_json::Value::String("********".to_string()),
-                );
-            }
-            if gui.contains_key("password") {
-                gui.insert(
-                    "password".to_string(),
-                    serde_json::Value::String("********".to_string()),
-                );
-            }
-            if gui.contains_key("apiKey") {
-                gui.insert(
-                    "apiKey".to_string(),
-                    serde_json::Value::String("********".to_string()),
-                );
-            }
+        if self.config.gui.user.is_some() {
+            self.config.gui.user = Some("********".to_string());
+        }
+        if self.config.gui.password.is_some() {
+            self.config.gui.password = Some("********".to_string());
+        }
+        if self.config.gui.api_key.is_some() {
+            self.config.gui.api_key = Some("********".to_string());
         }
 
         // Mask LDAP sensitive fields

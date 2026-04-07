@@ -9,6 +9,9 @@ pub mod config_sync_error_client_tests;
 /// Unit tests for event parsing and summaries.
 #[cfg(test)]
 pub mod event_tests;
+/// Unit tests for GUI models.
+#[cfg(test)]
+pub mod gui_models_tests;
 /// Unit tests for health checks.
 #[cfg(test)]
 pub mod health_tests;

@@ -127,7 +127,7 @@ mod tests {
             version: 37,
             folders: vec![],
             devices: vec![],
-            gui: serde_json::json!({}),
+            gui: crate::api::models::GuiConfig::default(),
             ldap: serde_json::json!({}),
             options: serde_json::json!({}),
             remote_ignored_devices: serde_json::json!([]),

@@ -9,7 +9,7 @@ mod tests {
             version: 1,
             folders: vec![],
             devices: vec![],
-            gui: json!({}),
+            gui: crate::api::models::GuiConfig::default(),
             ldap: json!({}),
             options: json!({}),
             remote_ignored_devices: json!([]),
