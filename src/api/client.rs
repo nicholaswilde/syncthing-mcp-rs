@@ -207,7 +207,15 @@ impl SyncThingClient {
         let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
         let response = self.send_with_retry(request).await?;
-        Ok(response.json::<serde_json::Value>().await?)
+        
+        let text = response.text().await?;
+        if text.is_empty() {
+            // If body is empty, return the patch itself or fetch the full config
+            // For now, let's fetch the full config to be accurate
+            self.get_folder(folder_id).await.map(|f| serde_json::to_value(f).unwrap_or(patch))
+        } else {
+            Ok(serde_json::from_str(&text)?)
+        }
     }
 
     /// Returns the ignore patterns for a specific folder.
@@ -249,6 +257,15 @@ impl SyncThingClient {
         let request = self.add_auth(self.client.get(&url));
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<Vec<DeviceConfig>>().await?)
+    }
+
+    /// Returns the configuration for a specific device.
+    pub async fn get_device(&self, device_id: &str) -> Result<DeviceConfig> {
+        tracing::debug!("Fetching SyncThing device: {}", device_id);
+        let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
+        let request = self.add_auth(self.client.get(&url));
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<DeviceConfig>().await?)
     }
 
     /// Adds a new device.
@@ -295,7 +312,15 @@ impl SyncThingClient {
         let url = format!("{}/rest/config/devices/{}", self.config.url, device_id);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
         let response = self.send_with_retry(request).await?;
-        Ok(response.json::<serde_json::Value>().await?)
+
+        let text = response.text().await?;
+        if text.is_empty() {
+            self.get_device(device_id)
+                .await
+                .map(|d| serde_json::to_value(d).unwrap_or(patch))
+        } else {
+            Ok(serde_json::from_str(&text)?)
+        }
     }
 
     /// Generic method to patch any configuration subpath.
@@ -308,7 +333,15 @@ impl SyncThingClient {
         let url = format!("{}/rest/config/{}", self.config.url, subpath);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
         let response = self.send_with_retry(request).await?;
-        Ok(response.json::<serde_json::Value>().await?)
+
+        let text = response.text().await?;
+        if text.is_empty() {
+            // For generic config, we don't have a specific getter that takes a subpath yet.
+            // Returning the patch as a confirmation of what was sent.
+            Ok(patch)
+        } else {
+            Ok(serde_json::from_str(&text)?)
+        }
     }
 
     /// Validates and formats a device ID.
