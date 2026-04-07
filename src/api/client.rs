@@ -207,12 +207,14 @@ impl SyncThingClient {
         let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
         let request = self.add_auth(self.client.patch(&url)).json(&patch);
         let response = self.send_with_retry(request).await?;
-        
+
         let text = response.text().await?;
         if text.is_empty() {
             // If body is empty, return the patch itself or fetch the full config
             // For now, let's fetch the full config to be accurate
-            self.get_folder(folder_id).await.map(|f| serde_json::to_value(f).unwrap_or(patch))
+            self.get_folder(folder_id)
+                .await
+                .map(|f| serde_json::to_value(f).unwrap_or(patch))
         } else {
             Ok(serde_json::from_str(&text)?)
         }

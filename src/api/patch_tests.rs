@@ -2,9 +2,9 @@
 mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::InstanceConfig;
-    use wiremock::matchers::{header, method, path, body_json};
-    use wiremock::{Mock, MockServer, ResponseTemplate};
     use serde_json::json;
+    use wiremock::matchers::{body_json, header, method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
     async fn test_patch_folder_config() {

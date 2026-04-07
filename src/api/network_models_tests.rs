@@ -29,7 +29,7 @@ mod tests {
         let response: ConnectionsResponse = serde_json::from_str(json).unwrap();
         assert_eq!(response.total.in_bytes_total, 1000);
         assert_eq!(response.total.out_bytes_total, 2000);
-        
+
         let conn = response.connections.get("DEVICE-123").unwrap();
         assert_eq!(conn.in_bytes_total, 500);
         assert_eq!(conn.connection_type.as_deref(), Some("TCP (Client)"));

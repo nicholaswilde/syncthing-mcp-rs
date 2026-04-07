@@ -477,7 +477,6 @@ mod tests {
                 "remoteState": "valid",
                 "sequence": 100
             })))
-
             .mount(&mock_server)
             .await;
 
@@ -488,7 +487,10 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let completion = client.get_device_completion("test-device", None).await.unwrap();
+        let completion = client
+            .get_device_completion("test-device", None)
+            .await
+            .unwrap();
 
         assert_eq!(completion.completion, 100.0);
         assert_eq!(completion.global_bytes, 1000);

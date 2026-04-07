@@ -28,14 +28,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tool = registry
         .get_tool("get_instance_overview")
         .expect("Tool get_instance_overview not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({"format": "text"}))).await?;
+    let result = (tool.handler)(
+        client.clone(),
+        app_config.clone(),
+        Some(json!({"format": "text"})),
+    )
+    .await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing summarize_conflicts ---");
     let tool = registry
         .get_tool("summarize_conflicts")
         .expect("Tool summarize_conflicts not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({"format": "text"}))).await?;
+    let result = (tool.handler)(
+        client.clone(),
+        app_config.clone(),
+        Some(json!({"format": "text"})),
+    )
+    .await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     let config = client.get_config().await?;
@@ -46,8 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get_tool("inspect_folder")
             .expect("Tool inspect_folder not found");
         let result = (tool.handler)(
-            &client,
-            &app_config,
+            client.clone(),
+            app_config.clone(),
             Some(json!({"folder_id": folder_id, "format": "text"})),
         )
         .await?;
@@ -61,8 +71,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get_tool("batch_manage_folders")
             .expect("Tool batch_manage_folders not found");
         let result = (tool.handler)(
-            &client,
-            &app_config,
+            client.clone(),
+            app_config.clone(),
             Some(json!({
                 "folder_ids": [folder_id],
                 "action": "pause",
@@ -77,8 +87,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             folder_id
         );
         let result = (tool.handler)(
-            &client,
-            &app_config,
+            client.clone(),
+            app_config.clone(),
             Some(json!({
                 "folder_ids": [folder_id],
                 "action": "resume",
@@ -96,8 +106,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get_tool("inspect_device")
             .expect("Tool inspect_device not found");
         let result = (tool.handler)(
-            &client,
-            &app_config,
+            client.clone(),
+            app_config.clone(),
             Some(json!({"device_id": device_id, "format": "text"})),
         )
         .await?;

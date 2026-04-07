@@ -28,28 +28,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tool = registry
         .get_tool("is_config_insync")
         .expect("Tool is_config_insync not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_system_errors ---");
     let tool = registry
         .get_tool("get_system_errors")
         .expect("Tool get_system_errors not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_instance_overview (should now include config sync status) ---");
     let tool = registry
         .get_tool("get_instance_overview")
         .expect("Tool get_instance_overview not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({"format": "text"}))).await?;
+    let result = (tool.handler)(
+        client.clone(),
+        app_config.clone(),
+        Some(json!({"format": "text"})),
+    )
+    .await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_instance_health (should now include config sync status) ---");
     let tool = registry
         .get_tool("get_instance_health")
         .expect("Tool get_instance_health not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     Ok(())

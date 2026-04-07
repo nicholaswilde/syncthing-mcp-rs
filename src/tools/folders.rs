@@ -302,11 +302,16 @@ pub async fn inspect_folder(
         .unwrap_or_default();
 
     // 5. Get Device Completion (optional)
-    let include_devices = args.get("include_devices").and_then(|v| v.as_bool()).unwrap_or(false);
+    let include_devices = args
+        .get("include_devices")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
     let mut device_completions = Vec::new();
     if include_devices {
         for device in &folder_config.devices {
-            let completion = client.get_device_completion(&device.device_id, Some(folder_id)).await?;
+            let completion = client
+                .get_device_completion(&device.device_id, Some(folder_id))
+                .await?;
             device_completions.push(json!({
                 "device_id": device.device_id,
                 "completion": completion

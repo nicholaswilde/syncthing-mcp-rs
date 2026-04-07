@@ -19,7 +19,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match client.get_connections().await {
         Ok(response) => {
             println!("Successfully parsed ConnectionsResponse!");
-            println!("Total IN: {} bytes, OUT: {} bytes", response.total.in_bytes_total, response.total.out_bytes_total);
+            println!(
+                "Total IN: {} bytes, OUT: {} bytes",
+                response.total.in_bytes_total, response.total.out_bytes_total
+            );
             for (id, conn) in response.connections {
                 println!("Device: {}", id);
                 println!("  Connected: {}", conn.connected);

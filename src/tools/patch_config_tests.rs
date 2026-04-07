@@ -4,7 +4,7 @@ mod tests {
     use crate::config::{AppConfig, InstanceConfig};
     use crate::tools::config::patch_instance_config;
     use serde_json::json;
-    use wiremock::matchers::{header, method, path, body_json};
+    use wiremock::matchers::{body_json, header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
@@ -48,7 +48,7 @@ mod tests {
 
         let result = patch_instance_config(client, config, args).await.unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
-        
+
         assert!(text.contains("Successfully patched folder: folder1"));
         assert!(text.contains("Updated Label"));
     }
@@ -92,7 +92,7 @@ mod tests {
 
         let result = patch_instance_config(client, config, args).await.unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
-        
+
         assert!(text.contains("Dry Run: Proposed changes"));
         assert!(text.contains("\"label\""));
         assert!(text.contains("\"New Label\""));

@@ -56,7 +56,7 @@ impl LiveTestContext {
         };
 
         if let Some(handler) = handler {
-            handler(&self.client, &self.config, Some(args))
+            handler(self.client.clone(), self.config.clone(), Some(args))
                 .await
                 .map_err(|e| anyhow::anyhow!(e))
         } else {

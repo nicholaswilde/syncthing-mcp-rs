@@ -44,7 +44,12 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "completion": 95.5,
                 "globalBytes": 10000,
-                "needBytes": 450
+                "needBytes": 450,
+                "globalItems": 100,
+                "needItems": 5,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 100
             })))
             .mount(&server)
             .await;
@@ -111,7 +116,12 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "completion": 95.5,
                 "globalBytes": 10000,
-                "needBytes": 450
+                "needBytes": 450,
+                "globalItems": 100,
+                "needItems": 5,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 100
             })))
             .mount(&server)
             .await;

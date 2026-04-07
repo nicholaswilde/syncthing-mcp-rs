@@ -10,7 +10,7 @@ mod tests {
     #[tokio::test]
     async fn test_set_file_priority_tool() {
         let mock_server = MockServer::start().await;
-        
+
         Mock::given(method("POST"))
             .and(path("/rest/db/prio"))
             .and(query_param("folder", "default"))
@@ -46,7 +46,7 @@ mod tests {
     async fn test_get_device_sync_status_tool() {
         use crate::tools::devices::get_device_sync_status;
         let mock_server = MockServer::start().await;
-        
+
         Mock::given(method("GET"))
             .and(path("/rest/db/completion"))
             .and(query_param("device", "device1"))
@@ -73,7 +73,9 @@ mod tests {
             "device_id": "device1"
         });
 
-        let result = get_device_sync_status(client, app_config, args).await.unwrap();
+        let result = get_device_sync_status(client, app_config, args)
+            .await
+            .unwrap();
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("device1"));
         assert!(text.contains("75.50%"));
@@ -83,7 +85,7 @@ mod tests {
     async fn test_inspect_folder_with_devices() {
         use crate::tools::folders::inspect_folder;
         let mock_server = MockServer::start().await;
-        
+
         // Mock folder config
         Mock::given(method("GET"))
             .and(path("/rest/config/folders/default"))

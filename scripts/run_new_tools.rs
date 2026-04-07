@@ -28,27 +28,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("--- Testing get_system_connections ---");
     let tool = registry.get_tool("get_system_connections").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_system_log ---");
     let tool = registry.get_tool("get_system_log").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_device_statistics ---");
     let tool = registry.get_tool("get_device_statistics").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing get_folder_statistics ---");
     let tool = registry.get_tool("get_folder_statistics").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing manage_folders pending ---");
     let tool = registry.get_tool("manage_folders").unwrap();
-    let result = (tool.handler)(&client, &app_config, Some(json!({"action": "pending"}))).await?;
+    let result = (tool.handler)(
+        client.clone(),
+        app_config.clone(),
+        Some(json!({"action": "pending"})),
+    )
+    .await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing manage_devices validate ---");
@@ -56,8 +61,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let my_id = status.my_id;
     let tool = registry.get_tool("manage_devices").unwrap();
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({"action": "validate", "device_id": my_id})),
     )
     .await?;

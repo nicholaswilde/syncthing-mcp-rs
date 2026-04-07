@@ -1,7 +1,7 @@
+use serde_json::json;
+use std::env;
 use syncthing_mcp_rs::api::client::SyncThingClient;
 use syncthing_mcp_rs::config::InstanceConfig;
-use std::env;
-use serde_json::json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,17 +22,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(folder) = folders.first() {
         let old_label = folder.label.clone();
         let new_label = format!("Verify-{}", chrono::Utc::now().timestamp());
-        println!("Patching folder {}: '{}' -> '{}'", folder.id, old_label, new_label);
-        
+        println!(
+            "Patching folder {}: '{}' -> '{}'",
+            folder.id, old_label, new_label
+        );
+
         let patch = json!({ "label": new_label });
         let result = client.patch_folder_config(&folder.id, patch).await?;
         println!("Updated config: {}", serde_json::to_string_pretty(&result)?);
-        
+
         let updated_label = result["label"].as_str().unwrap();
         if updated_label == new_label {
             println!("✅ patch_folder_config successful!");
         } else {
-            println!("❌ patch_folder_config failed: expected {}, got {}", new_label, updated_label);
+            println!(
+                "❌ patch_folder_config failed: expected {}, got {}",
+                new_label, updated_label
+            );
         }
     } else {
         println!("⚠️ No folders found to test.");
@@ -44,17 +50,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(device) = devices.first() {
         let old_name = device.name.clone().unwrap_or_default();
         let new_name = format!("Dev-{}", chrono::Utc::now().timestamp());
-        println!("Patching device {}: '{}' -> '{}'", device.device_id, old_name, new_name);
-        
+        println!(
+            "Patching device {}: '{}' -> '{}'",
+            device.device_id, old_name, new_name
+        );
+
         let patch = json!({ "name": new_name });
         let result = client.patch_device_config(&device.device_id, patch).await?;
         println!("Updated config: {}", serde_json::to_string_pretty(&result)?);
-        
+
         let updated_name = result["name"].as_str().unwrap_or_default();
         if updated_name == new_name {
             println!("✅ patch_device_config successful!");
         } else {
-            println!("❌ patch_device_config failed: expected {}, got {}", new_name, updated_name);
+            println!(
+                "❌ patch_device_config failed: expected {}, got {}",
+                new_name, updated_name
+            );
         }
     } else {
         println!("⚠️ No devices found to test.");

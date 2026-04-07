@@ -30,9 +30,6 @@ mod config_error_mcp_tests;
 /// Unit tests for configuration replication.
 #[cfg(test)]
 pub mod config_tests;
-/// Unit tests for configuration patching tools.
-#[cfg(test)]
-mod patch_config_tests;
 /// Unit tests for the summarize_conflicts tool.
 #[cfg(test)]
 mod conflict_summary_tests;
@@ -85,6 +82,9 @@ mod instance_overview_tests;
 /// Unit tests for lifecycle tools.
 #[cfg(test)]
 mod lifecycle_tests;
+/// Unit tests for configuration patching tools.
+#[cfg(test)]
+mod patch_config_tests;
 /// Unit tests for performance profiles.
 #[cfg(test)]
 mod profile_tests;

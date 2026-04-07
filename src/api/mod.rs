@@ -14,6 +14,9 @@ pub mod event_tests;
 pub mod health_tests;
 /// Data models for SyncThing API responses and configurations.
 pub mod models;
+/// Unit tests for configuration patching.
+#[cfg(test)]
+pub mod patch_tests;
 /// Unit tests for synchronization operation client methods.
 #[cfg(test)]
 pub mod sync_ops_client_tests;
@@ -23,9 +26,6 @@ pub mod sync_ops_models_tests;
 /// Unit tests for the API client.
 #[cfg(test)]
 pub mod tests;
-/// Unit tests for configuration patching.
-#[cfg(test)]
-pub mod patch_tests;
 
 pub use client::SyncThingClient;
 pub use models::*;

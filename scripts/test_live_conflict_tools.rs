@@ -90,8 +90,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("diff_conflicts")
         .expect("Tool diff_conflicts not found");
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "conflict_path": conflict_path.to_str().unwrap(),
             "format": "json"
@@ -109,8 +109,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("preview_conflict_resolution")
         .expect("Tool preview_conflict_resolution not found");
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "conflict_path": conflict_path.to_str().unwrap(),
             "action": "keep_conflict"
@@ -128,8 +128,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("resolve_conflict")
         .expect("Tool resolve_conflict not found");
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "conflict_path": conflict_path.to_str().unwrap(),
             "action": "keep_original",

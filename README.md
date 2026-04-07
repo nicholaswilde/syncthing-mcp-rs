@@ -16,15 +16,17 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
   - **Stdio:** Default transport for local integrations (e.g., Claude Desktop).
   - **HTTP with SSE:** Remote access support via Server-Sent Events (SSE) for notifications and HTTP POST for messages.
 - **Multi-Instance Management:** Manage and target multiple Syncthing instances from a single MCP server. Tools accept an optional `instance` argument (name or index).
-- **Multi-Instance Synchronization:** Synchronize configuration (folders and devices) from a source instance to a destination instance.
+- **Instance Configuration Management:** Generate detailed difference reports between instances; perform additive merges of folders and devices from a source to a target; synchronize configurations with granular control and safety previews.
+- **Granular Configuration Patching:** Update specific folder or device settings using partial JSON patches with dry-run support and semantic diff previews.
+- **Network Performance Analytics:** Access detailed connection protocol information, cryptographic status, and automated network diagnostics to troubleshoot connectivity issues.
 - **Event Notifications:** Receive real-time MCP notifications for key Syncthing events (e.g., folder state changes, device connections).
+- **Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (**TOML**).
 - **Security & Privacy:**
   - **OS Keyring Integration:** Securely store and retrieve API keys from the OS-level secret store.
   - **Authenticated Encryption:** Support for encrypted configuration fields using ChaCha20-Poly1305.
 - **Authentication:** Connects to Syncthing using API Key (`X-API-Key`). Supports plain text, OS Keyring (`keyring:service:account`), or encrypted blobs (`encrypted:v1:...`).
 - **Resilience:** Automatic retry with exponential backoff for transient network and server errors.
-- **Advanced Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Bandwidth Orchestration:** Dynamic upload/download rate limiting across instances with support for scheduled performance profiles (e.g., "working_hours").
 - **Self-Healing Monitor:** Automated detection and resolution of common Syncthing issues, including stuck folders (via rescans) and offline devices (via reconnection retries with exponential backoff).
 - **Version Control Integration (Git-Sync):** Automatically back up Syncthing configurations to a Git repository. Supports sensitive information masking, version diffing, and rolling back to previous configurations.
@@ -37,10 +39,12 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `browse_folder`: Browse the contents of a synced folder, listing files and subdirectories with optional prefix, recursion depth control, and result limiting.
     - `configure_sharing`: Configure folder sharing between devices (share or unshare).
     - `delete_conflict`: Permanently delete a Syncthing conflict file.
+    - `diagnose_network_issues`: Analyze network connection and discovery states to troubleshoot disconnected or degraded devices.
     - `diff_conflicts`: Compare the original and conflict versions of a file.
     - `diff_instance_configs`: Returns a detailed difference report between two SyncThing instance configurations.
     - `get_bandwidth_status`: Get current bandwidth limits and active profiles for all SyncThing instances.
     - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
+    - `get_device_sync_status`: Retrieves synchronization completion status for a specific device, optionally filtered by folder.
     - `get_discovery_status`: Get the current status of the local and global discovery mechanisms, listing announced addresses for all known devices.
     - `get_file_info`: Get detailed metadata and availability information for a specific file in a folder.
     - `get_folder_needs`: Get the list of files that are needed to bring a folder up to date.
@@ -319,6 +323,3 @@ Contributions are welcome! Please follow standard Rust coding conventions and en
 This project was started in 2026 by [Nicholas Wilde][2].
 
 [2]: <https://github.com/nicholaswilde/>
-ttps://github.com/nicholaswilde/>
-.com/nicholaswilde/>
-ttps://github.com/nicholaswilde/>

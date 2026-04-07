@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tool = registry
         .get_tool("get_bandwidth_status")
         .expect("Tool get_bandwidth_status not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing set_bandwidth_limits (Setting to 2000/1000) ---");
@@ -46,8 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("set_bandwidth_limits")
         .expect("Tool set_bandwidth_limits not found");
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "max_recv_kbps": 2000,
             "max_send_kbps": 1000
@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tool = registry
         .get_tool("get_bandwidth_status")
         .expect("Tool get_bandwidth_status not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Testing set_performance_profile (Applying 'test_live_profile') ---");
@@ -68,8 +68,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("set_performance_profile")
         .expect("Tool set_performance_profile not found");
     let result = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "name": "test_live_profile"
         })),
@@ -81,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tool = registry
         .get_tool("get_bandwidth_status")
         .expect("Tool get_bandwidth_status not found");
-    let result = (tool.handler)(&client, &app_config, Some(json!({}))).await?;
+    let result = (tool.handler)(client.clone(), app_config.clone(), Some(json!({}))).await?;
     println!("{}", result["content"][0]["text"].as_str().unwrap());
 
     println!("\n--- Resetting to Unlimited (0/0) ---");
@@ -89,8 +89,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_tool("set_bandwidth_limits")
         .expect("Tool set_bandwidth_limits not found");
     let _ = (tool.handler)(
-        &client,
-        &app_config,
+        client.clone(),
+        app_config.clone(),
         Some(json!({
             "max_recv_kbps": 0,
             "max_send_kbps": 0

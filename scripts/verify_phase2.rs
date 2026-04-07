@@ -1,8 +1,8 @@
+use serde_json::json;
+use std::env;
 use syncthing_mcp_rs::api::client::SyncThingClient;
 use syncthing_mcp_rs::config::{AppConfig, InstanceConfig};
 use syncthing_mcp_rs::tools::config::patch_instance_config;
-use std::env;
-use serde_json::json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -31,8 +31,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "patch": { "label": "Dry-Run-Label" },
             "dry_run": true
         });
-        let result_dry = patch_instance_config(client.clone(), app_config.clone(), args_dry).await?;
-        println!("Dry run result:\n{}", result_dry["content"][0]["text"].as_str().unwrap());
+        let result_dry =
+            patch_instance_config(client.clone(), app_config.clone(), args_dry).await?;
+        println!(
+            "Dry run result:\n{}",
+            result_dry["content"][0]["text"].as_str().unwrap()
+        );
 
         println!("\n--- Testing patch_instance_config (Apply) ---");
         let new_label = format!("Apply-{}", chrono::Utc::now().timestamp());
@@ -41,10 +45,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "patch": { "label": new_label },
             "dry_run": false
         });
-        let result_apply = patch_instance_config(client.clone(), app_config.clone(), args_apply).await?;
+        let result_apply =
+            patch_instance_config(client.clone(), app_config.clone(), args_apply).await?;
         let text = result_apply["content"][0]["text"].as_str().unwrap();
         println!("Apply result summary: {}", text.lines().next().unwrap());
-        
+
         if text.contains(&new_label) {
             println!("✅ patch_instance_config successful!");
         } else {

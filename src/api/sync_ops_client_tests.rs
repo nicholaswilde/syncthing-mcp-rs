@@ -2,9 +2,9 @@
 mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::InstanceConfig;
+    use serde_json::json;
     use wiremock::matchers::{header, method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
-    use serde_json::json;
 
     #[tokio::test]
     async fn test_set_file_priority() {
@@ -34,7 +34,10 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let result = client.set_file_priority("default", "test.txt").await.unwrap();
+        let result = client
+            .set_file_priority("default", "test.txt")
+            .await
+            .unwrap();
 
         assert_eq!(result.total, Some(0));
     }
@@ -69,7 +72,10 @@ mod tests {
         };
 
         let client = SyncThingClient::new(config);
-        let result = client.get_device_completion("device1", Some("folder1")).await.unwrap();
+        let result = client
+            .get_device_completion("device1", Some("folder1"))
+            .await
+            .unwrap();
 
         assert_eq!(result.completion, 50.0);
         assert_eq!(result.global_bytes, 1000);
