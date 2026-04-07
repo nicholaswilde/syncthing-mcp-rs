@@ -75,4 +75,37 @@ mod tests {
         assert_eq!(result["name"], "Updated Device Name");
         assert_eq!(result["introducer"], true);
     }
+
+    #[tokio::test]
+    async fn test_patch_config() {
+        let mock_server = MockServer::start().await;
+        let api_key = "test-api-key";
+        let subpath = "gui";
+        let patch = json!({
+            "enabled": false
+        });
+
+        Mock::given(method("PATCH"))
+            .and(path(format!("/rest/config/{}", subpath)))
+            .and(header("X-API-Key", api_key))
+            .and(body_json(patch.clone()))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "enabled": false,
+                "address": "127.0.0.1:8384"
+            })))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some(api_key.to_string()),
+            ..Default::default()
+        };
+
+        let client = SyncThingClient::new(config);
+        let result = client.patch_config(subpath, patch).await.unwrap();
+
+        assert_eq!(result["enabled"], false);
+        assert_eq!(result["address"], "127.0.0.1:8384");
+    }
 }

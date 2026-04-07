@@ -298,6 +298,19 @@ impl SyncThingClient {
         Ok(response.json::<serde_json::Value>().await?)
     }
 
+    /// Generic method to patch any configuration subpath.
+    pub async fn patch_config(
+        &self,
+        subpath: &str,
+        patch: serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        tracing::debug!("Patching SyncThing config subpath: {}", subpath);
+        let url = format!("{}/rest/config/{}", self.config.url, subpath);
+        let request = self.add_auth(self.client.patch(&url)).json(&patch);
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<serde_json::Value>().await?)
+    }
+
     /// Validates and formats a device ID.
     pub async fn validate_device_id(&self, device_id: &str) -> Result<DeviceIdResponse> {
         tracing::debug!("Validating SyncThing device ID: {}", device_id);
