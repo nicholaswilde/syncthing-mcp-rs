@@ -1,6 +1,6 @@
 # Implementation Plan: GUI & Web Security Management
 
-## Phase 1: API Client Implementation
+## Phase 1: API Client Implementation [checkpoint: b4a6cc4]
 - [x] Define `GuiConfig` response models in `src/api/models.rs`. b6aa630
 - [x] Implement `get_gui_config()` and `set_gui_config()` methods in `src/api/client.rs`. d09f8c3
 
