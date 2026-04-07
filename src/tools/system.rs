@@ -142,11 +142,27 @@ pub async fn maintain_system(
 pub async fn get_system_connections(
     client: SyncThingClient,
     _config: AppConfig,
-    _args: Value,
+    args: Value,
 ) -> Result<Value> {
+    let mode = args
+        .get("mode")
+        .and_then(|v| v.as_str())
+        .unwrap_or("summary");
+
     let response = client.get_connections().await?;
 
-    let mut text = String::from("SyncThing Connection Status:\n\n");
+    let mut text = if mode == "analytics" {
+        let mut s = String::from("Network Performance Analytics\n");
+        s.push_str("=============================\n\n");
+        s.push_str(&format!(
+            "Global Throughput: IN {} bytes | OUT {} bytes\n\n",
+            response.total.in_bytes_total, response.total.out_bytes_total
+        ));
+        s
+    } else {
+        String::from("SyncThing Connection Status:\n\n")
+    };
+
     for (device_id, conn) in response.connections {
         text.push_str(&format!("Device: {}\n", device_id));
         text.push_str(&format!("  Connected: {}\n", conn.connected));
@@ -161,7 +177,20 @@ pub async fn get_system_connections(
         }
         text.push_str(&format!("  In Bytes: {}\n", conn.in_bytes_total));
         text.push_str(&format!("  Out Bytes: {}\n", conn.out_bytes_total));
-        text.push_str(&format!("  Paused: {}\n\n", conn.paused));
+        text.push_str(&format!("  Paused: {}\n", conn.paused));
+
+        if mode == "analytics" {
+            if let Some(crypto) = &conn.crypto {
+                text.push_str(&format!("  Crypto: {}\n", crypto));
+            }
+            if let Some(is_local) = conn.is_local {
+                text.push_str(&format!("  Local Network: {}\n", is_local));
+            }
+            if let Some(mac) = &conn.mac {
+                text.push_str(&format!("  MAC Address: {}\n", mac));
+            }
+        }
+        text.push('\n');
     }
 
     Ok(json!({

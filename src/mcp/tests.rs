@@ -1550,9 +1550,13 @@ mod tests {
             .and(query_param("device", "device1"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "completion": 50.5,
+                "globalBytes": 1000,
                 "needBytes": 500,
-                "needFiles": 5,
-                "globalBytes": 1000
+                "globalItems": 10,
+                "needItems": 5,
+                "needDeletes": 0,
+                "remoteState": "valid",
+                "sequence": 100
             })))
             .mount(&mock_server)
             .await;
@@ -1702,6 +1706,10 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/rest/system/connections"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "total": {
+                    "inBytesTotal": 1000,
+                    "outBytesTotal": 2000
+                },
                 "connections": {
                     "DEVICE-ID-1": {
                         "at": "2023-10-24T12:34:56Z",
@@ -1711,7 +1719,9 @@ mod tests {
                         "clientVersion": "v1.27.0",
                         "connected": true,
                         "type": "tcp-client",
-                        "paused": false
+                        "paused": false,
+                        "crypto": "TLS1.3",
+                        "isLocal": true
                     }
                 }
             })))
@@ -1729,7 +1739,8 @@ mod tests {
         };
         let (server, _rx) = McpServer::new(registry, config);
 
-        let req = crate::mcp::Request {
+        // Test Default Summary Mode
+        let req_summary = crate::mcp::Request {
             jsonrpc: "2.0".to_string(),
             id: crate::mcp::RequestId::Number(1),
             method: "tools/call".to_string(),
@@ -1739,12 +1750,32 @@ mod tests {
             })),
         };
 
-        let resp = server.handle_request(req).await.unwrap();
+        let resp = server.handle_request(req_summary).await.unwrap();
         let text = resp["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("SyncThing Connection Status:"));
         assert!(text.contains("Device: DEVICE-ID-1"));
         assert!(text.contains("Connected: true"));
         assert!(text.contains("In Bytes: 1000"));
+
+        // Test Analytics Mode
+        let req_analytics = crate::mcp::Request {
+            jsonrpc: "2.0".to_string(),
+            id: crate::mcp::RequestId::Number(2),
+            method: "tools/call".to_string(),
+            params: Some(json!({
+                "name": "get_system_connections",
+                "arguments": {
+                    "mode": "analytics"
+                }
+            })),
+        };
+
+        let resp_analytics = server.handle_request(req_analytics).await.unwrap();
+        let text_analytics = resp_analytics["content"][0]["text"].as_str().unwrap();
+        assert!(text_analytics.contains("Network Performance Analytics"));
+        assert!(text_analytics.contains("Global Throughput: IN 1000 bytes | OUT 2000 bytes"));
+        assert!(text_analytics.contains("Crypto: TLS1.3"));
+        assert!(text_analytics.contains("Local Network: true"));
     }
 
     #[tokio::test]

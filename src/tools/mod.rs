@@ -9,14 +9,14 @@ mod bandwidth_tests;
 /// Unit tests for the batch_manage_folders tool.
 #[cfg(test)]
 mod batch_folder_tests;
+/// Unit tests for browse_folder optimization.
+#[cfg(test)]
+mod browse_folder_optimization_tests;
 /// Browser tools.
 pub mod browser;
 /// Unit tests for browser tools.
 #[cfg(test)]
 mod browser_tests;
-/// Unit tests for browse_folder optimization.
-#[cfg(test)]
-mod browse_folder_optimization_tests;
 /// Configuration tools.
 pub mod config;
 /// Configuration diffing tools.
@@ -65,11 +65,11 @@ pub mod folders;
 /// Unit tests for the folders tool.
 #[cfg(test)]
 mod folders_tests;
+/// Tool for backing up and restoring configurations to Git.
+pub mod git_sync;
 /// Unit tests for the git_sync tool.
 #[cfg(test)]
 mod git_sync_tests;
-/// Tool for backing up and restoring configurations to Git.
-pub mod git_sync;
 /// Unit tests for the inspect_device tool.
 #[cfg(test)]
 mod inspect_device_tests;
@@ -90,11 +90,11 @@ pub mod self_healing;
 /// Unit tests for self-healing tools.
 #[cfg(test)]
 mod self_healing_tests;
-/// System status and maintenance tools.
-pub mod system;
 /// Unit tests for synchronization operation MCP tools.
 #[cfg(test)]
 mod sync_ops_mcp_tests;
+/// System status and maintenance tools.
+pub mod system;
 /// Unit tests for the system tools.
 #[cfg(test)]
 mod system_tests;
@@ -107,6 +107,11 @@ use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+/// Type alias for an MCP tool handler function.
+pub type ToolHandler = dyn Fn(SyncThingClient, AppConfig, Option<Value>) -> BoxFuture<'static, Result<Value>>
+    + Send
+    + Sync;
+
 /// Represents an MCP tool.
 #[derive(Clone)]
 pub struct Tool {
@@ -117,11 +122,7 @@ pub struct Tool {
     /// The input schema for the tool (JSON Schema).
     pub input_schema: Value,
     /// The handler function for the tool.
-    pub handler: Arc<
-        dyn Fn(SyncThingClient, AppConfig, Option<Value>) -> BoxFuture<'static, Result<Value>>
-            + Send
-            + Sync,
-    >,
+    pub handler: Arc<ToolHandler>,
 }
 
 /// A registry of available MCP tools.
@@ -296,7 +297,12 @@ pub fn create_registry() -> ToolRegistry {
         "Get the current connection status and data transfer statistics for all connected devices.",
         serde_json::json!({
             "type": "object",
-            "properties": {}
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "description": "Optional mode for the response: 'summary' (default) or 'analytics' for granular details like Crypto and Local Network status."
+                }
+            }
         }),
         system::get_system_connections,
     );
