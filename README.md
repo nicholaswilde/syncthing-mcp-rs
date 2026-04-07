@@ -49,7 +49,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
     - `get_instance_overview`: Provides a top-level health and status report for a SyncThing instance, consolidating system status, connections, and version information.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
-    - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices.
+    - `get_system_connections`: Get the current connection status and data transfer statistics for all connected devices. Includes an 'Analytics' mode for granular Crypto and Local Network details.
     - `get_system_errors`: Retrieves the current list of active system GUI errors from the SyncThing instance.
     - `get_system_log`: Get recent log entries from the Syncthing service for troubleshooting.
     - `get_system_status`: Get comprehensive system status information, including version, uptime, memory usage, and the unique device ID.
@@ -318,4 +318,6 @@ Contributions are welcome! Please follow standard Rust coding conventions and en
 This project was started in 2026 by [Nicholas Wilde][2].
 
 [2]: <https://github.com/nicholaswilde/>
+ttps://github.com/nicholaswilde/>
+.com/nicholaswilde/>
 ttps://github.com/nicholaswilde/>
