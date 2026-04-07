@@ -5,7 +5,7 @@
 - [x] Implement `patch_device_config()` in `src/api/client.rs`. [74af92d]
 - [x] Add generic `patch_config` method to support future patching needs. [f9640f4]
 
-## Phase 2: MCP Tools Implementation
+## Phase 2: MCP Tools Implementation [checkpoint: 20d18f7]
 - [x] Create new tool `patch_instance_config`. [5e9b448]
 - [x] Integrate with `config_diff` logic to provide previews before applying changes. [89abc6f]
 - [~] Register tools in `src/tools/mod.rs`.
