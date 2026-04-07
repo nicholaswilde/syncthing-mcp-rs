@@ -110,3 +110,7 @@ debug = 0               # No debug info needed for basic CI checks
 [[example]]
 name = "verify_network_models"
 path = "scripts/verify_network_models.rs"
+
+[[example]]
+name = "verify_diagnose_network_issues"
+path = "scripts/verify_diagnose_network_issues.rs"
