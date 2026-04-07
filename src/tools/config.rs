@@ -301,3 +301,72 @@ pub async fn diff_instance_configs(
         }]
     }))
 }
+
+/// Patches the configuration of a specific resource (folder or device) or a generic config path.
+pub async fn patch_instance_config(
+    client: SyncThingClient,
+    config: AppConfig,
+    args: Value,
+) -> Result<Value> {
+    let instance_name = args.get("instance").and_then(|v| v.as_str());
+    let folder_id = args.get("folder_id").and_then(|v| v.as_str());
+    let device_id = args.get("device_id").and_then(|v| v.as_str());
+    let subpath = args.get("subpath").and_then(|v| v.as_str());
+    let patch = args.get("patch").ok_or_else(|| {
+        Error::ValidationError("patch is required".to_string())
+    })?;
+    let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(false);
+
+    let target_client = if let Some(name) = instance_name {
+        let inst_config = config
+            .get_instance(Some(name))
+            .map_err(|e| Error::ValidationError(format!("Instance not found: {}", e)))?;
+        SyncThingClient::new(inst_config.clone())
+    } else {
+        client
+    };
+
+    if dry_run {
+        let mut text = String::from("Dry Run: Proposed changes\n=========================\n\n");
+        if let Some(fid) = folder_id {
+            text.push_str(&format!("Target: Folder {}\n", fid));
+        } else if let Some(did) = device_id {
+            text.push_str(&format!("Target: Device {}\n", did));
+        } else if let Some(sp) = subpath {
+            text.push_str(&format!("Target: Config subpath {}\n", sp));
+        }
+        text.push_str(&format!("Patch: {}\n\n", serde_json::to_string_pretty(patch).unwrap()));
+        text.push_str("Use 'dry_run': false to apply these changes.");
+
+        return Ok(json!({
+            "content": [{
+                "type": "text",
+                "text": text
+            }]
+        }));
+    }
+
+    let (result, resource_type, resource_id) = if let Some(fid) = folder_id {
+        (target_client.patch_folder_config(fid, patch.clone()).await?, "folder", fid)
+    } else if let Some(did) = device_id {
+        (target_client.patch_device_config(did, patch.clone()).await?, "device", did)
+    } else if let Some(sp) = subpath {
+        (target_client.patch_config(sp, patch.clone()).await?, "config subpath", sp)
+    } else {
+        return Err(Error::ValidationError(
+            "One of folder_id, device_id, or subpath must be provided".to_string(),
+        ));
+    };
+
+    Ok(json!( {
+        "content": [{
+            "type": "text",
+            "text": format!(
+                "Successfully patched {}: {}\n\nUpdated configuration:\n{}",
+                resource_type,
+                resource_id,
+                serde_json::to_string_pretty(&result).unwrap()
+            )
+        }]
+    }))
+}
