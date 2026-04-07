@@ -11,4 +11,4 @@
 
 ## Phase 3: Verification
 - [x] Write unit and integration tests. 0928ea8
-- [ ] Update documentation.
+- [x] Update documentation. 5df9406
