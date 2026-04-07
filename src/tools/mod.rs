@@ -301,6 +301,23 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "update_gui_settings",
+        "Update the GUI/Web UI security settings for a Syncthing instance.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "enabled": { "type": "boolean", "description": "Whether the GUI is enabled." },
+                "address": { "type": "string", "description": "The address the GUI should listen on (e.g., '127.0.0.1:8384')." },
+                "user": { "type": "string", "description": "The username for GUI authentication." },
+                "password": { "type": "string", "description": "The plaintext password for GUI authentication." },
+                "useTLS": { "type": "boolean", "description": "Whether to use HTTPS for the GUI." },
+                "theme": { "type": "string", "description": "The active theme (e.g., 'default', 'dark')." }
+            }
+        }),
+        gui_settings::update_gui_settings,
+    );
+
+    registry.register(
         "get_system_status",
         "Get comprehensive system status information, including version, uptime, memory usage, and the local device ID.",
         serde_json::json!({

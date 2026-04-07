@@ -36,6 +36,27 @@ async fn test_get_gui_settings_tool() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_update_gui_settings_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx
+        .call_tool("update_gui_settings", json!({ "theme": "dark" }))
+        .await?;
+
+    let text = result["message"].as_str().unwrap();
+    assert!(text.contains("GUI settings updated successfully"));
+
+    // Verify it stuck
+    let get_result = ctx.call_tool("get_gui_settings", json!({})).await?;
+    assert_eq!(get_result["theme"].as_str().unwrap(), "dark");
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_get_system_status_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
