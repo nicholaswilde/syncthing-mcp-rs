@@ -69,6 +69,10 @@ path = "scripts/verify_api_live.rs"
 name = "test_live_config_error"
 path = "scripts/test_live_config_error.rs"
 
+[[example]]
+name = "verify_sync_ops_live"
+path = "scripts/verify_sync_ops_live.rs"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3.24"
@@ -102,3 +106,7 @@ strip = true            # Strip symbols (smaller binary)
 inherits = "dev"
 incremental = false     # Disable incremental compilation for CI
 debug = 0               # No debug info needed for basic CI checks
+
+[[example]]
+name = "verify_network_models"
+path = "scripts/verify_network_models.rs"
