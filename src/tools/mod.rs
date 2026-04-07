@@ -70,6 +70,11 @@ pub mod git_sync;
 /// Unit tests for the git_sync tool.
 #[cfg(test)]
 mod git_sync_tests;
+/// GUI settings tools.
+pub mod gui_settings;
+/// Unit tests for GUI settings tools.
+#[cfg(test)]
+mod gui_settings_tests;
 /// Unit tests for the inspect_device tool.
 #[cfg(test)]
 mod inspect_device_tests;
@@ -283,6 +288,16 @@ pub fn create_registry() -> ToolRegistry {
             "required": ["error_message"]
         }),
         system::analyze_error,
+    );
+
+    registry.register(
+        "get_gui_settings",
+        "Retrieve the GUI/Web UI security settings for a Syncthing instance. Sensitive fields like passwords and API keys are masked.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {}
+        }),
+        gui_settings::get_gui_settings,
     );
 
     registry.register(

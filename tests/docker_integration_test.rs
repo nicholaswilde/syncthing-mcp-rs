@@ -20,6 +20,22 @@ async fn test_container_starts() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_get_gui_settings_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx.call_tool("get_gui_settings", json!({})).await?;
+
+    assert_eq!(result["enabled"].as_bool().unwrap(), true);
+    assert!(result["address"].as_str().is_some());
+    assert!(result["theme"].as_str().is_some());
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_get_system_status_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
