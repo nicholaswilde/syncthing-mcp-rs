@@ -762,6 +762,43 @@ pub fn create_registry() -> ToolRegistry {
     );
 
     registry.register(
+        "patch_instance_config",
+        "Update the configuration of a folder, device, or other configuration element using a partial (patch) JSON object.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "instance": {
+                    "type": "string",
+                    "description": "Name or index of the SyncThing instance."
+                },
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder to patch."
+                },
+                "device_id": {
+                    "type": "string",
+                    "description": "The ID of the device to patch."
+                },
+                "subpath": {
+                    "type": "string",
+                    "description": "A generic configuration subpath to patch (e.g., 'gui', 'options'). Use folder_id or device_id if patching those specifically."
+                },
+                "patch": {
+                    "type": "object",
+                    "description": "The partial configuration object containing the fields to update."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, show a semantic diff of the proposed changes without applying them.",
+                    "default": false
+                }
+            },
+            "required": ["patch"]
+        }),
+        config::patch_instance_config,
+    );
+
+    registry.register(
         "diff_instance_configs",
         "Returns a detailed difference report between two SyncThing instance configurations.",
         serde_json::json!({
