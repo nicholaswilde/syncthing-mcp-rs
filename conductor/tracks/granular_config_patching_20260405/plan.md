@@ -7,8 +7,8 @@
 
 ## Phase 2: MCP Tools Implementation
 - [x] Create new tool `patch_instance_config`. [5e9b448]
-- [~] Integrate with `config_diff` logic to provide previews before applying changes.
-- [ ] Register tools in `src/tools/mod.rs`.
+- [x] Integrate with `config_diff` logic to provide previews before applying changes. [89abc6f]
+- [~] Register tools in `src/tools/mod.rs`.
 
 ## Phase 3: Verification
 - [ ] Write unit and integration tests.
