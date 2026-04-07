@@ -3,7 +3,12 @@ use syncthing_mcp_rs::api::models::Config;
 use syncthing_mcp_rs::tools::git_sync::{GitClient, GitSyncManager};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
+        println!("Skipping live test script (RUN_LIVE_TESTS not set to 1 or true)");
+        return Ok(());
+    }
     // 1. Setup Source Repo (Simulating a remote)
     let temp_source = tempfile::tempdir().expect("Failed to create source dir");
     let source_path = temp_source.path().to_path_buf();
@@ -59,7 +64,11 @@ async fn main() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({"enabled": true, "password": "secret"}),
+        gui: syncthing_mcp_rs::api::models::GuiConfig {
+            enabled: true,
+            password: Some("secret".to_string()),
+            ..Default::default()
+        },
         ldap: json!({}),
         options: json!({}),
         remote_ignored_devices: json!([]),
@@ -99,4 +108,6 @@ async fn main() {
     } else {
         println!("FAILURE: config.json missing from source repo.");
     }
+
+    Ok(())
 }

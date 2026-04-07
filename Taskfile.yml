@@ -83,7 +83,7 @@ tasks:
       - sh: test -f .env
         msg: ".env file doesn't exist"
     cmds:
-      - cargo run --example test_live_bandwidth_tools
+      - RUN_LIVE_TESTS=true cargo run --example test_live_bandwidth_tools
 
   run:verify-api:
     desc: Verify new API methods against a live SyncThing instance (requires .env)

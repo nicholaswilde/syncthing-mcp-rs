@@ -6,6 +6,11 @@ use syncthing_mcp_rs::tools::create_registry;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
+        println!("Skipping live test script (RUN_LIVE_TESTS not set to 1 or true)");
+        return Ok(());
+    }
     // Note: We assume the caller has sourced the .env file or is using `task` which does it.
     let api_key = env::var("SYNCTHING_API_KEY").expect("SYNCTHING_API_KEY must be set");
     let host = env::var("SYNCTHING_HOST").unwrap_or_else(|_| "localhost".to_string());

@@ -7,12 +7,13 @@ fn main() {
         version: 37,
         folders: vec![],
         devices: vec![],
-        gui: json!({
-            "enabled": true,
-            "user": "admin",
-            "password": "secret_password",
-            "apiKey": "very_secret_api_key"
-        }),
+        gui: syncthing_mcp_rs::api::models::GuiConfig {
+            enabled: true,
+            user: Some("admin".to_string()),
+            password: Some("secret_password".to_string()),
+            api_key: Some("very_secret_api_key".to_string()),
+            ..Default::default()
+        },
         ldap: json!({
             "enabled": true,
             "password": "ldap_password"

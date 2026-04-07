@@ -6,6 +6,12 @@ use syncthing_mcp_rs::tools::create_registry;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
+        println!("Skipping live test script (RUN_LIVE_TESTS not set to 1 or true)");
+        return Ok(());
+    }
+
     // Load .env file manually if possible, or just expect vars to be set
     // For this script, we'll assume they are set via command line or exported
 

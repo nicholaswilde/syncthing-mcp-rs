@@ -4,6 +4,11 @@ use syncthing_mcp_rs::config::AppConfig;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
+        println!("Skipping live test script (RUN_LIVE_TESTS not set to 1 or true)");
+        return Ok(());
+    }
     let api_key = env::var("SYNCTHING_API_KEY").expect("SYNCTHING_API_KEY must be set");
     let host = env::var("SYNCTHING_HOST").unwrap_or_else(|_| "localhost".to_string());
     let port = env::var("SYNCTHING_PORT")
@@ -31,6 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n--- Testing set_gui_config (Dry Run / Verify) ---");
     // We only fetch it again to prove the endpoint works, as setting live config might be dangerous
     // but the get endpoint validates our models properly.
-    
+
     Ok(())
 }

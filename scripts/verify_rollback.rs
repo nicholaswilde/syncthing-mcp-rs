@@ -2,7 +2,12 @@ use syncthing_mcp_rs::api::models::Config;
 use syncthing_mcp_rs::tools::git_sync::GitSyncManager;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
+        println!("Skipping live test script (RUN_LIVE_TESTS not set to 1 or true)");
+        return Ok(());
+    }
     let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let repo_path = temp_dir.path().to_path_buf();
 
@@ -69,4 +74,6 @@ async fn main() {
             restored.version
         );
     }
+
+    Ok(())
 }

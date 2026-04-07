@@ -67,7 +67,8 @@ impl LiveTestContext {
 
 #[tokio::test]
 async fn test_live_system_status() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -80,7 +81,8 @@ async fn test_live_system_status() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_list_folders() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -97,7 +99,8 @@ async fn test_live_list_folders() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_get_system_stats() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -112,7 +115,8 @@ async fn test_live_get_system_stats() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_get_sync_status() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -161,7 +165,8 @@ async fn test_live_get_sync_status() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_browse_folder() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -188,7 +193,8 @@ async fn test_live_browse_folder() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_manage_devices() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -205,7 +211,8 @@ async fn test_live_manage_devices() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_manage_ignores() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
@@ -232,7 +239,8 @@ async fn test_live_manage_ignores() -> Result<()> {
 
 #[tokio::test]
 async fn test_live_get_events() -> Result<()> {
-    if std::env::var("RUN_LIVE_TESTS").unwrap_or_default() != "true" {
+    let run_live = std::env::var("RUN_LIVE_TESTS").unwrap_or_default();
+    if run_live != "1" && run_live != "true" {
         return Ok(());
     }
 
