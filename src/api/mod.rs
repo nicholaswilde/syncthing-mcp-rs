@@ -23,6 +23,9 @@ pub mod sync_ops_models_tests;
 /// Unit tests for the API client.
 #[cfg(test)]
 pub mod tests;
+/// Unit tests for configuration patching.
+#[cfg(test)]
+pub mod patch_tests;
 
 pub use client::SyncThingClient;
 pub use models::*;

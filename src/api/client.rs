@@ -197,6 +197,19 @@ impl SyncThingClient {
         Ok(())
     }
 
+    /// Patches the configuration for a specific folder and returns the updated configuration.
+    pub async fn patch_folder_config(
+        &self,
+        folder_id: &str,
+        patch: serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        tracing::debug!("Patching SyncThing folder config: {}", folder_id);
+        let url = format!("{}/rest/config/folders/{}", self.config.url, folder_id);
+        let request = self.add_auth(self.client.patch(&url)).json(&patch);
+        let response = self.send_with_retry(request).await?;
+        Ok(response.json::<serde_json::Value>().await?)
+    }
+
     /// Returns the ignore patterns for a specific folder.
     pub async fn get_ignores(&self, folder_id: &str) -> Result<IgnoreConfig> {
         tracing::debug!(
@@ -342,8 +355,16 @@ impl SyncThingClient {
     }
 
     /// Moves a specific file to the top of the download queue.
-    pub async fn set_file_priority(&self, folder_id: &str, file_path: &str) -> Result<FolderNeedResponse> {
-        tracing::debug!("Setting file priority for '{}' in folder '{}'", file_path, folder_id);
+    pub async fn set_file_priority(
+        &self,
+        folder_id: &str,
+        file_path: &str,
+    ) -> Result<FolderNeedResponse> {
+        tracing::debug!(
+            "Setting file priority for '{}' in folder '{}'",
+            file_path,
+            folder_id
+        );
         let url = format!("{}/rest/db/prio", self.config.url);
         let request = self
             .add_auth(self.client.post(&url))
@@ -351,7 +372,6 @@ impl SyncThingClient {
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<FolderNeedResponse>().await?)
     }
-
 
     /// Restarts SyncThing.
     pub async fn restart(&self) -> Result<()> {
