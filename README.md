@@ -78,6 +78,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `set_file_priority`: Moves a specific file to the top of the download queue for a folder.
     - `set_performance_profile`: Set the active performance profile (e.g., 'working_hours', 'overnight', 'full_speed').
     - `summarize_conflicts`: Provides an actionable summary of conflicts across all folders, grouped by folder with counts and sizes.
+    - `update_gui_settings`: Update the GUI/Web UI security settings for a Syncthing instance.
 
 ## :package: Installation
 
@@ -321,5 +322,8 @@ Contributions are welcome! Please follow standard Rust coding conventions and en
 ## :writing_hand: Author
 
 This project was started in 2026 by [Nicholas Wilde][2].
+
+[2]: <https://github.com/nicholaswilde/>
+as Wilde][2].
 
 [2]: <https://github.com/nicholaswilde/>
