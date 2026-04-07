@@ -7,7 +7,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Folder:** [./tracks/system_maintenance_and_lifecycle_20260405/index.md]
 
 ---
-## [ ] Track: GUI & Web Security Management
+## [x] Track: GUI & Web Security Management
 - **Folder:** [./tracks/gui_security_management_20260405/index.md]
 
 ---
