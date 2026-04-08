@@ -1,5 +1,4 @@
 use crate::api::client::SyncThingClient;
-use crate::api::models::GuiConfig;
 use crate::config::{AppConfig, InstanceConfig};
 use crate::tools::gui_settings::{get_gui_settings, update_gui_settings};
 use serde_json::json;

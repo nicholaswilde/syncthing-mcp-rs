@@ -1,4 +1,3 @@
-use serde_json::json;
 use syncthing_mcp_rs::api::models::Config;
 use syncthing_mcp_rs::tools::git_sync::{GitClient, GitSyncManager};
 

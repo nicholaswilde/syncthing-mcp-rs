@@ -65,9 +65,11 @@ mod tests {
 
         let client = SyncThingClient::new(config);
 
-        let mut new_gui_config = GuiConfig::default();
-        new_gui_config.enabled = true;
-        new_gui_config.theme = "light".to_string();
+        let new_gui_config = GuiConfig {
+            enabled: true,
+            theme: "light".to_string(),
+            ..Default::default()
+        };
 
         let result = client.set_gui_config(&new_gui_config).await;
 
