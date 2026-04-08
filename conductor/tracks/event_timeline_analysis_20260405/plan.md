@@ -6,8 +6,8 @@
 
 ## Phase 2: MCP Tools Implementation
 - [x] Create new tool `get_event_timeline`. (a6a8b23)
-- [~] Implement basic "Intelligence" to highlight critical event patterns.
-- [ ] Register tools in `src/tools/mod.rs`.
+- [x] Implement basic "Intelligence" to highlight critical event patterns. (8b16349)
+- [~] Register tools in `src/tools/mod.rs`.
 
 ## Phase 3: Verification
 - [ ] Write unit and integration tests.
