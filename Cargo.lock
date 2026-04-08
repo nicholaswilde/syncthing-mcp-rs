@@ -3284,7 +3284,7 @@ dependencies = [
 
 [[package]]
 name = "syncthing-mcp-rs"
-version = "0.1.18"
+version = "0.1.19"
 dependencies = [
  "anyhow",
  "async-recursion",
