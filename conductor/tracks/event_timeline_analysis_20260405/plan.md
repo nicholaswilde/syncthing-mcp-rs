@@ -9,6 +9,6 @@
 - [x] Implement basic "Intelligence" to highlight critical event patterns. (8b16349)
 - [x] Register tools in `src/tools/mod.rs`. (a6a8b23)
 
-## Phase 3: Verification
+## Phase 3: Verification [checkpoint: 78bd499]
 - [x] Write unit and integration tests. (6458996)
 - [x] Update documentation. (1b99dcc)
