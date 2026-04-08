@@ -5,8 +5,8 @@
 - [x] Define summary models for different event types to reduce token usage in timelines. (234b0ac)
 
 ## Phase 2: MCP Tools Implementation
-- [ ] Create new tool `get_event_timeline`.
-- [ ] Implement basic "Intelligence" to highlight critical event patterns.
+- [x] Create new tool `get_event_timeline`. (a6a8b23)
+- [~] Implement basic "Intelligence" to highlight critical event patterns.
 - [ ] Register tools in `src/tools/mod.rs`.
 
 ## Phase 3: Verification
