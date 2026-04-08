@@ -45,4 +45,54 @@ mod tests {
         let text = result["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Folder 'f1' changed state from idle to syncing"));
     }
+
+    #[tokio::test]
+    async fn test_get_event_timeline_intelligence() {
+        let mock_server = MockServer::start().await;
+        let now = Utc::now();
+        
+        // Mock a flap: connected, disconnected, connected within a short time.
+        let e1_time = (now - ChronoDuration::minutes(5)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e2_time = (now - ChronoDuration::minutes(4)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e3_time = (now - ChronoDuration::minutes(3)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+
+        Mock::given(method("GET"))
+            .and(path("/rest/events"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+                {
+                    "id": 1,
+                    "type": "DeviceConnected",
+                    "time": e1_time,
+                    "data": { "device": "d1", "addr": "1.2.3.4", "type": "tcp-client" }
+                },
+                {
+                    "id": 2,
+                    "type": "DeviceDisconnected",
+                    "time": e2_time,
+                    "data": { "device": "d1", "error": "connection reset" }
+                },
+                {
+                    "id": 3,
+                    "type": "DeviceConnected",
+                    "time": e3_time,
+                    "data": { "device": "d1", "addr": "1.2.3.4", "type": "tcp-client" }
+                }
+            ])))
+            .mount(&mock_server)
+            .await;
+
+        let config = InstanceConfig {
+            url: mock_server.uri(),
+            api_key: Some("test".to_string()),
+            ..Default::default()
+        };
+        let client = SyncThingClient::new(config);
+        let app_config = AppConfig::default();
+
+        let args = json!({ "duration_s": 3600 });
+        let result = get_event_timeline(client, app_config, args).await.unwrap();
+
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("Insight: Rapid flapping detected for device 'd1'"));
+    }
 }
