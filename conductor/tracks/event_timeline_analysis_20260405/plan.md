@@ -1,6 +1,6 @@
 # Implementation Plan: Event Timeline Analysis
 
-## Phase 1: API Client & Logic
+## Phase 1: API Client & Logic [checkpoint: 53bc8a9]
 - [x] Implement time-based event filtering logic in `SyncThingClient`. (7a0ea64)
 - [x] Define summary models for different event types to reduce token usage in timelines. (234b0ac)
 
