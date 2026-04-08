@@ -152,4 +152,25 @@ mod tests {
         assert!(event.data.is_none());
         assert_eq!(event.summary(), "Event: ListenAddressesChanged");
     }
+
+    #[test]
+    fn test_event_to_summary() {
+        let json = r#"{
+            "id": 1,
+            "type": "FolderStateChanged",
+            "time": "2023-01-01T00:00:00Z",
+            "data": {
+                "folder": "f1",
+                "from": "idle",
+                "to": "syncing"
+            }
+        }"#;
+        let event: Event = serde_json::from_str(json).unwrap();
+        let summary = event.to_summary();
+
+        assert_eq!(summary.id, 1);
+        assert_eq!(summary.event_type, "FolderStateChanged");
+        assert_eq!(summary.time, "2023-01-01T00:00:00Z");
+        assert_eq!(summary.summary, "Folder 'f1' changed state from idle to syncing");
+    }
 }

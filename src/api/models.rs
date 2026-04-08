@@ -180,7 +180,31 @@ pub struct Event {
     pub data: Option<EventData>,
 }
 
+/// A summarized version of an event for timeline analysis.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct EventSummary {
+    /// The event ID.
+    pub id: u64,
+    /// The type of event.
+    #[serde(rename = "type")]
+    pub event_type: String,
+    /// The time the event occurred.
+    pub time: String,
+    /// A human-readable summary of the event.
+    pub summary: String,
+}
+
 impl Event {
+    /// Converts the event to a summarized version.
+    pub fn to_summary(&self) -> EventSummary {
+        EventSummary {
+            id: self.id,
+            event_type: self.event_type.clone(),
+            time: self.time.clone(),
+            summary: self.summary(),
+        }
+    }
+
     /// Returns a human-readable summary of the event.
     pub fn summary(&self) -> String {
         match &self.data {
