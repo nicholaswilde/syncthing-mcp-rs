@@ -2,7 +2,7 @@
 
 ## Phase 1: API Client & Logic
 - [x] Implement time-based event filtering logic in `SyncThingClient`. (7a0ea64)
-- [ ] Define summary models for different event types to reduce token usage in timelines.
+- [x] Define summary models for different event types to reduce token usage in timelines. (234b0ac)
 
 ## Phase 2: MCP Tools Implementation
 - [ ] Create new tool `get_event_timeline`.
