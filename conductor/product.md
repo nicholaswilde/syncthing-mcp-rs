@@ -27,6 +27,7 @@ A high-performance, secure Model Context Protocol (MCP) server written in Rust t
 - **Device Management**: Manage devices (list, add, remove, pause, resume), approve pending requests, and validate/format device IDs.
 - **System Monitoring**: Access comprehensive system status, version information, real-time connection monitoring with transfer stats, local and global discovery status, system logs for troubleshooting, and high-level instance health overviews.
 - **Sync Status**: Query detailed synchronization status, completion percentage, and granular statistics (last seen, last scan, last synced file) for folders and devices; perform granular file-level diagnostics and identify specific files needed for synchronization; manage file-level synchronization priority and monitor per-device completion status.
+- **Event Timeline Analysis**: Retrospective debugging and monitoring with time-windowed event summaries and basic pattern detection (e.g., rapid device flapping).
 - **Manage Ignores**: View and modify SyncThing ignore patterns (.stignore).
 - **Error Diagnostics**: Analyze and diagnose common SyncThing errors, providing actionable advice.
 - **System Maintenance**: Trigger rescans, restart or shut down SyncThing, and clear system errors.

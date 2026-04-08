@@ -36,6 +36,7 @@
 ## Principal Rust Dependencies (Inferred)
 - **tokio**: Asynchronous runtime.
 - **tokio-retry**: Exponential backoff and retry strategy for async tasks.
+- **chrono**: Date and time handling for event filtering and timelines.
 - **reqwest**: For communicating with the SyncThing REST API.
 - **serde**, **serde_json**, **toml**: For configuration and API parsing.
 - **keyring**: OS Keyring integration.
