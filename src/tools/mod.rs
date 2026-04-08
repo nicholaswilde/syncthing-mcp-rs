@@ -60,6 +60,11 @@ pub mod diff;
 /// Unit tests for advanced diffing tools.
 #[cfg(test)]
 mod diff_tests;
+/// Event timeline tools.
+pub mod event_timeline;
+/// Unit tests for event timeline tools.
+#[cfg(test)]
+mod event_timeline_tests;
 /// Folder management tools.
 pub mod folders;
 /// Unit tests for the folders tool.
@@ -268,6 +273,22 @@ pub fn create_registry() -> ToolRegistry {
             "properties": {}
         }),
         system::get_instance_health,
+    );
+
+    registry.register(
+        "get_event_timeline",
+        "Retrieves a summarized timeline of recent SyncThing events for retrospective debugging and monitoring.",
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "duration_s": {
+                    "type": "integer",
+                    "description": "The time duration in seconds to look back (default: 3600).",
+                    "default": 3600
+                }
+            }
+        }),
+        event_timeline::get_event_timeline,
     );
 
     registry.register(
