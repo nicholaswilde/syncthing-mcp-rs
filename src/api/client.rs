@@ -1,6 +1,7 @@
 use crate::api::models::*;
 use crate::config::InstanceConfig;
 use crate::error::{Error, Result};
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use std::collections::HashMap;
 use std::time::Duration;
 use tokio_retry::Retry;
@@ -521,6 +522,38 @@ impl SyncThingClient {
 
         let response = self.send_with_retry(request).await?;
         Ok(response.json::<Vec<Event>>().await?)
+    }
+
+    /// Returns events that occurred within the last duration.
+    pub async fn get_events_since_duration(&self, duration: Duration) -> Result<Vec<Event>> {
+        tracing::debug!("Fetching SyncThing events since duration: {:?}", duration);
+
+        let now = Utc::now();
+        let cutoff = now
+            - ChronoDuration::from_std(duration).map_err(|e| Error::Internal(e.to_string()))?;
+
+        self.get_events_since_time(cutoff).await
+    }
+
+    /// Returns events that occurred after the given time.
+    pub async fn get_events_since_time(&self, cutoff: DateTime<Utc>) -> Result<Vec<Event>> {
+        tracing::debug!("Fetching SyncThing events since time: {:?}", cutoff);
+
+        // Fetch a large batch and filter.
+        let events = self.get_events(None, Some(1000)).await?;
+
+        let filtered: Vec<Event> = events
+            .into_iter()
+            .filter(|e| {
+                if let Ok(dt) = DateTime::parse_from_rfc3339(&e.time) {
+                    dt.with_timezone(&Utc) >= cutoff
+                } else {
+                    false
+                }
+            })
+            .collect();
+
+        Ok(filtered)
     }
 
     /// Browses a folder.

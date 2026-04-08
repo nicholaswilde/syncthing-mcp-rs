@@ -9,6 +9,9 @@ pub mod config_sync_error_client_tests;
 /// Unit tests for event parsing and summaries.
 #[cfg(test)]
 pub mod event_tests;
+/// Unit tests for event timeline logic.
+#[cfg(test)]
+pub mod event_timeline_tests;
 /// Unit tests for GUI client methods.
 #[cfg(test)]
 pub mod gui_client_tests;
