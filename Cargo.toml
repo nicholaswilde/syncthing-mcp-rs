@@ -126,3 +126,7 @@ path = "scripts/verify_phase1.rs"
 [[example]]
 name = "verify_phase2"
 path = "scripts/verify_phase2.rs"
+
+[[example]]
+name = "verify_event_timeline_phase1"
+path = "scripts/verify_event_timeline_phase1.rs"
