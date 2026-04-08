@@ -116,8 +116,13 @@ impl McpServer {
             }
 
             tokio::select! {
-                line = reader.next_line() => {
-                    let line = line?;
+                _ = shutdown_rx.changed() => {
+                    if *shutdown_rx.borrow() {
+                        break;
+                    }
+                }
+                line_res = reader.next_line() => {
+                    let line = line_res?;
                     if let Some(line) = line {
                         let input = line.trim();
                         if input.is_empty() {
@@ -175,11 +180,6 @@ impl McpServer {
                         }
                     } else {
                         // rx closed
-                        break;
-                    }
-                }
-                _ = shutdown_rx.changed() => {
-                    if *shutdown_rx.borrow() {
                         break;
                     }
                 }

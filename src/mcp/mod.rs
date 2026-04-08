@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod conflict_tests;
 #[cfg(test)]
+mod duplex_tests;
+#[cfg(test)]
 mod error_integration_tests;
 #[cfg(test)]
 mod event_tests;

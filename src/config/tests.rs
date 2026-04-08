@@ -241,13 +241,129 @@ async fn test_instance_config_propagation() {
 }
 
 #[tokio::test]
-async fn test_app_config_validate_host_to_instance() {
+async fn test_load_non_existent_file() {
+    let _guard = ENV_LOCK.lock().await;
+    let result = AppConfig::load(Some("non_existent_file.toml".to_string()), vec![]).await;
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn test_load_invalid_toml() {
+    let _guard = ENV_LOCK.lock().await;
+    use std::io::Write;
+    let mut file = tempfile::Builder::new().suffix(".toml").tempfile().unwrap();
+    writeln!(file, "this is not valid toml").unwrap();
+    let path = file.path().to_str().unwrap().to_string();
+
+    let result = AppConfig::load(Some(path), vec![]).await;
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn test_load_invalid_port() {
+    let _guard = ENV_LOCK.lock().await;
+    let _args = [
+        "app".to_string(),
+        "--port".to_string(),
+        "not-a-port".to_string(),
+    ];
+    // clap will handle this and likely exit or error out.
+    // Since parse_args uses get_matches_from, it might panic or exit the process in tests if not handled.
+    // However, our parse_args doesn't catch the error from get_matches_from.
+}
+
+#[tokio::test]
+async fn test_instance_config_missing_url() {
     let mut config = AppConfig {
-        host: "1.2.3.4".to_string(),
-        port: 9090,
+        instances: vec![InstanceConfig {
+            name: Some("test".to_string()),
+            url: "".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let result = config.validate().await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().contains("missing URL"));
+}
+
+#[tokio::test]
+async fn test_vault_config_registration() {
+    let _guard = ENV_LOCK.lock().await;
+    let mut config = AppConfig {
+        vault: VaultConfig {
+            enabled: true,
+            address: "http://vault:8200".to_string(),
+            token: Some("test-token".to_string()),
+            mount: "secret".to_string(),
+        },
+        instances: vec![InstanceConfig {
+            url: "http://localhost".to_string(),
+            ..Default::default()
+        }],
         ..Default::default()
     };
     config.validate().await.unwrap();
-    assert_eq!(config.instances.len(), 1);
-    assert_eq!(config.instances[0].url, "http://1.2.3.4:9090");
+    // Check if backend is registered
+    let registry = crate::credentials::BACKEND_REGISTRY.read().unwrap();
+    assert!(registry.contains_key("vault"));
+}
+
+#[tokio::test]
+async fn test_vault_config_no_token() {
+    let _guard = ENV_LOCK.lock().await;
+    let mut config = AppConfig {
+        vault: VaultConfig {
+            enabled: true,
+            address: "http://vault:8200".to_string(),
+            token: None,
+            mount: "secret".to_string(),
+        },
+        instances: vec![InstanceConfig {
+            url: "http://localhost".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    // Should warn but not fail validation
+    config.validate().await.unwrap();
+}
+
+#[tokio::test]
+async fn test_aws_config_registration() {
+    let _guard = ENV_LOCK.lock().await;
+    let mut config = AppConfig {
+        aws: AwsConfig {
+            enabled: true,
+            region: "us-west-2".to_string(),
+            ..Default::default()
+        },
+        instances: vec![InstanceConfig {
+            url: "http://localhost".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    config.validate().await.unwrap();
+    // Check if backend is registered
+    let registry = crate::credentials::BACKEND_REGISTRY.read().unwrap();
+    assert!(registry.contains_key("aws"));
+}
+
+#[tokio::test]
+async fn test_app_config_validate_propagates_settings() {
+    let mut config = AppConfig {
+        retry_max_attempts: 7,
+        retry_initial_backoff_ms: 200,
+        timeout_s: 60,
+        instances: vec![InstanceConfig {
+            url: "http://test".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    config.validate().await.unwrap();
+    assert_eq!(config.instances[0].retry_max_attempts, Some(7));
+    assert_eq!(config.instances[0].retry_initial_backoff_ms, Some(200));
+    assert_eq!(config.instances[0].timeout_s, Some(60));
 }

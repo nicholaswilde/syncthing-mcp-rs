@@ -21,7 +21,7 @@ pub trait CredentialBackend: Send + Sync {
 }
 
 lazy_static! {
-    static ref BACKEND_REGISTRY: RwLock<HashMap<String, Arc<dyn CredentialBackend>>> = {
+    pub(crate) static ref BACKEND_REGISTRY: RwLock<HashMap<String, Arc<dyn CredentialBackend>>> = {
         let mut m: HashMap<String, Arc<dyn CredentialBackend>> = HashMap::new();
         m.insert("keyring".to_string(), Arc::new(KeyringBackend));
         RwLock::new(m)
@@ -398,3 +398,6 @@ mod vault_tests;
 
 #[cfg(test)]
 mod aws_tests;
+
+#[cfg(test)]
+mod mock_tests;
