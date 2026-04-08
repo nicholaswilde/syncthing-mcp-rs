@@ -19,6 +19,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 - **Instance Configuration Management:** Generate detailed difference reports between instances; perform additive merges of folders and devices from a source to a target; synchronize configurations with granular control and safety previews.
 - **Granular Configuration Patching:** Update specific folder or device settings using partial JSON patches with dry-run support and semantic diff previews.
 - **Network Performance Analytics:** Access detailed connection protocol information, cryptographic status, and automated network diagnostics to troubleshoot connectivity issues.
+- **Event Timeline Analysis:** Retrospective debugging and monitoring with time-windowed event summaries and basic pattern detection (e.g., rapid device flapping).
 - **Event Notifications:** Receive real-time MCP notifications for key Syncthing events (e.g., folder state changes, device connections).
 - **Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (**TOML**).
@@ -46,6 +47,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `get_device_statistics`: Get detailed connection statistics for all devices, including last seen time and last connection duration.
     - `get_device_sync_status`: Retrieves synchronization completion status for a specific device, optionally filtered by folder.
     - `get_discovery_status`: Get the current status of the local and global discovery mechanisms, listing announced addresses for all known devices.
+    - `get_event_timeline`: Retrieves a summarized timeline of recent SyncThing events for retrospective debugging and monitoring. Includes basic intelligence to highlight critical patterns like rapid flapping.
     - `get_file_info`: Get detailed metadata and availability information for a specific file in a folder.
     - `get_folder_needs`: Get the list of files that are needed to bring a folder up to date.
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
