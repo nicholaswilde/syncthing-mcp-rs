@@ -73,6 +73,23 @@ async fn test_get_system_status_tool() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_get_event_timeline_tool() -> Result<()> {
+    if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
+        return Ok(());
+    }
+
+    let ctx = TestContext::new().await?;
+    let result = ctx
+        .call_tool("get_event_timeline", json!({ "duration_s": 3600 }))
+        .await?;
+
+    let text = result["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("Event Timeline"));
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_list_instances_tool() -> Result<()> {
     if std::env::var("RUN_DOCKER_TESTS").unwrap_or_default() != "true" {
         return Ok(());
