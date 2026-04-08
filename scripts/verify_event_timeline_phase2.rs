@@ -1,5 +1,5 @@
-use std::env;
 use serde_json::json;
+use std::env;
 use syncthing_mcp_rs::api::client::SyncThingClient;
 use syncthing_mcp_rs::config::{AppConfig, InstanceConfig};
 use syncthing_mcp_rs::tools::event_timeline::get_event_timeline;
@@ -27,10 +27,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("--- Testing get_event_timeline tool (last 1 hour) ---");
     let args = json!({ "duration_s": 3600 });
     let result = get_event_timeline(client, app_config, args).await?;
-    
+
     let text = result["content"][0]["text"].as_str().unwrap();
     println!("Tool Output:\n{}", text);
-    
+
     if text.contains("Event Timeline") {
         println!("✅ get_event_timeline tool successful!");
     } else {

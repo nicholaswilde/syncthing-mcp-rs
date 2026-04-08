@@ -21,6 +21,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
 - **Network Performance Analytics:** Access detailed connection protocol information, cryptographic status, and automated network diagnostics to troubleshoot connectivity issues.
 - **Event Timeline Analysis:** Retrospective debugging and monitoring with time-windowed event summaries and basic pattern detection (e.g., rapid device flapping).
 - **Event Notifications:** Receive real-time MCP notifications for key Syncthing events (e.g., folder state changes, device connections).
+- **GUI & Security Management:** Retrieve and update Syncthing GUI settings, including HTTPS/TLS, authentication, and themes, with automatic masking of sensitive credentials.
 - **Conflict Management:** Metadata-driven conflict detection and resolution with support for semantic diffing (JSON/YAML) and resolution previews.
 - **Robust Configuration:** Supports configuration via CLI arguments, environment variables, and configuration files (**TOML**).
 - **Security & Privacy:**
@@ -52,6 +53,7 @@ A Rust implementation of a [Syncthing](https://syncthing.net/) [MCP (Model Conte
     - `get_folder_needs`: Get the list of files that are needed to bring a folder up to date.
     - `get_folder_statistics`: Get detailed statistics for all folders, including last scan time and information about the last synced file.
     - `get_global_dashboard`: Get a high-level overview of all configured SyncThing instances, including aggregated transfer rates and network health.
+    - `get_gui_settings`: Retrieve the GUI/Web UI security settings for a Syncthing instance. Sensitive fields like passwords and API keys are masked.
     - `get_instance_health`: Get detailed health information for a specific Syncthing instance, including connectivity, version, uptime, and resource usage.
     - `get_instance_overview`: Provides a top-level health and status report for a SyncThing instance, consolidating system status, connections, and version information.
     - `get_sync_status`: Get detailed synchronization status, state, and completion percentage for a specific folder or device.
@@ -324,8 +326,5 @@ Contributions are welcome! Please follow standard Rust coding conventions and en
 ## :writing_hand: Author
 
 This project was started in 2026 by [Nicholas Wilde][2].
-
-[2]: <https://github.com/nicholaswilde/>
-as Wilde][2].
 
 [2]: <https://github.com/nicholaswilde/>

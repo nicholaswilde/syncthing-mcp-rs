@@ -23,12 +23,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Test get_events_since_duration
     println!("--- Testing get_events_since_duration (last 1 hour) ---");
-    let events = client.get_events_since_duration(Duration::from_secs(3600)).await?;
+    let events = client
+        .get_events_since_duration(Duration::from_secs(3600))
+        .await?;
     println!("Found {} events in the last hour.", events.len());
-    
+
     if !events.is_empty() {
         println!("✅ get_events_since_duration successful!");
-        
+
         // 2. Test to_summary
         println!("\n--- Testing to_summary on the first event ---");
         let first_event = &events[0];
@@ -36,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Original Event ID: {}", first_event.id);
         println!("Summary ID: {}", summary.id);
         println!("Summary Text: {}", summary.summary);
-        
+
         if first_event.id == summary.id && !summary.summary.is_empty() {
             println!("✅ to_summary successful!");
         } else {

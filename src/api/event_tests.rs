@@ -171,6 +171,9 @@ mod tests {
         assert_eq!(summary.id, 1);
         assert_eq!(summary.event_type, "FolderStateChanged");
         assert_eq!(summary.time, "2023-01-01T00:00:00Z");
-        assert_eq!(summary.summary, "Folder 'f1' changed state from idle to syncing");
+        assert_eq!(
+            summary.summary,
+            "Folder 'f1' changed state from idle to syncing"
+        );
     }
 }

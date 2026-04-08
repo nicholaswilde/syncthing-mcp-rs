@@ -529,8 +529,8 @@ impl SyncThingClient {
         tracing::debug!("Fetching SyncThing events since duration: {:?}", duration);
 
         let now = Utc::now();
-        let cutoff = now
-            - ChronoDuration::from_std(duration).map_err(|e| Error::Internal(e.to_string()))?;
+        let cutoff =
+            now - ChronoDuration::from_std(duration).map_err(|e| Error::Internal(e.to_string()))?;
 
         self.get_events_since_time(cutoff).await
     }

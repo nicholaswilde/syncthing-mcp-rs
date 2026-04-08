@@ -3,7 +3,7 @@ mod tests {
     use crate::api::client::SyncThingClient;
     use crate::config::{AppConfig, InstanceConfig};
     use crate::tools::event_timeline::get_event_timeline;
-    use chrono::{Utc, Duration as ChronoDuration};
+    use chrono::{Duration as ChronoDuration, Utc};
     use serde_json::json;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -12,7 +12,8 @@ mod tests {
     async fn test_get_event_timeline_tool() {
         let mock_server = MockServer::start().await;
         let now = Utc::now();
-        let e1_time = (now - ChronoDuration::minutes(10)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e1_time =
+            (now - ChronoDuration::minutes(10)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
 
         Mock::given(method("GET"))
             .and(path("/rest/events"))
@@ -50,11 +51,14 @@ mod tests {
     async fn test_get_event_timeline_intelligence() {
         let mock_server = MockServer::start().await;
         let now = Utc::now();
-        
+
         // Mock a flap: connected, disconnected, connected within a short time.
-        let e1_time = (now - ChronoDuration::minutes(5)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
-        let e2_time = (now - ChronoDuration::minutes(4)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
-        let e3_time = (now - ChronoDuration::minutes(3)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e1_time =
+            (now - ChronoDuration::minutes(5)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e2_time =
+            (now - ChronoDuration::minutes(4)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let e3_time =
+            (now - ChronoDuration::minutes(3)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
 
         Mock::given(method("GET"))
             .and(path("/rest/events"))
