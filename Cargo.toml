@@ -3,6 +3,8 @@ name = "syncthing-mcp-rs"
 version = "0.1.20"
 edition = "2024"
 rust-version = "1.91.0"
+authors = ["Nicholas Wilde <ncwilde43@gmail.com>"]
+description = "A Model Context Protocol (MCP) server for Syncthing"
 
 [dependencies]
 anyhow = "1.0"
@@ -13,7 +15,12 @@ config = { version = "0.15", default-features = false, features = ["toml"] }
 dashmap = "6.1"
 futures = "0.3"
 lazy_static = "1.5"
-reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "multipart", "query"] }
+reqwest = { version = "0.13", default-features = false, features = [
+  "json",
+  "rustls",
+  "multipart",
+  "query",
+] }
 semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -99,17 +106,17 @@ path = "scripts/verify_rollback.rs"
 
 # Profile for final production releases (smaller, faster)
 [profile.release]
-opt-level = "z"         # Optimize for size
-lto = true              # Link Time Optimization (smaller binary)
-codegen-units = 1       # Reduce parallel code generation for better optimization
-panic = "abort"         # Remove stack unwinding (smaller binary)
-strip = true            # Strip symbols (smaller binary)
+opt-level = "z"   # Optimize for size
+lto = true        # Link Time Optimization (smaller binary)
+codegen-units = 1 # Reduce parallel code generation for better optimization
+panic = "abort"   # Remove stack unwinding (smaller binary)
+strip = true      # Strip symbols (smaller binary)
 
 # Profile for CI/CD builds (inherits from dev)
 [profile.ci]
 inherits = "dev"
-incremental = false     # Disable incremental compilation for CI
-debug = 0               # No debug info needed for basic CI checks
+incremental = false # Disable incremental compilation for CI
+debug = 0           # No debug info needed for basic CI checks
 
 [[example]]
 name = "verify_network_models"
@@ -134,3 +141,23 @@ path = "scripts/verify_event_timeline_phase1.rs"
 [[example]]
 name = "verify_event_timeline_phase2"
 path = "scripts/verify_event_timeline_phase2.rs"
+
+[package.metadata.deb]
+maintainer = "Nicholas Wilde <ncwilde43@gmail.com>"
+copyright = "2026 Nicholas Wilde"
+license-file = ["LICENSE", "4"]
+extended-description = "A Model Context Protocol (MCP) server for Syncthing."
+section = "utils"
+priority = "optional"
+assets = [
+  [
+    "target/release/syncthing-mcp-rs",
+    "usr/bin/",
+    "755",
+  ],
+  [
+    "README.md",
+    "usr/share/doc/syncthing-mcp-rs/README.md",
+    "644",
+  ],
+]
